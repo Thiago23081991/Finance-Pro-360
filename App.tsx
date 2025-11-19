@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Transaction, Goal, AppConfig, FilterState } from './types';
 import { DEFAULT_CONFIG, MONTH_NAMES } from './constants';
@@ -16,30 +15,35 @@ interface FinanceAppProps {
   onLogout: () => void;
 }
 
+// Helper function to safely parse JSON from localStorage
+const safeJsonParse = <T,>(key: string, fallback: T): T => {
+  try {
+    const item = localStorage.getItem(key);
+    return item ? JSON.parse(item) : fallback;
+  } catch (error) {
+    console.error(`Error parsing ${key} from localStorage:`, error);
+    return fallback;
+  }
+};
+
 // --- Authenticated Application Component ---
-// This handles the app logic ONCE the user is logged in.
-// We separate this so that `useState` initializers run again when the user changes (remounting).
 const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
-  // Helper to get scoped local storage keys
   const getStorageKey = (key: string) => `fp360_data_${user}_${key}`;
 
-  // State Management (Scoped to User)
+  // State Management with Safe Parsing
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   
-  const [transactions, setTransactions] = useState<Transaction[]>(() => {
-    const saved = localStorage.getItem(getStorageKey('transactions'));
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [transactions, setTransactions] = useState<Transaction[]>(() => 
+    safeJsonParse(getStorageKey('transactions'), [])
+  );
   
-  const [goals, setGoals] = useState<Goal[]>(() => {
-      const saved = localStorage.getItem(getStorageKey('goals'));
-      return saved ? JSON.parse(saved) : [];
-  });
+  const [goals, setGoals] = useState<Goal[]>(() => 
+    safeJsonParse(getStorageKey('goals'), [])
+  );
   
-  const [config, setConfig] = useState<AppConfig>(() => {
-      const saved = localStorage.getItem(getStorageKey('config'));
-      return saved ? JSON.parse(saved) : DEFAULT_CONFIG;
-  });
+  const [config, setConfig] = useState<AppConfig>(() => 
+    safeJsonParse(getStorageKey('config'), DEFAULT_CONFIG)
+  );
 
   // Filter State
   const [filter, setFilter] = useState<FilterState>({
@@ -49,7 +53,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
       paymentMethod: 'Todas'
   });
 
-  // Persistence (Scoped to User)
+  // Persistence
   useEffect(() => { localStorage.setItem(getStorageKey('transactions'), JSON.stringify(transactions)); }, [transactions, user]);
   useEffect(() => { localStorage.setItem(getStorageKey('goals'), JSON.stringify(goals)); }, [goals, user]);
   useEffect(() => { localStorage.setItem(getStorageKey('config'), JSON.stringify(config)); }, [config, user]);
@@ -94,7 +98,6 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
               </select>
           </div>
           
-          {/* Extra filters visible only on dashboard */}
           {activeTab === 'dashboard' && (
             <>
                 <select 
@@ -120,7 +123,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
 
   return (
     <div className="flex h-screen bg-[#f3f4f6] text-slate-800 font-sans overflow-hidden">
-      {/* Sidebar */}
+      {/* Sidebar - Desktop */}
       <aside className="w-64 bg-slate-900 text-white flex flex-col shadow-xl z-20 hidden md:flex">
         <div className="p-6 border-b border-slate-800">
             <h1 className="text-lg font-bold tracking-tight flex items-center gap-2">
@@ -236,7 +239,6 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
 };
 
 // --- Root App Component ---
-// Handles Auth State
 function App() {
   const [currentUser, setCurrentUser] = useState<string | null>(() => {
       return localStorage.getItem('fp360_active_session');
@@ -256,8 +258,6 @@ function App() {
       return <Login onLogin={handleLogin} />;
   }
 
-  // We use the `key` prop here to force a full remount of FinanceApp when user changes.
-  // This ensures all `useState` hooks inside FinanceApp re-initialize with the new user's data.
   return <FinanceApp key={currentUser} user={currentUser} onLogout={handleLogout} />;
 }
 
