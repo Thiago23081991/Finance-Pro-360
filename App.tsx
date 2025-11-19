@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Transaction, Goal, AppConfig, FilterState } from './types';
 import { DEFAULT_CONFIG, MONTH_NAMES } from './constants';
@@ -5,23 +6,38 @@ import { Dashboard } from './components/Dashboard';
 import { SheetView } from './components/SheetView';
 import { GoalsSheet } from './components/GoalsSheet';
 import { Settings } from './components/Settings';
-import { LayoutDashboard, CreditCard, TrendingUp, Target, Settings as SettingsIcon, Menu, Filter } from 'lucide-react';
+import { Login } from './components/Login';
+import { LayoutDashboard, CreditCard, TrendingUp, Target, Settings as SettingsIcon, Menu, Filter, LogOut } from 'lucide-react';
 
 type Tab = 'dashboard' | 'receitas' | 'despesas' | 'metas' | 'config';
 
-function App() {
-  // State Management
+interface FinanceAppProps {
+  user: string;
+  onLogout: () => void;
+}
+
+// --- Authenticated Application Component ---
+// This handles the app logic ONCE the user is logged in.
+// We separate this so that `useState` initializers run again when the user changes (remounting).
+const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
+  // Helper to get scoped local storage keys
+  const getStorageKey = (key: string) => `fp360_data_${user}_${key}`;
+
+  // State Management (Scoped to User)
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
+  
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
-    const saved = localStorage.getItem('transactions');
+    const saved = localStorage.getItem(getStorageKey('transactions'));
     return saved ? JSON.parse(saved) : [];
   });
+  
   const [goals, setGoals] = useState<Goal[]>(() => {
-      const saved = localStorage.getItem('goals');
+      const saved = localStorage.getItem(getStorageKey('goals'));
       return saved ? JSON.parse(saved) : [];
   });
+  
   const [config, setConfig] = useState<AppConfig>(() => {
-      const saved = localStorage.getItem('config');
+      const saved = localStorage.getItem(getStorageKey('config'));
       return saved ? JSON.parse(saved) : DEFAULT_CONFIG;
   });
 
@@ -33,10 +49,10 @@ function App() {
       paymentMethod: 'Todas'
   });
 
-  // Persistence
-  useEffect(() => { localStorage.setItem('transactions', JSON.stringify(transactions)); }, [transactions]);
-  useEffect(() => { localStorage.setItem('goals', JSON.stringify(goals)); }, [goals]);
-  useEffect(() => { localStorage.setItem('config', JSON.stringify(config)); }, [config]);
+  // Persistence (Scoped to User)
+  useEffect(() => { localStorage.setItem(getStorageKey('transactions'), JSON.stringify(transactions)); }, [transactions, user]);
+  useEffect(() => { localStorage.setItem(getStorageKey('goals'), JSON.stringify(goals)); }, [goals, user]);
+  useEffect(() => { localStorage.setItem(getStorageKey('config'), JSON.stringify(config)); }, [config, user]);
 
   // Handlers
   const addTransaction = (t: Transaction) => setTransactions(prev => [...prev, t]);
@@ -56,7 +72,7 @@ function App() {
       { id: 'config', label: 'Configurações', icon: <SettingsIcon size={20} /> },
   ];
 
-  // Filter Component (Rendered in Header)
+  // Filter Component
   const FilterBar = () => (
       <div className="flex items-center gap-3 text-sm">
           <div className="flex items-center bg-white rounded-md border border-slate-300 px-3 py-1.5 shadow-sm">
@@ -112,7 +128,10 @@ function App() {
                 Finance Pro 360
             </h1>
         </div>
-        <nav className="flex-1 p-4 space-y-1">
+        <div className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+            Menu Principal
+        </div>
+        <nav className="flex-1 px-4 space-y-1">
             {menuItems.map(item => (
                 <button
                     key={item.id}
@@ -128,8 +147,27 @@ function App() {
                 </button>
             ))}
         </nav>
-        <div className="p-4 border-t border-slate-800 text-xs text-slate-500 text-center">
-            v1.0.0 • Local Storage
+        <div className="p-4 border-t border-slate-800">
+            <div className="flex items-center justify-between px-2 mb-3">
+                <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-white">
+                        {user.substring(0, 2).toUpperCase()}
+                    </div>
+                    <div className="text-sm font-medium text-slate-200 truncate max-w-[100px]" title={user}>
+                        {user}
+                    </div>
+                </div>
+                <button 
+                    onClick={onLogout}
+                    className="text-slate-500 hover:text-rose-500 transition-colors" 
+                    title="Sair"
+                >
+                    <LogOut size={18} />
+                </button>
+            </div>
+            <div className="text-xs text-slate-600 text-center pt-2 border-t border-slate-800">
+                Finance Pro 360 © 2030
+            </div>
         </div>
       </aside>
 
@@ -195,6 +233,32 @@ function App() {
       </main>
     </div>
   );
+};
+
+// --- Root App Component ---
+// Handles Auth State
+function App() {
+  const [currentUser, setCurrentUser] = useState<string | null>(() => {
+      return localStorage.getItem('fp360_active_session');
+  });
+
+  const handleLogin = (user: string) => {
+      localStorage.setItem('fp360_active_session', user);
+      setCurrentUser(user);
+  };
+
+  const handleLogout = () => {
+      localStorage.removeItem('fp360_active_session');
+      setCurrentUser(null);
+  };
+
+  if (!currentUser) {
+      return <Login onLogin={handleLogin} />;
+  }
+
+  // We use the `key` prop here to force a full remount of FinanceApp when user changes.
+  // This ensures all `useState` hooks inside FinanceApp re-initialize with the new user's data.
+  return <FinanceApp key={currentUser} user={currentUser} onLogout={handleLogout} />;
 }
 
 export default App;
