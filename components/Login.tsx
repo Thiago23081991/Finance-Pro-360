@@ -11,6 +11,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [isRegistering, setIsRegistering] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -18,7 +19,11 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
   useEffect(() => {
     const savedUser = localStorage.getItem('fp360_saved_user');
     const savedPass = localStorage.getItem('fp360_saved_pass');
-    if (savedUser) setUsername(savedUser);
+    
+    if (savedUser) {
+        setUsername(savedUser);
+        setRememberMe(true); // Se tem dados salvos, marca o checkbox
+    }
     if (savedPass) setPassword(savedPass);
   }, []);
 
@@ -28,6 +33,16 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
     hasUpperCase: /[A-Z]/.test(password),
     hasNumber: /[0-9]/.test(password),
     hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+  };
+
+  const handleSaveCredentials = () => {
+    if (rememberMe) {
+        localStorage.setItem('fp360_saved_user', username);
+        localStorage.setItem('fp360_saved_pass', password);
+    } else {
+        localStorage.removeItem('fp360_saved_user');
+        localStorage.removeItem('fp360_saved_pass');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -56,19 +71,14 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 createdAt: new Date().toISOString()
             });
             
-            // Salvar credenciais para sempre lembrar
-            localStorage.setItem('fp360_saved_user', username);
-            localStorage.setItem('fp360_saved_pass', password);
+            handleSaveCredentials();
 
             // Auto login after register
             onLogin(username);
         } else {
             const isValid = await DBService.loginUser(username, password);
             if (isValid) {
-                // Salvar credenciais para sempre lembrar
-                localStorage.setItem('fp360_saved_user', username);
-                localStorage.setItem('fp360_saved_pass', password);
-                
+                handleSaveCredentials();
                 onLogin(username);
             } else {
                 setError('Usuário ou senha incorretos.');
@@ -140,6 +150,20 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     </div>
                 </div>
             )}
+          </div>
+
+          {/* Checkbox Remember Me */}
+          <div className="flex items-center gap-2 ml-1">
+            <input 
+                type="checkbox" 
+                id="rememberMe"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500 cursor-pointer"
+            />
+            <label htmlFor="rememberMe" className="text-sm text-slate-600 cursor-pointer select-none">
+                Lembrar minhas credenciais
+            </label>
           </div>
 
           {error && (
