@@ -1,6 +1,6 @@
-
 import React, { useState } from 'react';
-import { Lock, User, ArrowRight, Wallet } from 'lucide-react';
+import { Lock, User, ArrowRight, Wallet, Database, Loader2 } from 'lucide-react';
+import { DBService } from '../db';
 
 interface LoginProps {
   onLogin: (username: string) => void;
@@ -11,49 +11,61 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
 
     if (!username || !password) {
       setError('Preencha todos os campos.');
+      setIsLoading(false);
       return;
     }
 
-    const storedUsers = localStorage.getItem('fp360_users');
-    const users = storedUsers ? JSON.parse(storedUsers) : {};
-
-    if (isRegistering) {
-      if (users[username]) {
-        setError('Usuário já existe.');
-        return;
-      }
-      // Register new user (Simple storage simulation)
-      users[username] = password;
-      localStorage.setItem('fp360_users', JSON.stringify(users));
-      onLogin(username);
-    } else {
-      if (users[username] && users[username] === password) {
-        onLogin(username);
-      } else {
-        setError('Usuário ou senha incorretos.');
-      }
+    try {
+        if (isRegistering) {
+            await DBService.registerUser({
+                username,
+                password,
+                createdAt: new Date().toISOString()
+            });
+            // Auto login after register
+            onLogin(username);
+        } else {
+            const isValid = await DBService.loginUser(username, password);
+            if (isValid) {
+                onLogin(username);
+            } else {
+                setError('Usuário ou senha incorretos.');
+            }
+        }
+    } catch (err: any) {
+        setError(err.message || 'Ocorreu um erro no banco de dados.');
+    } finally {
+        setIsLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f3f4f6] p-4">
-      <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-200 animate-fade-in">
-        <div className="text-center mb-8">
+      <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-200 animate-fade-in relative overflow-hidden">
+        {/* Background decorative element */}
+        <div className="absolute top-0 right-0 -mt-10 -mr-10 w-32 h-32 bg-blue-50 rounded-full z-0 opacity-50"></div>
+
+        <div className="text-center mb-8 relative z-10">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-xl mb-4 shadow-lg shadow-blue-200">
              <Wallet className="text-white" size={32} />
           </div>
           <h1 className="text-2xl font-bold text-slate-800">Finance Pro 360</h1>
-          <p className="text-slate-500 mt-2">Gestão financeira inteligente.</p>
+          <p className="text-slate-500 mt-2 flex items-center justify-center gap-2">
+            <Database size={14} className="text-emerald-500"/>
+            Database Enterprise Local
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 relative z-10">
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase mb-1 ml-1">Usuário</label>
             <div className="relative">
@@ -63,7 +75,8 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="w-full border border-slate-300 rounded-lg py-2.5 pl-10 pr-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                placeholder="Seu nome de usuário"
+                placeholder="Seu ID de acesso"
+                disabled={isLoading}
               />
             </div>
           </div>
@@ -77,38 +90,48 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full border border-slate-300 rounded-lg py-2.5 pl-10 pr-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                placeholder="Sua senha segura"
+                placeholder="Sua credencial"
+                disabled={isLoading}
               />
             </div>
           </div>
 
           {error && (
-            <div className="p-3 rounded-lg bg-rose-50 text-rose-600 text-sm font-medium text-center border border-rose-100">
+            <div className="p-3 rounded-lg bg-rose-50 text-rose-600 text-sm font-medium text-center border border-rose-100 animate-fade-in">
               {error}
             </div>
           )}
 
           <button 
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20"
+            disabled={isLoading}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20 disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            {isRegistering ? 'Criar Conta' : 'Entrar no Sistema'}
-            <ArrowRight size={18} />
+            {isLoading ? (
+                <Loader2 className="animate-spin" size={20} />
+            ) : (
+                <>
+                    {isRegistering ? 'Criar Conta Segura' : 'Acessar Sistema'}
+                    <ArrowRight size={18} />
+                </>
+            )}
           </button>
         </form>
 
-        <div className="mt-6 text-center">
+        <div className="mt-6 text-center relative z-10">
           <button 
             onClick={() => { setIsRegistering(!isRegistering); setError(''); }}
             className="text-sm text-slate-500 hover:text-blue-600 font-medium transition-colors"
+            disabled={isLoading}
           >
-            {isRegistering ? 'Já tem uma conta? Faça Login' : 'Não tem conta? Cadastre-se'}
+            {isRegistering ? 'Já possui cadastro? Faça Login' : 'Novo usuário? Criar banco de dados'}
           </button>
         </div>
       </div>
       
-      <div className="fixed bottom-4 text-xs text-slate-400">
-        © 2030 Finance Pro 360 Inc.
+      <div className="fixed bottom-4 text-xs text-slate-400 flex flex-col items-center">
+        <span>© 2030 Finance Pro 360 Inc.</span>
+        <span className="text-[10px] opacity-70">Powered by IndexedDB Technology</span>
       </div>
     </div>
   );

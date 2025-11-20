@@ -23,6 +23,7 @@ export const GoalsSheet: React.FC<GoalsSheetProps> = ({ goals, onAdd, onDelete, 
 
         const newGoal: Goal = {
             id: generateId(),
+            userId: 'temp', // Placeholder, handled by App controller
             name,
             targetValue: targetVal,
             currentValue: currentVal,

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Transaction, Goal, AppConfig, FilterState } from './types';
 import { DEFAULT_CONFIG, MONTH_NAMES } from './constants';
@@ -6,7 +7,10 @@ import { SheetView } from './components/SheetView';
 import { GoalsSheet } from './components/GoalsSheet';
 import { Settings } from './components/Settings';
 import { Login } from './components/Login';
-import { LayoutDashboard, CreditCard, TrendingUp, Target, Settings as SettingsIcon, Menu, Filter, LogOut } from 'lucide-react';
+import { Toast } from './components/Toast';
+import { Tutorial, TutorialStepTarget } from './components/Tutorial';
+import { DBService } from './db';
+import { LayoutDashboard, CreditCard, TrendingUp, Target, Settings as SettingsIcon, Menu, Filter, LogOut, Loader2 } from 'lucide-react';
 
 type Tab = 'dashboard' | 'receitas' | 'despesas' | 'metas' | 'config';
 
@@ -15,35 +19,23 @@ interface FinanceAppProps {
   onLogout: () => void;
 }
 
-// Helper function to safely parse JSON from localStorage
-const safeJsonParse = <T,>(key: string, fallback: T): T => {
-  try {
-    const item = localStorage.getItem(key);
-    return item ? JSON.parse(item) : fallback;
-  } catch (error) {
-    console.error(`Error parsing ${key} from localStorage:`, error);
-    return fallback;
-  }
-};
-
 // --- Authenticated Application Component ---
 const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
-  const getStorageKey = (key: string) => `fp360_data_${user}_${key}`;
-
-  // State Management with Safe Parsing
+  
+  // State Management
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
+  const [loading, setLoading] = useState(true);
   
-  const [transactions, setTransactions] = useState<Transaction[]>(() => 
-    safeJsonParse(getStorageKey('transactions'), [])
-  );
-  
-  const [goals, setGoals] = useState<Goal[]>(() => 
-    safeJsonParse(getStorageKey('goals'), [])
-  );
-  
-  const [config, setConfig] = useState<AppConfig>(() => 
-    safeJsonParse(getStorageKey('config'), DEFAULT_CONFIG)
-  );
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [goals, setGoals] = useState<Goal[]>([]);
+  const [config, setConfig] = useState<AppConfig>(DEFAULT_CONFIG);
+
+  // Toast Notification State
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastAction, setToastAction] = useState<{label: string, fn: () => void} | undefined>(undefined);
+
+  // Tutorial State
+  const [showTutorial, setShowTutorial] = useState(false);
 
   // Filter State
   const [filter, setFilter] = useState<FilterState>({
@@ -53,19 +45,139 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
       paymentMethod: 'Todas'
   });
 
-  // Persistence
-  useEffect(() => { localStorage.setItem(getStorageKey('transactions'), JSON.stringify(transactions)); }, [transactions, user]);
-  useEffect(() => { localStorage.setItem(getStorageKey('goals'), JSON.stringify(goals)); }, [goals, user]);
-  useEffect(() => { localStorage.setItem(getStorageKey('config'), JSON.stringify(config)); }, [config, user]);
+  // Initial Data Fetch from Database
+  useEffect(() => {
+    const fetchData = async () => {
+        setLoading(true);
+        try {
+            const [txs, gls, cfg] = await Promise.all([
+                DBService.getTransactions(user),
+                DBService.getGoals(user),
+                DBService.getConfig(user)
+            ]);
+            
+            setTransactions(txs);
+            setGoals(gls);
+            // Merge with defaults to ensure new fields exist
+            const mergedConfig = { ...DEFAULT_CONFIG, ...cfg };
+            setConfig(mergedConfig);
 
-  // Handlers
-  const addTransaction = (t: Transaction) => setTransactions(prev => [...prev, t]);
-  const updateTransaction = (t: Transaction) => setTransactions(prev => prev.map(x => x.id === t.id ? t : x));
-  const deleteTransaction = (id: string) => setTransactions(prev => prev.filter(x => x.id !== id));
+            // Check for tutorial
+            if (mergedConfig.hasSeenTutorial === false) {
+                // Slight delay to allow UI to settle
+                setTimeout(() => setShowTutorial(true), 500);
+            }
+
+        } catch (error) {
+            console.error("Failed to load data from DB", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+    fetchData();
+  }, [user]);
+
+  // Reminder Logic
+  useEffect(() => {
+      if (!loading && config.enableReminders && !showTutorial) {
+          // Default check: If last seen goals was more than 3 days ago
+          const lastSeen = config.lastSeenGoals ? new Date(config.lastSeenGoals) : new Date(0);
+          const now = new Date();
+          const diffTime = Math.abs(now.getTime() - lastSeen.getTime());
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+          // If > 3 days (using 3 for demo purposes, typically 7)
+          if (diffDays > 3) {
+              // Slight delay to not overwhelm user on immediate load
+              const timer = setTimeout(() => {
+                  setToastMessage("Faz um tempo que você não atualiza suas metas. Que tal conferir seu progresso hoje?");
+                  setToastAction({
+                      label: "Ver Metas",
+                      fn: () => handleTabChange('metas')
+                  });
+              }, 3000);
+              return () => clearTimeout(timer);
+          }
+      }
+  }, [loading, config.enableReminders, showTutorial]);
+
+  // Enhanced Tab Change Handler to track usage
+  const handleTabChange = async (tab: Tab) => {
+    setActiveTab(tab);
+    
+    // If user visits 'metas', update the lastSeenGoals timestamp
+    if (tab === 'metas') {
+        const now = new Date().toISOString();
+        // We update local state immediately
+        const newConfig = { ...config, lastSeenGoals: now };
+        setConfig(newConfig);
+        
+        // And save to DB
+        const configWithUser = { ...newConfig, userId: user };
+        await DBService.saveConfig(configWithUser);
+        
+        // Dismiss related toast if exists
+        if (toastMessage && toastMessage.includes("metas")) {
+            setToastMessage(null);
+        }
+    }
+  };
+
+  // Handlers with Async DB Updates
+  const addTransaction = async (t: Transaction) => {
+      const tWithUser = { ...t, userId: user };
+      await DBService.addTransaction(tWithUser);
+      setTransactions(prev => [...prev, tWithUser]);
+  };
+
+  const updateTransaction = async (t: Transaction) => {
+      const tWithUser = { ...t, userId: user }; // Ensure userId stays
+      await DBService.addTransaction(tWithUser); // put acts as update
+      setTransactions(prev => prev.map(x => x.id === t.id ? tWithUser : x));
+  };
+
+  const deleteTransaction = async (id: string) => {
+      await DBService.deleteTransaction(id);
+      setTransactions(prev => prev.filter(x => x.id !== id));
+  };
   
-  const addGoal = (g: Goal) => setGoals(prev => [...prev, g]);
-  const deleteGoal = (id: string) => setGoals(prev => prev.filter(x => x.id !== id));
-  const updateGoalValue = (id: string, val: number) => setGoals(prev => prev.map(x => x.id === id ? {...x, currentValue: val} : x));
+  const addGoal = async (g: Goal) => {
+      const gWithUser = { ...g, userId: user };
+      await DBService.saveGoal(gWithUser);
+      setGoals(prev => [...prev, gWithUser]);
+  };
+
+  const deleteGoal = async (id: string) => {
+      await DBService.deleteGoal(id);
+      setGoals(prev => prev.filter(x => x.id !== id));
+  };
+
+  const updateGoalValue = async (id: string, val: number) => {
+      const goal = goals.find(g => g.id === id);
+      if (goal) {
+          const updatedGoal = { ...goal, currentValue: val };
+          await DBService.saveGoal(updatedGoal);
+          setGoals(prev => prev.map(x => x.id === id ? updatedGoal : x));
+      }
+  };
+
+  const updateConfig = async (newConfig: AppConfig) => {
+      const configWithUser = { ...newConfig, userId: user };
+      await DBService.saveConfig(configWithUser);
+      setConfig(configWithUser);
+  };
+
+  const handleTutorialComplete = async () => {
+      setShowTutorial(false);
+      const newConfig = { ...config, hasSeenTutorial: true };
+      setConfig(newConfig); // Update local state first for speed
+      await updateConfig(newConfig); // Persist
+  };
+
+  const handleTutorialStepChange = (target: TutorialStepTarget) => {
+      // Just switch the tab visually, don't trigger DB updates associated with tab switching
+      setActiveTab(target as Tab);
+  };
 
   // Sidebar Menu
   const menuItems = [
@@ -121,6 +233,17 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
       </div>
   );
 
+  if (loading) {
+      return (
+          <div className="h-screen w-full flex items-center justify-center bg-[#f3f4f6]">
+              <div className="flex flex-col items-center gap-4">
+                  <Loader2 className="animate-spin text-blue-600" size={48} />
+                  <p className="text-slate-500 font-medium animate-pulse">Carregando banco de dados seguro...</p>
+              </div>
+          </div>
+      );
+  }
+
   return (
     <div className="flex h-screen bg-[#f3f4f6] text-slate-800 font-sans overflow-hidden">
       {/* Sidebar - Desktop */}
@@ -138,7 +261,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
             {menuItems.map(item => (
                 <button
                     key={item.id}
-                    onClick={() => setActiveTab(item.id as Tab)}
+                    onClick={() => handleTabChange(item.id as Tab)}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
                         activeTab === item.id 
                         ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/50 translate-x-1' 
@@ -229,10 +352,29 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
             {activeTab === 'config' && (
                 <Settings 
                     config={config} 
-                    onUpdateConfig={setConfig} 
+                    onUpdateConfig={updateConfig} 
+                    transactions={transactions}
                 />
             )}
         </div>
+
+        {/* Toast Notifications */}
+        {toastMessage && (
+            <Toast 
+                message={toastMessage} 
+                onClose={() => setToastMessage(null)}
+                actionLabel={toastAction?.label}
+                onAction={toastAction?.fn}
+            />
+        )}
+
+        {/* Tutorial Overlay */}
+        {showTutorial && (
+            <Tutorial 
+                onComplete={handleTutorialComplete}
+                onStepChange={handleTutorialStepChange}
+            />
+        )}
       </main>
     </div>
   );

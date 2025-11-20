@@ -1,3 +1,4 @@
+
 import { AppConfig } from "./types";
 
 export const DEFAULT_CONFIG: AppConfig = {
@@ -17,7 +18,10 @@ export const DEFAULT_CONFIG: AppConfig = {
     "Crédito",
     "PIX",
     "Dinheiro"
-  ]
+  ],
+  enableReminders: true,
+  lastSeenGoals: new Date().toISOString(),
+  hasSeenTutorial: false
 };
 
 export const MONTH_NAMES = [

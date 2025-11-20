@@ -1,7 +1,9 @@
+
 export type TransactionType = 'income' | 'expense';
 
 export interface Transaction {
   id: string;
+  userId: string; // Link to the user
   date: string; // ISO Date string
   amount: number;
   category: string;
@@ -12,6 +14,7 @@ export interface Transaction {
 
 export interface Goal {
   id: string;
+  userId: string; // Link to the user
   name: string;
   targetValue: number;
   currentValue: number;
@@ -19,8 +22,14 @@ export interface Goal {
 }
 
 export interface AppConfig {
+  userId?: string;
   categories: string[];
   paymentMethods: string[];
+  // New fields for Reminders
+  enableReminders?: boolean;
+  lastSeenGoals?: string; // ISO Date of last time user checked/updated goals
+  // Tutorial flag
+  hasSeenTutorial?: boolean;
 }
 
 export interface FilterState {
@@ -28,4 +37,10 @@ export interface FilterState {
   year: number;
   category: string;
   paymentMethod: string;
+}
+
+export interface UserAccount {
+  username: string;
+  password: string; // In a real app, this should be hashed. For client-side demo, plain text is stored locally.
+  createdAt: string;
 }

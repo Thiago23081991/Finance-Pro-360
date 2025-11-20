@@ -35,6 +35,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
 
     const transaction: Transaction = {
       id: generateId(),
+      userId: 'temp', // Placeholder, handled by App controller
       type,
       date: newDate,
       amount: parseFloat(newAmount),
