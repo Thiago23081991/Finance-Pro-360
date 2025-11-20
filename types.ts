@@ -44,3 +44,10 @@ export interface UserAccount {
   password: string; // In a real app, this should be hashed. For client-side demo, plain text is stored locally.
   createdAt: string;
 }
+
+export interface PurchaseRequest {
+  id: string;
+  userId: string;
+  requestDate: string;
+  status: 'pending' | 'approved' | 'rejected';
+}

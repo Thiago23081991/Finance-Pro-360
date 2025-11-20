@@ -1,17 +1,41 @@
-import React, { useState } from 'react';
-import { AppConfig, Transaction } from '../types';
-import { Trash2, Plus, FileSpreadsheet, Download, AlertCircle, Bell } from 'lucide-react';
-import { exportToCSV } from '../utils';
+
+import React, { useState, useEffect } from 'react';
+import { AppConfig, Transaction, PurchaseRequest } from '../types';
+import { Trash2, Plus, FileSpreadsheet, Download, AlertCircle, Bell, CreditCard, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { exportToCSV, generateId } from '../utils';
+import { DBService } from '../db';
 
 interface SettingsProps {
     config: AppConfig;
     onUpdateConfig: (c: AppConfig) => void;
-    transactions: Transaction[]; // Added to support export
+    transactions: Transaction[]; 
 }
 
 export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, transactions }) => {
     const [newCat, setNewCat] = useState('');
     const [newMethod, setNewMethod] = useState('');
+    const [purchaseRequest, setPurchaseRequest] = useState<PurchaseRequest | null>(null);
+    const [loadingReq, setLoadingReq] = useState(false);
+
+    useEffect(() => {
+        if (config.userId) {
+            DBService.getPurchaseRequest(config.userId).then(setPurchaseRequest);
+        }
+    }, [config.userId]);
+
+    const handleRequestPurchase = async () => {
+        if (!config.userId) return;
+        setLoadingReq(true);
+        const req: PurchaseRequest = {
+            id: generateId(),
+            userId: config.userId,
+            requestDate: new Date().toISOString(),
+            status: 'pending'
+        };
+        await DBService.savePurchaseRequest(req);
+        setPurchaseRequest(req);
+        setLoadingReq(false);
+    };
 
     const addCat = () => {
         if(newCat && !config.categories.includes(newCat)) {
@@ -42,6 +66,48 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
     return (
         <div className="max-w-5xl mx-auto animate-fade-in space-y-6 pb-10">
             
+            {/* Purchase / License Section */}
+            <div className="bg-gradient-to-r from-indigo-500 to-blue-600 p-6 rounded-xl shadow-lg text-white border border-blue-400">
+                <div className="flex justify-between items-start">
+                    <div>
+                        <h3 className="text-xl font-bold flex items-center gap-2 mb-2">
+                            <CreditCard className="text-white" size={24} />
+                            Assinatura Finance Pro 360
+                        </h3>
+                        <p className="text-blue-100 text-sm max-w-lg">
+                            Adquira a licença vitalícia para desbloquear recursos exclusivos e suporte prioritário. 
+                            Sua solicitação será enviada diretamente para o administrador.
+                        </p>
+                    </div>
+                    
+                    <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm min-w-[200px] text-center">
+                        {!purchaseRequest ? (
+                            <button 
+                                onClick={handleRequestPurchase}
+                                disabled={loadingReq}
+                                className="w-full bg-white text-blue-600 font-bold py-2 px-4 rounded hover:bg-blue-50 transition-colors shadow-sm"
+                            >
+                                {loadingReq ? 'Enviando...' : 'Solicitar Compra'}
+                            </button>
+                        ) : (
+                            <div className="flex flex-col items-center">
+                                <span className="text-xs uppercase tracking-widest text-blue-200 mb-1">Status</span>
+                                <div className="flex items-center gap-2 font-bold text-lg">
+                                    {purchaseRequest.status === 'approved' && <><CheckCircle size={20} /> Ativo</>}
+                                    {purchaseRequest.status === 'pending' && <><Clock size={20} /> Em Análise</>}
+                                    {purchaseRequest.status === 'rejected' && <><XCircle size={20} /> Recusado</>}
+                                </div>
+                                <p className="text-[10px] text-blue-200 mt-1">
+                                    {purchaseRequest.status === 'pending' && 'Aguardando aprovação do Admin.'}
+                                    {purchaseRequest.status === 'approved' && 'Licença válida.'}
+                                    {purchaseRequest.status === 'rejected' && 'Entre em contato com suporte.'}
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+
             {/* Reminders Settings */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                 <h3 className="text-lg font-semibold text-slate-700 flex items-center gap-2 mb-4">
@@ -86,18 +152,6 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                         <Download size={18} />
                         Exportar .CSV
                     </button>
-                </div>
-                <div className="mt-4 bg-emerald-50 border border-emerald-100 rounded-lg p-4 flex gap-3 items-start">
-                    <AlertCircle size={18} className="text-emerald-600 mt-0.5 shrink-0" />
-                    <div className="text-sm text-emerald-800">
-                        <p className="font-semibold mb-1">Como importar no Google Sheets?</p>
-                        <ol className="list-decimal list-inside space-y-1 text-emerald-700">
-                            <li>Clique no botão "Exportar .CSV" acima para baixar o arquivo.</li>
-                            <li>No Google Sheets, vá em <strong>Arquivo &gt; Importar &gt; Upload</strong>.</li>
-                            <li>Selecione o arquivo baixado.</li>
-                            <li>O sistema detectará automaticamente as colunas de Data, Valor e Categoria.</li>
-                        </ol>
-                    </div>
                 </div>
             </div>
 

@@ -15,6 +15,8 @@ interface ErrorBoundaryState {
 // Error Boundary Component to catch crashes and prevent White Screen of Death
 class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   public state: ErrorBoundaryState;
+  // Explicitly declare props to fix TypeScript error in strict mode
+  declare props: Readonly<ErrorBoundaryProps>;
 
   constructor(props: ErrorBoundaryProps) {
     super(props);

@@ -6,13 +6,14 @@ import { Dashboard } from './components/Dashboard';
 import { SheetView } from './components/SheetView';
 import { GoalsSheet } from './components/GoalsSheet';
 import { Settings } from './components/Settings';
+import { AdminPanel } from './components/AdminPanel';
 import { Login } from './components/Login';
 import { Toast } from './components/Toast';
 import { Tutorial, TutorialStepTarget } from './components/Tutorial';
 import { DBService } from './db';
-import { LayoutDashboard, CreditCard, TrendingUp, Target, Settings as SettingsIcon, Menu, Filter, LogOut, Loader2 } from 'lucide-react';
+import { LayoutDashboard, CreditCard, TrendingUp, Target, Settings as SettingsIcon, Menu, Filter, LogOut, Loader2, ShieldCheck } from 'lucide-react';
 
-type Tab = 'dashboard' | 'receitas' | 'despesas' | 'metas' | 'config';
+type Tab = 'dashboard' | 'receitas' | 'despesas' | 'metas' | 'config' | 'admin';
 
 interface FinanceAppProps {
   user: string;
@@ -22,6 +23,9 @@ interface FinanceAppProps {
 // --- Authenticated Application Component ---
 const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
   
+  // Define admin users here
+  const isAdmin = user === 'admin' || user === 'Thiago Nascimento';
+
   // State Management
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [loading, setLoading] = useState(true);
@@ -50,6 +54,8 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
     const fetchData = async () => {
         setLoading(true);
         try {
+            // Se for admin, talvez queira carregar dados diferentes, mas por enquanto mantemos o fluxo padrão
+            // O componente AdminPanel carrega seus próprios dados
             const [txs, gls, cfg] = await Promise.all([
                 DBService.getTransactions(user),
                 DBService.getGoals(user),
@@ -62,8 +68,8 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
             const mergedConfig = { ...DEFAULT_CONFIG, ...cfg };
             setConfig(mergedConfig);
 
-            // Check for tutorial
-            if (mergedConfig.hasSeenTutorial === false) {
+            // Check for tutorial (skip for admin)
+            if (!isAdmin && mergedConfig.hasSeenTutorial === false) {
                 // Slight delay to allow UI to settle
                 setTimeout(() => setShowTutorial(true), 500);
             }
@@ -75,11 +81,11 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
         }
     };
     fetchData();
-  }, [user]);
+  }, [user, isAdmin]);
 
   // Reminder Logic
   useEffect(() => {
-      if (!loading && config.enableReminders && !showTutorial) {
+      if (!loading && config.enableReminders && !showTutorial && !isAdmin) {
           // Default check: If last seen goals was more than 3 days ago
           const lastSeen = config.lastSeenGoals ? new Date(config.lastSeenGoals) : new Date(0);
           const now = new Date();
@@ -99,7 +105,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
               return () => clearTimeout(timer);
           }
       }
-  }, [loading, config.enableReminders, showTutorial]);
+  }, [loading, config.enableReminders, showTutorial, isAdmin]);
 
   // Enhanced Tab Change Handler to track usage
   const handleTabChange = async (tab: Tab) => {
@@ -180,13 +186,18 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
   };
 
   // Sidebar Menu
-  const menuItems = [
+  let menuItems = [
       { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
       { id: 'receitas', label: 'Receitas', icon: <TrendingUp size={20} /> },
       { id: 'despesas', label: 'Despesas', icon: <CreditCard size={20} /> },
       { id: 'metas', label: 'Metas', icon: <Target size={20} /> },
       { id: 'config', label: 'Configurações', icon: <SettingsIcon size={20} /> },
   ];
+
+  // Insert Admin Tab if needed
+  if (isAdmin) {
+      menuItems.push({ id: 'admin', label: 'Administração', icon: <ShieldCheck size={20} /> });
+  }
 
   // Filter Component
   const FilterBar = () => (
@@ -276,11 +287,14 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
         <div className="p-4 border-t border-slate-800">
             <div className="flex items-center justify-between px-2 mb-3">
                 <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-white">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white ${isAdmin ? 'bg-indigo-600 ring-2 ring-indigo-400' : 'bg-slate-700'}`}>
                         {user.substring(0, 2).toUpperCase()}
                     </div>
-                    <div className="text-sm font-medium text-slate-200 truncate max-w-[100px]" title={user}>
-                        {user}
+                    <div>
+                        <div className="text-sm font-medium text-slate-200 truncate max-w-[100px]" title={user}>
+                            {user}
+                        </div>
+                        {isAdmin && <span className="text-[10px] text-indigo-400 font-semibold uppercase">Administrator</span>}
                     </div>
                 </div>
                 <button 
@@ -304,7 +318,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
             <div className="flex items-center gap-4">
                 <button className="md:hidden text-slate-500"><Menu /></button>
                 <h2 className="text-lg font-semibold text-slate-800 capitalize">
-                    {activeTab.replace('config', 'Configurações')}
+                    {activeTab === 'admin' ? 'Painel Administrativo' : activeTab.replace('config', 'Configurações')}
                 </h2>
             </div>
             <FilterBar />
@@ -355,6 +369,10 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                     onUpdateConfig={updateConfig} 
                     transactions={transactions}
                 />
+            )}
+
+            {activeTab === 'admin' && isAdmin && (
+                <AdminPanel />
             )}
         </div>
 

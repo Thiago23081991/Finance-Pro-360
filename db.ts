@@ -1,8 +1,9 @@
-import { Transaction, Goal, AppConfig, UserAccount } from "./types";
+
+import { Transaction, Goal, AppConfig, UserAccount, PurchaseRequest } from "./types";
 import { DEFAULT_CONFIG } from "./constants";
 
 const DB_NAME = 'FinancePro360_EnterpriseDB';
-const DB_VERSION = 2; // Incrementado para garantir a criação da store 'configs'
+const DB_VERSION = 3; // Incrementado para purchase_requests
 
 // Database Schema Definition
 export class DBService {
@@ -34,9 +35,15 @@ export class DBService {
           store.createIndex('by_user', 'userId', { unique: false });
         }
 
-        // Config Store - Added in Version 2
+        // Config Store
         if (!db.objectStoreNames.contains('configs')) {
           db.createObjectStore('configs', { keyPath: 'userId' });
+        }
+
+        // Purchase Requests Store (New in v3)
+        if (!db.objectStoreNames.contains('purchase_requests')) {
+          const store = db.createObjectStore('purchase_requests', { keyPath: 'userId' }); // One request per user
+          // No special index needed as we usually fetch all or by ID
         }
       };
     });
@@ -158,7 +165,6 @@ export class DBService {
   static async getConfig(userId: string): Promise<AppConfig> {
     const db = await this.open();
     return new Promise((resolve, reject) => {
-      // Se o DB foi atualizado mas não populado, o store existe mas pode estar vazio
       try {
         const transaction = db.transaction(['configs'], 'readonly');
         const store = transaction.objectStore('configs');
@@ -172,7 +178,6 @@ export class DBService {
         };
         request.onerror = () => reject(request.error);
       } catch (e) {
-        // Fallback caso algo extremo aconteça com a estrutura
         resolve({ ...DEFAULT_CONFIG, userId });
       }
     });
@@ -187,5 +192,48 @@ export class DBService {
         request.onsuccess = () => resolve();
         request.onerror = () => reject(request.error);
       });
+  }
+
+  // --- PURCHASE REQUEST OPERATIONS (ADMIN) ---
+
+  static async getPurchaseRequest(userId: string): Promise<PurchaseRequest | null> {
+    const db = await this.open();
+    return new Promise((resolve, reject) => {
+        try {
+            const transaction = db.transaction(['purchase_requests'], 'readonly');
+            const store = transaction.objectStore('purchase_requests');
+            const request = store.get(userId);
+            request.onsuccess = () => resolve(request.result || null);
+            request.onerror = () => resolve(null);
+        } catch (e) {
+            resolve(null);
+        }
+    });
+  }
+
+  static async savePurchaseRequest(req: PurchaseRequest): Promise<void> {
+    const db = await this.open();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction(['purchase_requests'], 'readwrite');
+        const store = transaction.objectStore('purchase_requests');
+        const request = store.put(req);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+    });
+  }
+
+  static async getAllPurchaseRequests(): Promise<PurchaseRequest[]> {
+    const db = await this.open();
+    return new Promise((resolve, reject) => {
+        try {
+            const transaction = db.transaction(['purchase_requests'], 'readonly');
+            const store = transaction.objectStore('purchase_requests');
+            const request = store.getAll();
+            request.onsuccess = () => resolve(request.result || []);
+            request.onerror = () => reject(request.error);
+        } catch (e) {
+            resolve([]);
+        }
+    });
   }
 }
