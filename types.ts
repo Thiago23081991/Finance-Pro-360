@@ -51,3 +51,12 @@ export interface PurchaseRequest {
   requestDate: string;
   status: 'pending' | 'approved' | 'rejected';
 }
+
+export interface AdminMessage {
+  id: string;
+  sender: string; // 'Admin' or specific admin name
+  receiver: string; // userId
+  content: string;
+  timestamp: string;
+  read: boolean;
+}

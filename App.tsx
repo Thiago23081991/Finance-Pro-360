@@ -9,9 +9,10 @@ import { Settings } from './components/Settings';
 import { AdminPanel } from './components/AdminPanel';
 import { Login } from './components/Login';
 import { Toast } from './components/Toast';
+import { Inbox } from './components/Inbox';
 import { Tutorial, TutorialStepTarget } from './components/Tutorial';
 import { DBService } from './db';
-import { LayoutDashboard, CreditCard, TrendingUp, Target, Settings as SettingsIcon, Menu, Filter, LogOut, Loader2, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, CreditCard, TrendingUp, Target, Settings as SettingsIcon, Menu, Filter, LogOut, Loader2, ShieldCheck, Mail } from 'lucide-react';
 
 type Tab = 'dashboard' | 'receitas' | 'despesas' | 'metas' | 'config' | 'admin';
 
@@ -38,6 +39,10 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastAction, setToastAction] = useState<{label: string, fn: () => void} | undefined>(undefined);
 
+  // Inbox State
+  const [showInbox, setShowInbox] = useState(false);
+  const [unreadMessages, setUnreadMessages] = useState(0);
+
   // Tutorial State
   const [showTutorial, setShowTutorial] = useState(false);
 
@@ -54,8 +59,6 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            // Se for admin, talvez queira carregar dados diferentes, mas por enquanto mantemos o fluxo padrão
-            // O componente AdminPanel carrega seus próprios dados
             const [txs, gls, cfg] = await Promise.all([
                 DBService.getTransactions(user),
                 DBService.getGoals(user),
@@ -64,13 +67,14 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
             
             setTransactions(txs);
             setGoals(gls);
-            // Merge with defaults to ensure new fields exist
             const mergedConfig = { ...DEFAULT_CONFIG, ...cfg };
             setConfig(mergedConfig);
 
+            // Load unread messages count
+            checkUnreadMessages();
+
             // Check for tutorial (skip for admin)
             if (!isAdmin && mergedConfig.hasSeenTutorial === false) {
-                // Slight delay to allow UI to settle
                 setTimeout(() => setShowTutorial(true), 500);
             }
 
@@ -83,18 +87,31 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
     fetchData();
   }, [user, isAdmin]);
 
+  // Poll for unread messages periodically (Simulating real-time)
+  useEffect(() => {
+    const interval = setInterval(checkUnreadMessages, 15000); // Check every 15s
+    return () => clearInterval(interval);
+  }, [user]);
+
+  const checkUnreadMessages = async () => {
+      try {
+          const msgs = await DBService.getMessagesForUser(user);
+          const unreadCount = msgs.filter(m => !m.read).length;
+          setUnreadMessages(unreadCount);
+      } catch (e) {
+          console.error("Error checking messages", e);
+      }
+  };
+
   // Reminder Logic
   useEffect(() => {
       if (!loading && config.enableReminders && !showTutorial && !isAdmin) {
-          // Default check: If last seen goals was more than 3 days ago
           const lastSeen = config.lastSeenGoals ? new Date(config.lastSeenGoals) : new Date(0);
           const now = new Date();
           const diffTime = Math.abs(now.getTime() - lastSeen.getTime());
           const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-          // If > 3 days (using 3 for demo purposes, typically 7)
           if (diffDays > 3) {
-              // Slight delay to not overwhelm user on immediate load
               const timer = setTimeout(() => {
                   setToastMessage("Faz um tempo que você não atualiza suas metas. Que tal conferir seu progresso hoje?");
                   setToastAction({
@@ -114,15 +131,12 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
     // If user visits 'metas', update the lastSeenGoals timestamp
     if (tab === 'metas') {
         const now = new Date().toISOString();
-        // We update local state immediately
         const newConfig = { ...config, lastSeenGoals: now };
         setConfig(newConfig);
         
-        // And save to DB
         const configWithUser = { ...newConfig, userId: user };
         await DBService.saveConfig(configWithUser);
         
-        // Dismiss related toast if exists
         if (toastMessage && toastMessage.includes("metas")) {
             setToastMessage(null);
         }
@@ -137,8 +151,8 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
   };
 
   const updateTransaction = async (t: Transaction) => {
-      const tWithUser = { ...t, userId: user }; // Ensure userId stays
-      await DBService.addTransaction(tWithUser); // put acts as update
+      const tWithUser = { ...t, userId: user };
+      await DBService.addTransaction(tWithUser);
       setTransactions(prev => prev.map(x => x.id === t.id ? tWithUser : x));
   };
 
@@ -176,12 +190,11 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
   const handleTutorialComplete = async () => {
       setShowTutorial(false);
       const newConfig = { ...config, hasSeenTutorial: true };
-      setConfig(newConfig); // Update local state first for speed
-      await updateConfig(newConfig); // Persist
+      setConfig(newConfig);
+      await updateConfig(newConfig);
   };
 
   const handleTutorialStepChange = (target: TutorialStepTarget) => {
-      // Just switch the tab visually, don't trigger DB updates associated with tab switching
       setActiveTab(target as Tab);
   };
 
@@ -194,7 +207,6 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
       { id: 'config', label: 'Configurações', icon: <SettingsIcon size={20} /> },
   ];
 
-  // Insert Admin Tab if needed
   if (isAdmin) {
       menuItems.push({ id: 'admin', label: 'Administração', icon: <ShieldCheck size={20} /> });
   }
@@ -321,7 +333,22 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                     {activeTab === 'admin' ? 'Painel Administrativo' : activeTab.replace('config', 'Configurações')}
                 </h2>
             </div>
-            <FilterBar />
+
+            <div className="flex items-center gap-4">
+                <FilterBar />
+                
+                {/* Inbox Icon */}
+                <button 
+                    onClick={() => setShowInbox(true)}
+                    className="relative p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors"
+                    title="Caixa de Entrada"
+                >
+                    <Mail size={20} />
+                    {unreadMessages > 0 && (
+                        <span className="absolute top-1 right-1 w-3 h-3 bg-rose-500 rounded-full border-2 border-white"></span>
+                    )}
+                </button>
+            </div>
         </header>
 
         {/* Content Area */}
@@ -393,6 +420,14 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                 onStepChange={handleTutorialStepChange}
             />
         )}
+
+        {/* Inbox Overlay */}
+        <Inbox 
+            userId={user}
+            isOpen={showInbox}
+            onClose={() => setShowInbox(false)}
+            onUpdateUnread={checkUnreadMessages}
+        />
       </main>
     </div>
   );

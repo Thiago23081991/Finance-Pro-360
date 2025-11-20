@@ -1,9 +1,9 @@
 
-import { Transaction, Goal, AppConfig, UserAccount, PurchaseRequest } from "./types";
+import { Transaction, Goal, AppConfig, UserAccount, PurchaseRequest, AdminMessage } from "./types";
 import { DEFAULT_CONFIG } from "./constants";
 
 const DB_NAME = 'FinancePro360_EnterpriseDB';
-const DB_VERSION = 3; // Incrementado para purchase_requests
+const DB_VERSION = 4; // Incrementado para messages
 
 // Database Schema Definition
 export class DBService {
@@ -40,10 +40,15 @@ export class DBService {
           db.createObjectStore('configs', { keyPath: 'userId' });
         }
 
-        // Purchase Requests Store (New in v3)
+        // Purchase Requests Store
         if (!db.objectStoreNames.contains('purchase_requests')) {
-          const store = db.createObjectStore('purchase_requests', { keyPath: 'userId' }); // One request per user
-          // No special index needed as we usually fetch all or by ID
+          const store = db.createObjectStore('purchase_requests', { keyPath: 'userId' }); 
+        }
+
+        // Messages Store (New in v4)
+        if (!db.objectStoreNames.contains('messages')) {
+          const store = db.createObjectStore('messages', { keyPath: 'id' });
+          store.createIndex('by_receiver', 'receiver', { unique: false });
         }
       };
     });
@@ -234,6 +239,59 @@ export class DBService {
         } catch (e) {
             resolve([]);
         }
+    });
+  }
+
+  // --- MESSAGING OPERATIONS ---
+
+  static async sendMessage(msg: AdminMessage): Promise<void> {
+    const db = await this.open();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction(['messages'], 'readwrite');
+        const store = transaction.objectStore('messages');
+        const request = store.add(msg);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+    });
+  }
+
+  static async getMessagesForUser(userId: string): Promise<AdminMessage[]> {
+    const db = await this.open();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction(['messages'], 'readonly');
+        const store = transaction.objectStore('messages');
+        const index = store.index('by_receiver');
+        const request = index.getAll(userId);
+        request.onsuccess = () => {
+            const msgs = request.result || [];
+            // Sort by timestamp desc
+            msgs.sort((a: AdminMessage, b: AdminMessage) => 
+                new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+            );
+            resolve(msgs);
+        };
+        request.onerror = () => reject(request.error);
+    });
+  }
+
+  static async markMessageAsRead(msgId: string): Promise<void> {
+    const db = await this.open();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction(['messages'], 'readwrite');
+        const store = transaction.objectStore('messages');
+        const getRequest = store.get(msgId);
+        
+        getRequest.onsuccess = () => {
+            const msg = getRequest.result as AdminMessage;
+            if (msg) {
+                msg.read = true;
+                store.put(msg);
+                resolve();
+            } else {
+                resolve();
+            }
+        };
+        getRequest.onerror = () => reject(getRequest.error);
     });
   }
 }
