@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Lock, User, ArrowRight, Wallet, Database, Loader2 } from 'lucide-react';
+
+import React, { useState, useEffect } from 'react';
+import { Lock, User, ArrowRight, Wallet, Database, Loader2, Check, X as XIcon } from 'lucide-react';
 import { DBService } from '../db';
 
 interface LoginProps {
@@ -12,6 +13,22 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Carregar credenciais salvas ao iniciar
+  useEffect(() => {
+    const savedUser = localStorage.getItem('fp360_saved_user');
+    const savedPass = localStorage.getItem('fp360_saved_pass');
+    if (savedUser) setUsername(savedUser);
+    if (savedPass) setPassword(savedPass);
+  }, []);
+
+  // Critérios de validação
+  const validations = {
+    minLength: password.length >= 8,
+    hasUpperCase: /[A-Z]/.test(password),
+    hasNumber: /[0-9]/.test(password),
+    hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,16 +43,32 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
     try {
         if (isRegistering) {
+            // Validação de Força de Senha
+            if (!validations.minLength || !validations.hasUpperCase || !validations.hasNumber || !validations.hasSpecialChar) {
+                setError('A senha não atende aos requisitos de segurança.');
+                setIsLoading(false);
+                return;
+            }
+
             await DBService.registerUser({
                 username,
                 password,
                 createdAt: new Date().toISOString()
             });
+            
+            // Salvar credenciais para sempre lembrar
+            localStorage.setItem('fp360_saved_user', username);
+            localStorage.setItem('fp360_saved_pass', password);
+
             // Auto login after register
             onLogin(username);
         } else {
             const isValid = await DBService.loginUser(username, password);
             if (isValid) {
+                // Salvar credenciais para sempre lembrar
+                localStorage.setItem('fp360_saved_user', username);
+                localStorage.setItem('fp360_saved_pass', password);
+                
                 onLogin(username);
             } else {
                 setError('Usuário ou senha incorretos.');
@@ -94,6 +127,19 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 disabled={isLoading}
               />
             </div>
+            
+            {/* Validação Visual de Senha (Apenas no Registro) */}
+            {isRegistering && (
+                <div className="mt-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
+                    <p className="text-[10px] font-semibold text-slate-500 uppercase mb-2">Requisitos da senha:</p>
+                    <div className="grid grid-cols-1 gap-1">
+                        <ValidationItem valid={validations.minLength} label="Mínimo 8 caracteres" />
+                        <ValidationItem valid={validations.hasUpperCase} label="Letra maiúscula (A-Z)" />
+                        <ValidationItem valid={validations.hasNumber} label="Número (0-9)" />
+                        <ValidationItem valid={validations.hasSpecialChar} label="Caractere especial (!@#...)" />
+                    </div>
+                </div>
+            )}
           </div>
 
           {error && (
@@ -124,7 +170,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
             className="text-sm text-slate-500 hover:text-blue-600 font-medium transition-colors"
             disabled={isLoading}
           >
-            {isRegistering ? 'Já possui cadastro? Faça Login' : 'Novo usuário? Criar banco de dados'}
+            {isRegistering ? 'Já possui cadastro? Faça Login' : 'Novo usuário? Clique aqui'}
           </button>
         </div>
       </div>
@@ -136,3 +182,11 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
     </div>
   );
 };
+
+// Componente auxiliar para item de validação
+const ValidationItem = ({ valid, label }: { valid: boolean; label: string }) => (
+    <div className={`flex items-center gap-2 text-xs transition-colors ${valid ? 'text-emerald-600' : 'text-slate-400'}`}>
+        {valid ? <Check size={12} strokeWidth={3} /> : <div className="w-3 h-3 rounded-full border border-slate-300" />}
+        <span className={valid ? 'font-medium' : ''}>{label}</span>
+    </div>
+);

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Transaction, TransactionType } from '../types';
 import { formatCurrency, generateId } from '../utils';
-import { Plus, Trash2, Save, X } from 'lucide-react';
+import { Plus, Trash2, Save, X, CalendarClock } from 'lucide-react';
 
 interface SheetViewProps {
   type: TransactionType;
@@ -29,26 +29,47 @@ export const SheetView: React.FC<SheetViewProps> = ({
   const [newCategory, setNewCategory] = useState(categories[0] || '');
   const [newDesc, setNewDesc] = useState('');
   const [newPayment, setNewPayment] = useState(paymentMethods[0] || '');
+  // State for installments
+  const [installments, setInstallments] = useState(1);
 
   const handleSave = () => {
     if (!newAmount || !newCategory || !newDate) return;
+    
+    const amountVal = parseFloat(newAmount);
+    const numInstallments = Math.max(1, Math.floor(installments));
 
-    const transaction: Transaction = {
-      id: generateId(),
-      userId: 'temp', // Placeholder, handled by App controller
-      type,
-      date: newDate,
-      amount: parseFloat(newAmount),
-      category: newCategory,
-      description: newDesc,
-      paymentMethod: type === 'expense' ? newPayment : undefined
-    };
+    // Parse the initial date components to handle month increment correctly
+    const [startYear, startMonth, startDay] = newDate.split('-').map(Number);
 
-    onAdd(transaction);
+    for (let i = 0; i < numInstallments; i++) {
+        // Calculate date for this installment
+        // Note: Month in Date constructor is 0-indexed (0=Jan, 11=Dec)
+        // We subtract 1 from startMonth which comes from YYYY-MM-DD string (1-12)
+        const dateObj = new Date(startYear, (startMonth - 1) + i, startDay);
+        const dateStr = dateObj.toISOString().split('T')[0];
+
+        const description = numInstallments > 1 
+            ? `${newDesc} (${i + 1}/${numInstallments})` 
+            : newDesc;
+
+        const transaction: Transaction = {
+            id: generateId(),
+            userId: 'temp', // Placeholder, handled by App controller
+            type,
+            date: dateStr,
+            amount: amountVal, // Assuming the input amount is per installment. If it was total, we would divide. Usually users enter the monthly value.
+            category: newCategory,
+            description: description,
+            paymentMethod: type === 'expense' ? newPayment : undefined
+        };
+
+        onAdd(transaction);
+    }
     
     // Reset form
     setNewAmount('');
     setNewDesc('');
+    setInstallments(1);
     setIsAdding(false);
   };
 
@@ -76,7 +97,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
         {isAdding && (
             <div className="p-4 bg-blue-50 border-b border-blue-100 grid grid-cols-12 gap-3 items-end animate-fade-in">
                 <div className="col-span-2">
-                    <label className="block text-xs font-medium text-slate-500 mb-1">Data</label>
+                    <label className="block text-xs font-medium text-slate-500 mb-1">Data Início</label>
                     <input 
                         type="date" 
                         value={newDate} 
@@ -85,7 +106,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
                     />
                 </div>
                 <div className="col-span-2">
-                    <label className="block text-xs font-medium text-slate-500 mb-1">Valor</label>
+                    <label className="block text-xs font-medium text-slate-500 mb-1">Valor {installments > 1 ? '(Parcela)' : ''}</label>
                     <input 
                         type="number" 
                         step="0.01"
@@ -105,19 +126,36 @@ export const SheetView: React.FC<SheetViewProps> = ({
                         {categories.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                 </div>
-                {type === 'expense' && (
-                    <div className="col-span-2">
-                         <label className="block text-xs font-medium text-slate-500 mb-1">Pagamento</label>
-                         <select 
-                            value={newPayment} 
-                            onChange={(e) => setNewPayment(e.target.value)}
-                            className="w-full border border-slate-300 rounded px-2 py-1 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
-                        >
-                            {paymentMethods.map(p => <option key={p} value={p}>{p}</option>)}
-                        </select>
-                    </div>
-                )}
-                <div className={`${type === 'expense' ? 'col-span-3' : 'col-span-5'}`}>
+                
+                {/* Conditional rendering for Expense fields (Payment Method & Installments) */}
+                {type === 'expense' ? (
+                    <>
+                        <div className="col-span-2">
+                             <label className="block text-xs font-medium text-slate-500 mb-1">Pagamento</label>
+                             <select 
+                                value={newPayment} 
+                                onChange={(e) => setNewPayment(e.target.value)}
+                                className="w-full border border-slate-300 rounded px-2 py-1 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                            >
+                                {paymentMethods.map(p => <option key={p} value={p}>{p}</option>)}
+                            </select>
+                        </div>
+                        <div className="col-span-1">
+                            <label className="block text-xs font-medium text-slate-500 mb-1" title="Número de Parcelas">Parc.</label>
+                            <input 
+                                type="number"
+                                min="1"
+                                max="60"
+                                value={installments}
+                                onChange={(e) => setInstallments(parseInt(e.target.value) || 1)}
+                                className="w-full border border-slate-300 rounded px-2 py-1 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none text-center"
+                            />
+                        </div>
+                    </>
+                ) : null}
+
+                {/* Adjust description width based on type */}
+                <div className={`${type === 'expense' ? 'col-span-2' : 'col-span-5'}`}>
                     <label className="block text-xs font-medium text-slate-500 mb-1">Descrição</label>
                     <input 
                         type="text" 
@@ -127,11 +165,12 @@ export const SheetView: React.FC<SheetViewProps> = ({
                         className="w-full border border-slate-300 rounded px-2 py-1 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
                     />
                 </div>
+                
                 <div className="col-span-1 flex gap-2">
                     <button onClick={handleSave} className="p-2 bg-emerald-500 text-white rounded hover:bg-emerald-600 transition-colors" title="Salvar">
                         <Save size={16} />
                     </button>
-                    <button onClick={() => setIsAdding(false)} className="p-2 bg-slate-200 text-slate-600 rounded hover:bg-slate-300 transition-colors" title="Cancelar">
+                    <button onClick={() => { setIsAdding(false); setInstallments(1); }} className="p-2 bg-slate-200 text-slate-600 rounded hover:bg-slate-300 transition-colors" title="Cancelar">
                         <X size={16} />
                     </button>
                 </div>
@@ -161,7 +200,11 @@ export const SheetView: React.FC<SheetViewProps> = ({
                     ) : (
                         sheetData.map(t => (
                             <tr key={t.id} className="hover:bg-slate-50 transition-colors group">
-                                <td className="py-2 px-4 text-sm text-slate-600 font-mono">{new Date(t.date).toLocaleDateString('pt-BR')}</td>
+                                <td className="py-2 px-4 text-sm text-slate-600 font-mono flex items-center gap-2">
+                                    {new Date(t.date).toLocaleDateString('pt-BR')}
+                                    {/* Indicate if it's a future transaction */}
+                                    {new Date(t.date) > new Date() && <CalendarClock size={12} className="text-blue-400" title="Transação Futura" />}
+                                </td>
                                 <td className={`py-2 px-4 text-sm font-medium font-mono ${type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
                                     {formatCurrency(t.amount)}
                                 </td>

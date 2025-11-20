@@ -2,7 +2,7 @@ import { Transaction, Goal, AppConfig, UserAccount } from "./types";
 import { DEFAULT_CONFIG } from "./constants";
 
 const DB_NAME = 'FinancePro360_EnterpriseDB';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Incrementado para garantir a criação da store 'configs'
 
 // Database Schema Definition
 export class DBService {
@@ -34,7 +34,7 @@ export class DBService {
           store.createIndex('by_user', 'userId', { unique: false });
         }
 
-        // Config Store
+        // Config Store - Added in Version 2
         if (!db.objectStoreNames.contains('configs')) {
           db.createObjectStore('configs', { keyPath: 'userId' });
         }
@@ -158,17 +158,23 @@ export class DBService {
   static async getConfig(userId: string): Promise<AppConfig> {
     const db = await this.open();
     return new Promise((resolve, reject) => {
-      const transaction = db.transaction(['configs'], 'readonly');
-      const store = transaction.objectStore('configs');
-      const request = store.get(userId);
-      request.onsuccess = () => {
-        if (request.result) {
-            resolve(request.result);
-        } else {
-            resolve({ ...DEFAULT_CONFIG, userId });
-        }
-      };
-      request.onerror = () => reject(request.error);
+      // Se o DB foi atualizado mas não populado, o store existe mas pode estar vazio
+      try {
+        const transaction = db.transaction(['configs'], 'readonly');
+        const store = transaction.objectStore('configs');
+        const request = store.get(userId);
+        request.onsuccess = () => {
+            if (request.result) {
+                resolve(request.result);
+            } else {
+                resolve({ ...DEFAULT_CONFIG, userId });
+            }
+        };
+        request.onerror = () => reject(request.error);
+      } catch (e) {
+        // Fallback caso algo extremo aconteça com a estrutura
+        resolve({ ...DEFAULT_CONFIG, userId });
+      }
     });
   }
 
