@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Lock, User, ArrowRight, Wallet, Database, Loader2, Check, X as XIcon } from 'lucide-react';
+import { Lock, User, ArrowRight, Wallet, Database, Loader2, Check, X as XIcon, KeyRound } from 'lucide-react';
 import { DBService } from '../db';
 
 interface LoginProps {
@@ -14,6 +14,13 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Reset Password State
+  const [isResetting, setIsResetting] = useState(false);
+  const [resetUser, setResetUser] = useState('');
+  const [resetPass, setResetPass] = useState('');
+  const [masterKey, setMasterKey] = useState('');
+  const [resetStatus, setResetStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
   // Carregar credenciais salvas ao iniciar
   useEffect(() => {
@@ -91,6 +98,35 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
     }
   };
 
+  const handleResetSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setResetStatus('idle');
+      
+      // Validação da Chave Mestra (Simulada para ambiente sem backend)
+      if (masterKey !== 'finance360') {
+          setError('Chave de segurança inválida.');
+          setResetStatus('error');
+          return;
+      }
+
+      try {
+          await DBService.resetUserPassword(resetUser, resetPass);
+          setResetStatus('success');
+          setTimeout(() => {
+              setIsResetting(false);
+              setResetStatus('idle');
+              setResetUser('');
+              setResetPass('');
+              setMasterKey('');
+              setError('');
+              alert('Senha atualizada com sucesso!');
+          }, 1500);
+      } catch (err) {
+          setResetStatus('error');
+          setError('Usuário não encontrado.');
+      }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f3f4f6] p-4">
       <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-200 animate-fade-in relative overflow-hidden">
@@ -152,21 +188,30 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
             )}
           </div>
 
-          {/* Checkbox Remember Me */}
-          <div className="flex items-center gap-2 ml-1">
-            <input 
-                type="checkbox" 
-                id="rememberMe"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500 cursor-pointer"
-            />
-            <label htmlFor="rememberMe" className="text-sm text-slate-600 cursor-pointer select-none">
-                Lembrar minhas credenciais
-            </label>
+          {/* Checkbox Remember Me & Forgot Password */}
+          <div className="flex items-center justify-between ml-1">
+            <div className="flex items-center gap-2">
+                <input 
+                    type="checkbox" 
+                    id="rememberMe"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500 cursor-pointer"
+                />
+                <label htmlFor="rememberMe" className="text-xs text-slate-600 cursor-pointer select-none">
+                    Lembrar
+                </label>
+            </div>
+            <button 
+                type="button"
+                onClick={() => setIsResetting(true)}
+                className="text-xs text-blue-600 hover:text-blue-800 hover:underline"
+            >
+                Esqueci minha senha
+            </button>
           </div>
 
-          {error && (
+          {error && !isResetting && (
             <div className="p-3 rounded-lg bg-rose-50 text-rose-600 text-sm font-medium text-center border border-rose-100 animate-fade-in">
               {error}
             </div>
@@ -197,6 +242,80 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
             {isRegistering ? 'Já possui cadastro? Faça Login' : 'Novo usuário? Clique aqui'}
           </button>
         </div>
+
+        {/* Reset Password Modal */}
+        {isResetting && (
+            <div className="absolute inset-0 z-50 bg-white flex flex-col p-6 animate-fade-in">
+                <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-lg font-bold text-slate-800">Recuperação de Conta</h3>
+                    <button 
+                        onClick={() => { setIsResetting(false); setError(''); setResetStatus('idle'); }}
+                        className="text-slate-400 hover:text-slate-600"
+                    >
+                        <XIcon size={20} />
+                    </button>
+                </div>
+                
+                <p className="text-sm text-slate-500 mb-6">
+                    Para redefinir sua senha, insira seu usuário, a nova senha desejada e a <span className="font-bold text-slate-700">Chave de Segurança Mestra</span> fornecida pelo administrador.
+                </p>
+
+                <form onSubmit={handleResetSubmit} className="space-y-4">
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Usuário</label>
+                        <input 
+                            type="text" 
+                            value={resetUser}
+                            onChange={(e) => setResetUser(e.target.value)}
+                            className="w-full border border-slate-300 rounded-lg px-3 py-2 outline-none focus:border-blue-500"
+                            placeholder="Nome de usuário"
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nova Senha</label>
+                        <input 
+                            type="password" 
+                            value={resetPass}
+                            onChange={(e) => setResetPass(e.target.value)}
+                            className="w-full border border-slate-300 rounded-lg px-3 py-2 outline-none focus:border-blue-500"
+                            placeholder="Nova senha"
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1 flex items-center gap-1">
+                             <KeyRound size={12} /> Chave de Segurança
+                        </label>
+                        <input 
+                            type="password" 
+                            value={masterKey}
+                            onChange={(e) => setMasterKey(e.target.value)}
+                            className="w-full border border-slate-300 rounded-lg px-3 py-2 outline-none focus:border-blue-500 bg-slate-50"
+                            placeholder="Digite a chave mestra..."
+                            required
+                        />
+                    </div>
+
+                    {resetStatus === 'error' && (
+                        <p className="text-xs text-rose-500 font-medium text-center">{error || 'Erro ao resetar.'}</p>
+                    )}
+                     {resetStatus === 'success' && (
+                        <p className="text-xs text-emerald-500 font-medium text-center">Senha alterada com sucesso!</p>
+                    )}
+
+                    <button 
+                        type="submit" 
+                        className="w-full bg-slate-800 text-white font-semibold py-3 rounded-lg hover:bg-slate-900 transition-colors"
+                    >
+                        Redefinir Senha
+                    </button>
+                </form>
+                <div className="mt-auto text-center">
+                    <p className="text-[10px] text-slate-400">Chave Padrão: finance360</p>
+                </div>
+            </div>
+        )}
       </div>
       
       <div className="fixed bottom-4 text-xs text-slate-400 flex flex-col items-center">

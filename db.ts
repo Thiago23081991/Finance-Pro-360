@@ -96,6 +96,28 @@ export class DBService {
     });
   }
 
+  static async resetUserPassword(username: string, newPass: string): Promise<void> {
+    const db = await this.open();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction(['users'], 'readwrite');
+        const store = transaction.objectStore('users');
+        const request = store.get(username);
+
+        request.onsuccess = () => {
+            const user = request.result as UserAccount;
+            if (user) {
+                user.password = newPass;
+                const updateRequest = store.put(user);
+                updateRequest.onsuccess = () => resolve();
+                updateRequest.onerror = () => reject(updateRequest.error);
+            } else {
+                reject(new Error("Usuário não encontrado"));
+            }
+        };
+        request.onerror = () => reject(request.error);
+    });
+  }
+
   // --- DATA OPERATIONS ---
 
   static async getTransactions(userId: string): Promise<Transaction[]> {
@@ -196,6 +218,65 @@ export class DBService {
         const request = store.put(config);
         request.onsuccess = () => resolve();
         request.onerror = () => reject(request.error);
+      });
+  }
+
+  // --- BACKUP OPERATIONS ---
+
+  static async createBackup(): Promise<string> {
+      const db = await this.open();
+      return new Promise((resolve, reject) => {
+          const transaction = db.transaction(['users', 'transactions', 'goals', 'configs', 'messages'], 'readonly');
+          const backup: any = {};
+          
+          let completed = 0;
+          const stores = ['users', 'transactions', 'goals', 'configs', 'messages'];
+
+          stores.forEach(storeName => {
+              const store = transaction.objectStore(storeName);
+              const request = store.getAll();
+              request.onsuccess = () => {
+                  backup[storeName] = request.result;
+                  completed++;
+                  if (completed === stores.length) {
+                      resolve(JSON.stringify(backup));
+                  }
+              };
+              request.onerror = () => reject(request.error);
+          });
+      });
+  }
+
+  static async restoreBackup(jsonString: string): Promise<void> {
+      const data = JSON.parse(jsonString);
+      const db = await this.open();
+      
+      return new Promise((resolve, reject) => {
+          const transaction = db.transaction(['users', 'transactions', 'goals', 'configs', 'messages'], 'readwrite');
+          
+          transaction.oncomplete = () => resolve();
+          transaction.onerror = () => reject(transaction.error);
+
+          if (data.users) {
+              const store = transaction.objectStore('users');
+              data.users.forEach((item: any) => store.put(item));
+          }
+          if (data.transactions) {
+              const store = transaction.objectStore('transactions');
+              data.transactions.forEach((item: any) => store.put(item));
+          }
+          if (data.goals) {
+              const store = transaction.objectStore('goals');
+              data.goals.forEach((item: any) => store.put(item));
+          }
+          if (data.configs) {
+              const store = transaction.objectStore('configs');
+              data.configs.forEach((item: any) => store.put(item));
+          }
+           if (data.messages) {
+              const store = transaction.objectStore('messages');
+              data.messages.forEach((item: any) => store.put(item));
+          }
       });
   }
 
