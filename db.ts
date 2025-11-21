@@ -3,7 +3,7 @@ import { Transaction, Goal, AppConfig, UserAccount, PurchaseRequest, AdminMessag
 import { DEFAULT_CONFIG } from "./constants";
 
 const DB_NAME = 'FinancePro360_EnterpriseDB';
-const DB_VERSION = 4; // Incrementado para messages
+const DB_VERSION = 5; // Incrementado para garantir criação de stores
 
 // Database Schema Definition
 export class DBService {
@@ -362,6 +362,29 @@ export class DBService {
             resolve(msgs);
         };
         request.onerror = () => reject(request.error);
+    });
+  }
+
+  // New method for Admin Panel to see sent messages
+  static async getAllMessages(): Promise<AdminMessage[]> {
+    const db = await this.open();
+    return new Promise((resolve, reject) => {
+        try {
+            const transaction = db.transaction(['messages'], 'readonly');
+            const store = transaction.objectStore('messages');
+            const request = store.getAll();
+            request.onsuccess = () => {
+                 const msgs = request.result || [];
+                 // Sort by timestamp desc
+                 msgs.sort((a: AdminMessage, b: AdminMessage) => 
+                    new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+                 );
+                 resolve(msgs);
+            };
+            request.onerror = () => reject(request.error);
+        } catch (e) {
+            resolve([]);
+        }
     });
   }
 

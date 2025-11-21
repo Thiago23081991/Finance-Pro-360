@@ -113,8 +113,8 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
       setError('');
       
       // Validação da Chave Mestra (Simulada para ambiente sem backend)
-      // Remove espaços em branco antes e depois para evitar erros de digitação
-      if (masterKey.trim() !== 'finance360') {
+      // Remove espaços em branco antes e depois e converte para minúsculo para evitar erros de digitação
+      if (masterKey.trim().toLowerCase() !== 'finance360') {
           setError('Chave de segurança inválida.');
           setResetStatus('error');
           return;
