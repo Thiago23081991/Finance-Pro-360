@@ -30,6 +30,9 @@ export interface AppConfig {
   lastSeenGoals?: string; // ISO Date of last time user checked/updated goals
   // Tutorial flag
   hasSeenTutorial?: boolean;
+  // Remote Licensing
+  licenseKey?: string;
+  licenseStatus?: 'active' | 'inactive';
 }
 
 export interface FilterState {

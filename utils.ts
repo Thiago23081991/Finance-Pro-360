@@ -1,3 +1,4 @@
+
 import { Transaction } from "./types";
 
 export const formatCurrency = (value: number) => {
@@ -57,4 +58,34 @@ export const exportToCSV = (transactions: Transaction[]) => {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+};
+
+// Simple License Key Generator based on User ID
+// Returns an 8-character alphanumeric key
+export const generateLicenseKey = (userId: string): string => {
+  if (!userId) return '';
+  const secret = 'FP360-ENTERPRISE-KEY-GEN';
+  let hash = 0;
+  // Normalized ID + Secret
+  const str = userId.trim().toLowerCase() + secret;
+  
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  
+  // Convert to Hex, absolute value, uppercase, take first 8 chars
+  const key = Math.abs(hash).toString(16).toUpperCase().padStart(8, '0').substring(0, 8);
+  // Format as XXXX-XXXX
+  return `${key.substring(0, 4)}-${key.substring(4, 8)}`;
+};
+
+export const validateLicenseKey = (userId: string, keyInput: string): boolean => {
+    if (!userId || !keyInput) return false;
+    const expected = generateLicenseKey(userId);
+    // Remove dashes for comparison if user typed without them, but generator adds them
+    const cleanInput = keyInput.trim().toUpperCase().replace(/-/g, '');
+    const cleanExpected = expected.replace(/-/g, '');
+    return cleanInput === cleanExpected;
 };

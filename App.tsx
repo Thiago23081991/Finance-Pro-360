@@ -67,7 +67,10 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
             
             setTransactions(txs);
             setGoals(gls);
-            const mergedConfig = { ...DEFAULT_CONFIG, ...cfg };
+            
+            // CRITICAL FIX: Ensure userId is always merged into config state
+            // This prevents issues where config might be loaded without userId context
+            const mergedConfig = { ...DEFAULT_CONFIG, ...cfg, userId: user };
             setConfig(mergedConfig);
 
             // Load unread messages count

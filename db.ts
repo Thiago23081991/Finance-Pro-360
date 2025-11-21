@@ -3,7 +3,7 @@ import { Transaction, Goal, AppConfig, UserAccount, PurchaseRequest, AdminMessag
 import { DEFAULT_CONFIG } from "./constants";
 
 const DB_NAME = 'FinancePro360_EnterpriseDB';
-const DB_VERSION = 6; // Incrementado para garantir criação de stores
+const DB_VERSION = 7; // Incrementado para garantir criação correta de stores (v7)
 
 // Database Schema Definition
 export class DBService {
@@ -40,12 +40,12 @@ export class DBService {
           db.createObjectStore('configs', { keyPath: 'userId' });
         }
 
-        // Purchase Requests Store
+        // Purchase Requests Store - Ensure it exists
         if (!db.objectStoreNames.contains('purchase_requests')) {
           const store = db.createObjectStore('purchase_requests', { keyPath: 'userId' }); 
         }
 
-        // Messages Store (New in v4)
+        // Messages Store
         if (!db.objectStoreNames.contains('messages')) {
           const store = db.createObjectStore('messages', { keyPath: 'id' });
           store.createIndex('by_receiver', 'receiver', { unique: false });
@@ -328,6 +328,7 @@ export class DBService {
             request.onsuccess = () => resolve(request.result || []);
             request.onerror = () => reject(request.error);
         } catch (e) {
+            // If store missing or other error, return empty to avoid crash
             resolve([]);
         }
     });
