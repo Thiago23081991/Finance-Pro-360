@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { AppConfig, Transaction, PurchaseRequest } from '../types';
-import { Trash2, Plus, FileSpreadsheet, Download, AlertCircle, Bell, CreditCard, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { Trash2, Plus, FileSpreadsheet, Download, AlertCircle, Bell, CreditCard, CheckCircle, Clock, XCircle, Upload, Shield, Key } from 'lucide-react';
 import { exportToCSV, generateId } from '../utils';
 import { DBService } from '../db';
 
@@ -16,6 +16,11 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
     const [newMethod, setNewMethod] = useState('');
     const [purchaseRequest, setPurchaseRequest] = useState<PurchaseRequest | null>(null);
     const [loadingReq, setLoadingReq] = useState(false);
+    const [isRestoring, setIsRestoring] = useState(false);
+    
+    // Change Password State
+    const [newPassword, setNewPassword] = useState('');
+    const [passSuccess, setPassSuccess] = useState(false);
 
     useEffect(() => {
         if (config.userId) {
@@ -63,6 +68,57 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
         exportToCSV(transactions);
     };
 
+    const handleBackup = async () => {
+        try {
+            const data = await DBService.createBackup();
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `finance360_backup_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (e) {
+            alert('Erro ao criar backup: ' + e);
+        }
+    };
+
+    const handleRestore = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        
+        if (!confirm('Atenção: A restauração irá sobrescrever e mesclar os dados atuais do banco de dados. Isso não pode ser desfeito. Deseja continuar?')) return;
+
+        setIsRestoring(true);
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+            try {
+                const json = event.target?.result as string;
+                await DBService.restoreBackup(json);
+                alert('Dados restaurados com sucesso! A página será recarregada para aplicar as alterações.');
+                window.location.reload();
+            } catch (error) {
+                alert('Erro ao restaurar arquivo: ' + error);
+                setIsRestoring(false);
+            }
+        };
+        reader.readAsText(file);
+    };
+
+    const handleChangePassword = async () => {
+        if (!newPassword || newPassword.length < 4) {
+            alert('A senha deve ter pelo menos 4 caracteres.');
+            return;
+        }
+        if (config.userId) {
+            await DBService.resetUserPassword(config.userId, newPassword);
+            setPassSuccess(true);
+            setNewPassword('');
+            setTimeout(() => setPassSuccess(false), 3000);
+        }
+    };
+
     return (
         <div className="max-w-5xl mx-auto animate-fade-in space-y-6 pb-10">
             
@@ -104,6 +160,72 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                                 </p>
                             </div>
                         )}
+                    </div>
+                </div>
+            </div>
+
+            {/* Security & Data Section */}
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <h3 className="text-lg font-semibold text-slate-700 flex items-center gap-2 mb-6">
+                    <Shield className="text-indigo-600" size={20} />
+                    Segurança e Dados
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Password Change */}
+                    <div className="space-y-3">
+                        <h4 className="text-sm font-semibold text-slate-600 flex items-center gap-2">
+                            <Key size={16} /> Alterar Senha
+                        </h4>
+                        <div className="flex gap-2">
+                            <input 
+                                type="password" 
+                                placeholder="Nova senha..." 
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                className="flex-1 border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                            />
+                            <button 
+                                onClick={handleChangePassword}
+                                className="bg-slate-800 text-white px-4 py-2 rounded text-sm font-medium hover:bg-slate-900 transition-colors"
+                            >
+                                Atualizar
+                            </button>
+                        </div>
+                        {passSuccess && <p className="text-xs text-emerald-600 font-medium flex items-center gap-1"><CheckCircle size={12}/> Senha atualizada com sucesso!</p>}
+                        <p className="text-xs text-slate-400">
+                            Atualize sua senha de acesso periodicamente para manter sua conta segura.
+                        </p>
+                    </div>
+
+                    {/* Backup & Restore */}
+                    <div className="space-y-3 border-t md:border-t-0 md:border-l border-slate-100 md:pl-8 pt-4 md:pt-0">
+                        <h4 className="text-sm font-semibold text-slate-600 flex items-center gap-2">
+                            <Download size={16} /> Backup e Restauração
+                        </h4>
+                        <div className="flex flex-col sm:flex-row gap-3">
+                            <button 
+                                onClick={handleBackup}
+                                className="flex-1 flex items-center justify-center gap-2 bg-blue-50 text-blue-700 border border-blue-200 px-3 py-2 rounded hover:bg-blue-100 transition-colors text-sm font-medium"
+                            >
+                                <Download size={16} />
+                                Baixar Dados
+                            </button>
+                            <label className="flex-1 flex items-center justify-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-2 rounded hover:bg-emerald-100 transition-colors text-sm font-medium cursor-pointer">
+                                <Upload size={16} />
+                                {isRestoring ? 'Restaurando...' : 'Restaurar'}
+                                <input 
+                                    type="file" 
+                                    accept=".json"
+                                    onChange={handleRestore} 
+                                    disabled={isRestoring}
+                                    className="hidden"
+                                />
+                            </label>
+                        </div>
+                        <p className="text-xs text-slate-400">
+                            Grave todas as funções e cadastros em um arquivo seguro. Use a restauração para recuperar seus dados em caso de problemas ou mudança de navegador.
+                        </p>
                     </div>
                 </div>
             </div>

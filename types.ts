@@ -60,3 +60,12 @@ export interface AdminMessage {
   timestamp: string;
   read: boolean;
 }
+
+export interface BackupData {
+  users: UserAccount[];
+  transactions: Transaction[];
+  goals: Goal[];
+  configs: AppConfig[];
+  purchase_requests?: PurchaseRequest[];
+  messages?: AdminMessage[];
+}

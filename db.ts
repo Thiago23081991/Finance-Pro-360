@@ -226,23 +226,28 @@ export class DBService {
   static async createBackup(): Promise<string> {
       const db = await this.open();
       return new Promise((resolve, reject) => {
-          const transaction = db.transaction(['users', 'transactions', 'goals', 'configs', 'messages'], 'readonly');
+          const stores = ['users', 'transactions', 'goals', 'configs', 'messages', 'purchase_requests'];
+          const transaction = db.transaction(stores, 'readonly');
           const backup: any = {};
           
           let completed = 0;
-          const stores = ['users', 'transactions', 'goals', 'configs', 'messages'];
 
           stores.forEach(storeName => {
-              const store = transaction.objectStore(storeName);
-              const request = store.getAll();
-              request.onsuccess = () => {
-                  backup[storeName] = request.result;
+              if (db.objectStoreNames.contains(storeName)) {
+                  const store = transaction.objectStore(storeName);
+                  const request = store.getAll();
+                  request.onsuccess = () => {
+                      backup[storeName] = request.result;
+                      completed++;
+                      if (completed === stores.length) {
+                          resolve(JSON.stringify(backup));
+                      }
+                  };
+                  request.onerror = () => reject(request.error);
+              } else {
                   completed++;
-                  if (completed === stores.length) {
-                      resolve(JSON.stringify(backup));
-                  }
-              };
-              request.onerror = () => reject(request.error);
+                  if (completed === stores.length) resolve(JSON.stringify(backup));
+              }
           });
       });
   }
@@ -252,7 +257,8 @@ export class DBService {
       const db = await this.open();
       
       return new Promise((resolve, reject) => {
-          const transaction = db.transaction(['users', 'transactions', 'goals', 'configs', 'messages'], 'readwrite');
+          const stores = ['users', 'transactions', 'goals', 'configs', 'messages', 'purchase_requests'];
+          const transaction = db.transaction(stores, 'readwrite');
           
           transaction.oncomplete = () => resolve();
           transaction.onerror = () => reject(transaction.error);
@@ -276,6 +282,10 @@ export class DBService {
            if (data.messages) {
               const store = transaction.objectStore('messages');
               data.messages.forEach((item: any) => store.put(item));
+          }
+           if (data.purchase_requests) {
+              const store = transaction.objectStore('purchase_requests');
+              data.purchase_requests.forEach((item: any) => store.put(item));
           }
       });
   }

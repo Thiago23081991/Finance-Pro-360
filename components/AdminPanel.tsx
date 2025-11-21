@@ -19,7 +19,13 @@ export const AdminPanel: React.FC = () => {
     setLoading(true);
     try {
         const data = await DBService.getAllPurchaseRequests();
-        setRequests(data);
+        // Ordenar: Pendentes primeiro, depois por data mais recente
+        const sorted = data.sort((a, b) => {
+            if (a.status === 'pending' && b.status !== 'pending') return -1;
+            if (a.status !== 'pending' && b.status === 'pending') return 1;
+            return new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime();
+        });
+        setRequests(sorted);
     } catch (error) {
         console.error("Error loading requests", error);
     } finally {
@@ -127,23 +133,26 @@ export const AdminPanel: React.FC = () => {
                                                 <MessageSquare size={16} />
                                             </button>
 
-                                            {req.status === 'pending' && (
-                                                <>
-                                                    <button 
-                                                        onClick={() => handleStatusChange(req, 'approved')}
-                                                        className="p-2 bg-emerald-100 text-emerald-600 rounded hover:bg-emerald-200 transition-colors"
-                                                        title="Aprovar"
-                                                    >
-                                                        <Check size={16} />
-                                                    </button>
-                                                    <button 
-                                                        onClick={() => handleStatusChange(req, 'rejected')}
-                                                        className="p-2 bg-rose-100 text-rose-600 rounded hover:bg-rose-200 transition-colors"
-                                                        title="Rejeitar"
-                                                    >
-                                                        <X size={16} />
-                                                    </button>
-                                                </>
+                                            {/* Se não estiver Aprovado, mostrar botão Aprovar */}
+                                            {req.status !== 'approved' && (
+                                                <button 
+                                                    onClick={() => handleStatusChange(req, 'approved')}
+                                                    className="p-2 bg-emerald-100 text-emerald-600 rounded hover:bg-emerald-200 transition-colors"
+                                                    title="Aprovar"
+                                                >
+                                                    <Check size={16} />
+                                                </button>
+                                            )}
+
+                                            {/* Se não estiver Rejeitado, mostrar botão Rejeitar */}
+                                            {req.status !== 'rejected' && (
+                                                <button 
+                                                    onClick={() => handleStatusChange(req, 'rejected')}
+                                                    className="p-2 bg-rose-100 text-rose-600 rounded hover:bg-rose-200 transition-colors"
+                                                    title="Rejeitar"
+                                                >
+                                                    <X size={16} />
+                                                </button>
                                             )}
                                         </div>
                                     </td>

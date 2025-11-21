@@ -98,13 +98,30 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
     }
   };
 
+  const handleOpenReset = () => {
+      setIsResetting(true);
+      setResetUser('');
+      setResetPass('');
+      setMasterKey('');
+      setError('');
+      setResetStatus('idle');
+  };
+
   const handleResetSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       setResetStatus('idle');
+      setError('');
       
       // Validação da Chave Mestra (Simulada para ambiente sem backend)
-      if (masterKey !== 'finance360') {
+      // Remove espaços em branco antes e depois para evitar erros de digitação
+      if (masterKey.trim() !== 'finance360') {
           setError('Chave de segurança inválida.');
+          setResetStatus('error');
+          return;
+      }
+
+      if (!resetUser || !resetPass) {
+          setError('Preencha todos os campos.');
           setResetStatus('error');
           return;
       }
@@ -120,10 +137,10 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
               setMasterKey('');
               setError('');
               alert('Senha atualizada com sucesso!');
-          }, 1500);
+          }, 2000);
       } catch (err) {
           setResetStatus('error');
-          setError('Usuário não encontrado.');
+          setError('Usuário não encontrado. Verifique se o nome está correto.');
       }
   };
 
@@ -204,7 +221,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
             </div>
             <button 
                 type="button"
-                onClick={() => setIsResetting(true)}
+                onClick={handleOpenReset}
                 className="text-xs text-blue-600 hover:text-blue-800 hover:underline"
             >
                 Esqueci minha senha
@@ -298,10 +315,10 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     </div>
 
                     {resetStatus === 'error' && (
-                        <p className="text-xs text-rose-500 font-medium text-center">{error || 'Erro ao resetar.'}</p>
+                        <p className="text-xs text-rose-500 font-medium text-center animate-fade-in">{error || 'Erro ao resetar.'}</p>
                     )}
                      {resetStatus === 'success' && (
-                        <p className="text-xs text-emerald-500 font-medium text-center">Senha alterada com sucesso!</p>
+                        <p className="text-xs text-emerald-500 font-medium text-center animate-fade-in">Senha alterada com sucesso! Redirecionando...</p>
                     )}
 
                     <button 
