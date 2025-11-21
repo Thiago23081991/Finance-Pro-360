@@ -13,6 +13,9 @@ export const AdminPanel: React.FC = () => {
   const [messages, setMessages] = useState<AdminMessage[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Stats for badges
+  const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
+
   // Message Modal State
   const [msgModalOpen, setMsgModalOpen] = useState(false);
   const [msgTargetUser, setMsgTargetUser] = useState('');
@@ -20,21 +23,21 @@ export const AdminPanel: React.FC = () => {
   const [sending, setSending] = useState(false);
 
   const fetchData = async () => {
-    setLoading(true);
+    // Don't set loading true on background refreshes to avoid UI flicker
+    // Only set it on initial load or manual refresh if needed, but here we keep it simple
     try {
-        if (activeTab === 'requests') {
-            const data = await DBService.getAllPurchaseRequests();
-            // Ordenar: Pendentes primeiro, depois por data mais recente
-            const sorted = data.sort((a, b) => {
-                if (a.status === 'pending' && b.status !== 'pending') return -1;
-                if (a.status !== 'pending' && b.status === 'pending') return 1;
-                return new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime();
-            });
-            setRequests(sorted);
-        } else {
-            const data = await DBService.getAllMessages();
-            setMessages(data);
-        }
+        const reqs = await DBService.getAllPurchaseRequests();
+        // Ordenar: Pendentes primeiro, depois por data mais recente
+        const sortedReqs = reqs.sort((a, b) => {
+            if (a.status === 'pending' && b.status !== 'pending') return -1;
+            if (a.status !== 'pending' && b.status === 'pending') return 1;
+            return new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime();
+        });
+        setRequests(sortedReqs);
+        setPendingRequestsCount(sortedReqs.filter(r => r.status === 'pending').length);
+
+        const msgs = await DBService.getAllMessages();
+        setMessages(msgs);
     } catch (error) {
         console.error("Error loading admin data", error);
     } finally {
@@ -44,12 +47,20 @@ export const AdminPanel: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-  }, [activeTab]);
+    
+    // Auto-refresh every 5 seconds to check for new requests from other users (e.g., Kelly)
+    const interval = setInterval(fetchData, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleStatusChange = async (req: PurchaseRequest, newStatus: 'approved' | 'rejected') => {
     const updated: PurchaseRequest = { ...req, status: newStatus };
     await DBService.savePurchaseRequest(updated);
     setRequests(prev => prev.map(r => r.userId === req.userId ? updated : r));
+    // Update badge count locally immediately
+    if (req.status === 'pending') {
+        setPendingRequestsCount(prev => Math.max(0, prev - 1));
+    }
   };
 
   const openMessageModal = (userId: string) => {
@@ -74,10 +85,7 @@ export const AdminPanel: React.FC = () => {
           setMsgModalOpen(false);
           alert('Mensagem enviada com sucesso!');
           
-          // If we are on messages tab, refresh
-          if (activeTab === 'messages') {
-              fetchData();
-          }
+          fetchData();
       } catch (error) {
           alert('Erro ao enviar mensagem.');
       } finally {
@@ -100,7 +108,7 @@ export const AdminPanel: React.FC = () => {
                     </div>
                 </div>
                 <button 
-                    onClick={fetchData} 
+                    onClick={() => { setLoading(true); fetchData(); }} 
                     className="p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors"
                     title="Atualizar Dados"
                 >
@@ -120,6 +128,11 @@ export const AdminPanel: React.FC = () => {
                 >
                     <FileText size={18} />
                     Solicitações de Compra
+                    {pendingRequestsCount > 0 && (
+                        <span className="bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                            {pendingRequestsCount}
+                        </span>
+                    )}
                     {activeTab === 'requests' && (
                         <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 rounded-t-full"></span>
                     )}
@@ -171,11 +184,13 @@ export const AdminPanel: React.FC = () => {
                                         </tr>
                                     ) : (
                                         requests.map(req => (
-                                            <tr key={req.userId} className="hover:bg-slate-50 transition-colors">
+                                            <tr key={req.userId} className={`hover:bg-slate-50 transition-colors ${req.status === 'pending' ? 'bg-blue-50/30' : ''}`}>
                                                 <td className="py-3 px-4">
                                                     <div className="flex items-center gap-2">
-                                                        <User size={16} className="text-slate-400" />
-                                                        <span className="font-medium text-slate-700">{req.userId}</span>
+                                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white ${req.status === 'pending' ? 'bg-blue-500' : 'bg-slate-400'}`}>
+                                                            {req.userId.substring(0, 2).toUpperCase()}
+                                                        </div>
+                                                        <span className={`font-medium ${req.status === 'pending' ? 'text-blue-900' : 'text-slate-700'}`}>{req.userId}</span>
                                                     </div>
                                                 </td>
                                                 <td className="py-3 px-4 text-sm text-slate-600">
@@ -185,7 +200,7 @@ export const AdminPanel: React.FC = () => {
                                                     <span className={`px-2 py-1 rounded-full text-xs font-semibold border ${
                                                         req.status === 'approved' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
                                                         req.status === 'rejected' ? 'bg-rose-50 text-rose-700 border-rose-100' :
-                                                        'bg-amber-50 text-amber-700 border-amber-100'
+                                                        'bg-amber-50 text-amber-700 border-amber-100 animate-pulse'
                                                     }`}>
                                                         {req.status === 'approved' ? 'Aprovado' : 
                                                         req.status === 'rejected' ? 'Rejeitado' : 'Pendente'}

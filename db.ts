@@ -3,7 +3,7 @@ import { Transaction, Goal, AppConfig, UserAccount, PurchaseRequest, AdminMessag
 import { DEFAULT_CONFIG } from "./constants";
 
 const DB_NAME = 'FinancePro360_EnterpriseDB';
-const DB_VERSION = 5; // Incrementado para garantir criação de stores
+const DB_VERSION = 6; // Incrementado para garantir criação de stores
 
 // Database Schema Definition
 export class DBService {
