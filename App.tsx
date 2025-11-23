@@ -12,7 +12,7 @@ import { Toast } from './components/Toast';
 import { Inbox } from './components/Inbox';
 import { Tutorial, TutorialStepTarget } from './components/Tutorial';
 import { DBService } from './db';
-import { LayoutDashboard, CreditCard, TrendingUp, Target, Settings as SettingsIcon, Menu, Filter, LogOut, Loader2, ShieldCheck, Mail } from 'lucide-react';
+import { LayoutDashboard, CreditCard, TrendingUp, Target, Settings as SettingsIcon, Menu, Filter, LogOut, Loader2, ShieldCheck, Mail, Sun, Moon } from 'lucide-react';
 
 type Tab = 'dashboard' | 'receitas' | 'despesas' | 'metas' | 'config' | 'admin';
 
@@ -89,6 +89,15 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
     };
     fetchData();
   }, [user, isAdmin]);
+
+  // Apply Theme Effect
+  useEffect(() => {
+    if (config.theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [config.theme]);
 
   // Poll for unread messages periodically (Simulating real-time)
   useEffect(() => {
@@ -221,22 +230,22 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
   // Filter Component
   const FilterBar = () => (
       <div className="flex items-center gap-3 text-sm">
-          <div className="flex items-center bg-white rounded-md border border-slate-300 px-3 py-1.5 shadow-sm">
-              <Filter size={14} className="text-slate-400 mr-2"/>
+          <div className="flex items-center bg-white dark:bg-slate-800 rounded-md border border-slate-300 dark:border-slate-600 px-3 py-1.5 shadow-sm transition-colors">
+              <Filter size={14} className="text-slate-400 dark:text-slate-500 mr-2"/>
               <select 
                 value={filter.month} 
                 onChange={e => setFilter({...filter, month: parseInt(e.target.value)})}
-                className="bg-transparent outline-none text-slate-700 font-medium cursor-pointer"
+                className="bg-transparent outline-none text-slate-700 dark:text-slate-200 font-medium cursor-pointer"
               >
-                  {MONTH_NAMES.map((m, i) => <option key={i} value={i}>{m}</option>)}
+                  {MONTH_NAMES.map((m, i) => <option key={i} value={i} className="dark:bg-slate-800">{m}</option>)}
               </select>
-              <span className="mx-2 text-slate-300">|</span>
+              <span className="mx-2 text-slate-300 dark:text-slate-600">|</span>
               <select 
                 value={filter.year} 
                 onChange={e => setFilter({...filter, year: parseInt(e.target.value)})}
-                className="bg-transparent outline-none text-slate-700 font-medium cursor-pointer"
+                className="bg-transparent outline-none text-slate-700 dark:text-slate-200 font-medium cursor-pointer"
               >
-                  {[2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030].map(y => <option key={y} value={y}>{y}</option>)}
+                  {[2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030].map(y => <option key={y} value={y} className="dark:bg-slate-800">{y}</option>)}
               </select>
           </div>
           
@@ -245,18 +254,18 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                 <select 
                     value={filter.category} 
                     onChange={e => setFilter({...filter, category: e.target.value})}
-                    className="bg-white rounded-md border border-slate-300 px-3 py-1.5 shadow-sm outline-none text-slate-700 text-sm cursor-pointer hidden md:block"
+                    className="bg-white dark:bg-slate-800 rounded-md border border-slate-300 dark:border-slate-600 px-3 py-1.5 shadow-sm outline-none text-slate-700 dark:text-slate-200 text-sm cursor-pointer hidden md:block transition-colors"
                 >
-                    <option value="Todas">Todas Categorias</option>
-                    {config.categories.map(c => <option key={c} value={c}>{c}</option>)}
+                    <option value="Todas" className="dark:bg-slate-800">Todas Categorias</option>
+                    {config.categories.map(c => <option key={c} value={c} className="dark:bg-slate-800">{c}</option>)}
                 </select>
                  <select 
                     value={filter.paymentMethod} 
                     onChange={e => setFilter({...filter, paymentMethod: e.target.value})}
-                    className="bg-white rounded-md border border-slate-300 px-3 py-1.5 shadow-sm outline-none text-slate-700 text-sm cursor-pointer hidden md:block"
+                    className="bg-white dark:bg-slate-800 rounded-md border border-slate-300 dark:border-slate-600 px-3 py-1.5 shadow-sm outline-none text-slate-700 dark:text-slate-200 text-sm cursor-pointer hidden md:block transition-colors"
                 >
-                    <option value="Todas">Todos Pagamentos</option>
-                    {config.paymentMethods.map(c => <option key={c} value={c}>{c}</option>)}
+                    <option value="Todas" className="dark:bg-slate-800">Todos Pagamentos</option>
+                    {config.paymentMethods.map(c => <option key={c} value={c} className="dark:bg-slate-800">{c}</option>)}
                 </select>
             </>
           )}
@@ -265,19 +274,19 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
 
   if (loading) {
       return (
-          <div className="h-screen w-full flex items-center justify-center bg-[#f3f4f6]">
+          <div className="h-screen w-full flex items-center justify-center bg-[#f3f4f6] dark:bg-slate-950 transition-colors">
               <div className="flex flex-col items-center gap-4">
                   <Loader2 className="animate-spin text-blue-600" size={48} />
-                  <p className="text-slate-500 font-medium animate-pulse">Carregando banco de dados seguro...</p>
+                  <p className="text-slate-500 dark:text-slate-400 font-medium animate-pulse">Carregando banco de dados seguro...</p>
               </div>
           </div>
       );
   }
 
   return (
-    <div className="flex h-screen bg-[#f3f4f6] text-slate-800 font-sans overflow-hidden">
+    <div className="flex h-screen bg-[#f3f4f6] dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans overflow-hidden transition-colors">
       {/* Sidebar - Desktop */}
-      <aside className="w-64 bg-slate-900 text-white flex flex-col shadow-xl z-20 hidden md:flex">
+      <aside className="w-64 bg-slate-900 text-white flex flex-col shadow-xl z-20 hidden md:flex border-r border-slate-800 dark:border-slate-800">
         <div className="p-6 border-b border-slate-800">
             <h1 className="text-lg font-bold tracking-tight flex items-center gap-2">
                 <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white font-black">F</div>
@@ -333,10 +342,10 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
       {/* Main Content */}
       <main className="flex-1 flex flex-col h-full overflow-hidden relative">
         {/* Header */}
-        <header className="bg-white h-16 border-b border-slate-200 flex items-center justify-between px-6 shadow-sm z-10">
+        <header className="bg-white dark:bg-slate-900 h-16 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-6 shadow-sm z-10 transition-colors">
             <div className="flex items-center gap-4">
-                <button className="md:hidden text-slate-500"><Menu /></button>
-                <h2 className="text-lg font-semibold text-slate-800 capitalize">
+                <button className="md:hidden text-slate-500 dark:text-slate-400"><Menu /></button>
+                <h2 className="text-lg font-semibold text-slate-800 dark:text-white capitalize">
                     {activeTab === 'admin' ? 'Painel Administrativo' : activeTab.replace('config', 'Configurações')}
                 </h2>
             </div>
@@ -344,15 +353,24 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
             <div className="flex items-center gap-4">
                 <FilterBar />
                 
+                {/* Theme Toggle (Quick Access) */}
+                <button
+                    onClick={() => updateConfig({...config, theme: config.theme === 'dark' ? 'light' : 'dark'})}
+                    className="p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors hidden sm:block"
+                    title={config.theme === 'dark' ? 'Mudar para Claro' : 'Mudar para Escuro'}
+                >
+                    {config.theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+                </button>
+
                 {/* Inbox Icon */}
                 <button 
                     onClick={() => setShowInbox(true)}
-                    className="relative p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors"
+                    className="relative p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
                     title="Caixa de Entrada"
                 >
                     <Mail size={20} />
                     {unreadMessages > 0 && (
-                        <span className="absolute top-1 right-1 w-3 h-3 bg-rose-500 rounded-full border-2 border-white"></span>
+                        <span className="absolute top-1 right-1 w-3 h-3 bg-rose-500 rounded-full border-2 border-white dark:border-slate-900"></span>
                     )}
                 </button>
             </div>

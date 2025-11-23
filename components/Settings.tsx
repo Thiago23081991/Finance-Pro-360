@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { AppConfig, Transaction, PurchaseRequest } from '../types';
-import { Trash2, Plus, FileSpreadsheet, Download, AlertCircle, Bell, CreditCard, CheckCircle, Clock, XCircle, Upload, Shield, Key, Smartphone, Copy, Lock } from 'lucide-react';
+import { Trash2, Plus, FileSpreadsheet, Download, AlertCircle, Bell, CreditCard, CheckCircle, Clock, XCircle, Upload, Shield, Key, Smartphone, Copy, Lock, Moon, Sun } from 'lucide-react';
 import { exportToCSV, generateId, validateLicenseKey } from '../utils';
 import { DBService } from '../db';
 
@@ -282,17 +282,55 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                 </div>
             </div>
 
+            {/* Appearance Settings */}
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
+                <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2 mb-4">
+                    {config.theme === 'dark' ? <Moon className="text-blue-500" size={20} /> : <Sun className="text-orange-500" size={20} />}
+                    Aparência
+                </h3>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <p className="text-sm font-medium text-slate-800 dark:text-white">Tema da Aplicação</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                            Escolha entre o modo claro ou escuro para melhor visualização.
+                        </p>
+                    </div>
+                    <div className="bg-slate-100 dark:bg-slate-700 p-1 rounded-lg flex items-center border border-slate-200 dark:border-slate-600">
+                        <button
+                            onClick={() => onUpdateConfig({...config, theme: 'light'})}
+                            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
+                                config.theme !== 'dark' 
+                                ? 'bg-white text-slate-800 shadow-sm' 
+                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                            }`}
+                        >
+                            Claro
+                        </button>
+                        <button
+                            onClick={() => onUpdateConfig({...config, theme: 'dark'})}
+                            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
+                                config.theme === 'dark' 
+                                ? 'bg-slate-600 text-white shadow-sm' 
+                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                            }`}
+                        >
+                            Escuro
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             {/* Security & Data Section */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                <h3 className="text-lg font-semibold text-slate-700 flex items-center gap-2 mb-6">
-                    <Shield className="text-indigo-600" size={20} />
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
+                <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2 mb-6">
+                    <Shield className="text-indigo-600 dark:text-indigo-400" size={20} />
                     Segurança e Dados
                 </h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {/* Password Change */}
                     <div className="space-y-3">
-                        <h4 className="text-sm font-semibold text-slate-600 flex items-center gap-2">
+                        <h4 className="text-sm font-semibold text-slate-600 dark:text-slate-300 flex items-center gap-2">
                             <Key size={16} /> Alterar Senha
                         </h4>
                         <div className="flex gap-2">
@@ -301,35 +339,35 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                                 placeholder="Nova senha..." 
                                 value={newPassword}
                                 onChange={(e) => setNewPassword(e.target.value)}
-                                className="flex-1 border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                                className="flex-1 border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
                             />
                             <button 
                                 onClick={handleChangePassword}
-                                className="bg-slate-800 text-white px-4 py-2 rounded text-sm font-medium hover:bg-slate-900 transition-colors"
+                                className="bg-slate-800 dark:bg-slate-700 text-white px-4 py-2 rounded text-sm font-medium hover:bg-slate-900 dark:hover:bg-slate-600 transition-colors"
                             >
                                 Atualizar
                             </button>
                         </div>
-                        {passSuccess && <p className="text-xs text-emerald-600 font-medium flex items-center gap-1"><CheckCircle size={12}/> Senha atualizada com sucesso!</p>}
+                        {passSuccess && <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1"><CheckCircle size={12}/> Senha atualizada com sucesso!</p>}
                         <p className="text-xs text-slate-400">
                             Atualize sua senha de acesso periodicamente para manter sua conta segura.
                         </p>
                     </div>
 
                     {/* Backup & Restore */}
-                    <div className="space-y-3 border-t md:border-t-0 md:border-l border-slate-100 md:pl-8 pt-4 md:pt-0">
-                        <h4 className="text-sm font-semibold text-slate-600 flex items-center gap-2">
+                    <div className="space-y-3 border-t md:border-t-0 md:border-l border-slate-100 dark:border-slate-700 md:pl-8 pt-4 md:pt-0">
+                        <h4 className="text-sm font-semibold text-slate-600 dark:text-slate-300 flex items-center gap-2">
                             <Download size={16} /> Backup e Restauração
                         </h4>
                         <div className="flex flex-col sm:flex-row gap-3">
                             <button 
                                 onClick={handleBackup}
-                                className="flex-1 flex items-center justify-center gap-2 bg-blue-50 text-blue-700 border border-blue-200 px-3 py-2 rounded hover:bg-blue-100 transition-colors text-sm font-medium"
+                                className="flex-1 flex items-center justify-center gap-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-3 py-2 rounded hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors text-sm font-medium"
                             >
                                 <Download size={16} />
                                 Baixar Dados
                             </button>
-                            <label className="flex-1 flex items-center justify-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-2 rounded hover:bg-emerald-100 transition-colors text-sm font-medium cursor-pointer">
+                            <label className="flex-1 flex items-center justify-center gap-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 px-3 py-2 rounded hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors text-sm font-medium cursor-pointer">
                                 <Upload size={16} />
                                 {isRestoring ? 'Restaurando...' : 'Restaurar'}
                                 <input 
@@ -349,15 +387,15 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
             </div>
 
             {/* Reminders Settings */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                <h3 className="text-lg font-semibold text-slate-700 flex items-center gap-2 mb-4">
-                    <Bell className="text-blue-600" size={20} />
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
+                <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2 mb-4">
+                    <Bell className="text-blue-600 dark:text-blue-400" size={20} />
                     Notificações e Lembretes
                 </h3>
                 <div className="flex items-center justify-between mb-2">
                     <div>
-                        <p className="text-sm font-medium text-slate-800">Lembretes de Metas</p>
-                        <p className="text-xs text-slate-500 mt-1">
+                        <p className="text-sm font-medium text-slate-800 dark:text-white">Lembretes de Metas</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                             Receba notificações periódicas no aplicativo para atualizar o progresso das suas metas financeiras.
                         </p>
                     </div>
@@ -368,19 +406,19 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                             checked={config.enableReminders ?? true}
                             onChange={(e) => onUpdateConfig({ ...config, enableReminders: e.target.checked })}
                         />
-                        <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        <div className="w-11 h-6 bg-slate-200 dark:bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-100 dark:peer-focus:ring-blue-900/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                     </label>
                 </div>
 
                 {/* Frequency Settings - Conditional */}
                  {(config.enableReminders ?? true) && (
-                    <div className="mt-4 pt-4 border-t border-slate-100 animate-fade-in pl-2">
+                    <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700 animate-fade-in pl-2">
                         <div className="flex items-center justify-between max-w-sm">
-                            <label className="text-sm text-slate-600 font-medium">Frequência dos alertas:</label>
+                            <label className="text-sm text-slate-600 dark:text-slate-300 font-medium">Frequência dos alertas:</label>
                             <select 
                                 value={config.reminderFrequency || 'weekly'} 
                                 onChange={(e) => onUpdateConfig({...config, reminderFrequency: e.target.value as any})}
-                                className="bg-white border border-slate-300 text-slate-700 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block p-2 outline-none w-40"
+                                className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-white text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block p-2 outline-none w-40"
                             >
                                 <option value="weekly">Semanal</option>
                                 <option value="biweekly">Quinzenal</option>
@@ -392,14 +430,14 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
             </div>
 
             {/* Google Sheets / Data Integration Card */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
                 <div className="flex items-start justify-between">
                     <div>
-                        <h3 className="text-lg font-semibold text-slate-700 flex items-center gap-2">
-                            <FileSpreadsheet className="text-emerald-600" />
+                        <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                            <FileSpreadsheet className="text-emerald-600 dark:text-emerald-400" />
                             Integração Google Sheets
                         </h3>
-                        <p className="text-sm text-slate-500 mt-1">
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                             Exporte seus dados para backup ou análise avançada no Google Sheets e Excel.
                         </p>
                     </div>
@@ -415,15 +453,15 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Categories Settings */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 h-full flex flex-col">
-                    <h3 className="text-lg font-semibold text-slate-700 mb-4 flex items-center gap-2">Categorias</h3>
-                    <p className="text-sm text-slate-500 mb-4">Utilizadas em Receitas e Despesas.</p>
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 h-full flex flex-col transition-colors">
+                    <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">Categorias</h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Utilizadas em Receitas e Despesas.</p>
                     
                     <div className="flex gap-2 mb-4">
                         <input 
                             type="text" 
                             placeholder="Nova Categoria" 
-                            className="flex-1 border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                            className="flex-1 border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
                             value={newCat}
                             onChange={e => setNewCat(e.target.value)}
                             onKeyDown={e => e.key === 'Enter' && addCat()}
@@ -435,8 +473,8 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
 
                     <ul className="space-y-2 overflow-y-auto custom-scrollbar pr-2 flex-1 max-h-80">
                         {config.categories.map(cat => (
-                            <li key={cat} className="flex justify-between items-center bg-slate-50 p-2 rounded border border-slate-100 group">
-                                <span className="text-sm text-slate-700">{cat}</span>
+                            <li key={cat} className="flex justify-between items-center bg-slate-50 dark:bg-slate-700/50 p-2 rounded border border-slate-100 dark:border-slate-700 group transition-colors">
+                                <span className="text-sm text-slate-700 dark:text-slate-300">{cat}</span>
                                 <button onClick={() => removeCat(cat)} className="text-slate-400 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <Trash2 size={16} />
                                 </button>
@@ -446,15 +484,15 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                 </div>
 
                 {/* Payment Methods Settings */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 h-full flex flex-col">
-                    <h3 className="text-lg font-semibold text-slate-700 mb-4">Formas de Pagamento</h3>
-                    <p className="text-sm text-slate-500 mb-4">Utilizadas apenas em Despesas.</p>
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 h-full flex flex-col transition-colors">
+                    <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-4">Formas de Pagamento</h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Utilizadas apenas em Despesas.</p>
 
                     <div className="flex gap-2 mb-4">
                         <input 
                             type="text" 
                             placeholder="Nova Forma de Pagamento" 
-                            className="flex-1 border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                            className="flex-1 border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
                             value={newMethod}
                             onChange={e => setNewMethod(e.target.value)}
                             onKeyDown={e => e.key === 'Enter' && addMethod()}
@@ -466,8 +504,8 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
 
                     <ul className="space-y-2 overflow-y-auto custom-scrollbar pr-2 flex-1 max-h-80">
                         {config.paymentMethods.map(met => (
-                            <li key={met} className="flex justify-between items-center bg-slate-50 p-2 rounded border border-slate-100 group">
-                                <span className="text-sm text-slate-700">{met}</span>
+                            <li key={met} className="flex justify-between items-center bg-slate-50 dark:bg-slate-700/50 p-2 rounded border border-slate-100 dark:border-slate-700 group transition-colors">
+                                <span className="text-sm text-slate-700 dark:text-slate-300">{met}</span>
                                 <button onClick={() => removeMethod(met)} className="text-slate-400 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <Trash2 size={16} />
                                 </button>

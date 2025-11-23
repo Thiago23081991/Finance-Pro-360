@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 import { Transaction, Goal, FilterState } from '../types';
 import { formatCurrency } from '../utils';
@@ -83,58 +84,58 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
   }, [filteredTransactions, filter]);
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in pb-10">
       
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between transition-colors">
             <div className="flex justify-between items-start">
                 <div>
-                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Receitas</p>
-                    <h3 className="text-2xl font-bold text-emerald-600 mt-1">{formatCurrency(kpiData.income)}</h3>
+                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Receitas</p>
+                    <h3 className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{formatCurrency(kpiData.income)}</h3>
                 </div>
-                <div className="p-2 bg-emerald-100 rounded-lg text-emerald-600">
+                <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg text-emerald-600 dark:text-emerald-400">
                     <TrendingUp size={20} />
                 </div>
             </div>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between transition-colors">
             <div className="flex justify-between items-start">
                 <div>
-                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Despesas</p>
-                    <h3 className="text-2xl font-bold text-rose-600 mt-1">{formatCurrency(kpiData.expense)}</h3>
+                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Despesas</p>
+                    <h3 className="text-2xl font-bold text-rose-600 dark:text-rose-400 mt-1">{formatCurrency(kpiData.expense)}</h3>
                 </div>
-                <div className="p-2 bg-rose-100 rounded-lg text-rose-600">
+                <div className="p-2 bg-rose-100 dark:bg-rose-900/30 rounded-lg text-rose-600 dark:text-rose-400">
                     <TrendingDown size={20} />
                 </div>
             </div>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between transition-colors">
             <div className="flex justify-between items-start">
                 <div>
-                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Saldo Final</p>
-                    <h3 className={`text-2xl font-bold mt-1 ${kpiData.balance >= 0 ? 'text-slate-800' : 'text-rose-600'}`}>
+                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Saldo Final</p>
+                    <h3 className={`text-2xl font-bold mt-1 ${kpiData.balance >= 0 ? 'text-slate-800 dark:text-slate-100' : 'text-rose-600 dark:text-rose-400'}`}>
                         {formatCurrency(kpiData.balance)}
                     </h3>
                 </div>
-                <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
+                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400">
                     <DollarSign size={20} />
                 </div>
             </div>
         </div>
 
-         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
+         <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between transition-colors">
             <div className="flex justify-between items-start">
                 <div>
-                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Categoria Mais Cara</p>
-                    <h3 className="text-lg font-bold text-slate-800 mt-1 truncate" title={kpiData.mostExpensiveCategory}>
+                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Categoria Mais Cara</p>
+                    <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mt-1 truncate" title={kpiData.mostExpensiveCategory}>
                         {kpiData.mostExpensiveCategory}
                     </h3>
-                    <p className="text-sm text-slate-500">{formatCurrency(kpiData.mostExpensiveValue)}</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">{formatCurrency(kpiData.mostExpensiveValue)}</p>
                 </div>
-                <div className="p-2 bg-orange-100 rounded-lg text-orange-600">
+                <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg text-orange-600 dark:text-orange-400">
                     <AlertCircle size={20} />
                 </div>
             </div>
@@ -144,16 +145,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
       {/* Charts Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Line Chart */}
-        <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-            <h4 className="text-sm font-semibold text-slate-700 mb-4">Evolução Mensal (Receita vs Despesa)</h4>
+        <div className="lg:col-span-2 bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
+            <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-4">Evolução Mensal (Receita vs Despesa)</h4>
             <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={timelineData}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                        <XAxis dataKey="name" tick={{fontSize: 12, fill: '#64748b'}} axisLine={false} tickLine={false} minTickGap={30} />
-                        <YAxis tick={{fontSize: 12, fill: '#64748b'}} axisLine={false} tickLine={false} tickFormatter={(val) => `R$${val}`} />
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#94a3b8" strokeOpacity={0.2} />
+                        <XAxis dataKey="name" tick={{fontSize: 12, fill: '#94a3b8'}} axisLine={false} tickLine={false} minTickGap={30} />
+                        <YAxis tick={{fontSize: 12, fill: '#94a3b8'}} axisLine={false} tickLine={false} tickFormatter={(val) => `R$${val}`} />
                         <Tooltip 
-                            contentStyle={{backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}}
+                            contentStyle={{backgroundColor: 'var(--tooltip-bg, #fff)', borderRadius: '8px', border: '1px solid #e2e8f0'}}
                             formatter={(value: number) => formatCurrency(value)}
                         />
                         <Legend />
@@ -165,8 +166,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
         </div>
 
         {/* Pie Chart */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-            <h4 className="text-sm font-semibold text-slate-700 mb-4">Proporção de Despesas</h4>
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
+            <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-4">Proporção de Despesas</h4>
             <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -184,7 +185,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                             ))}
                         </Pie>
                         <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                        <Legend layout="horizontal" verticalAlign="bottom" align="center" wrapperStyle={{fontSize: '11px', paddingTop: '10px'}}/>
+                        <Legend layout="horizontal" verticalAlign="bottom" align="center" wrapperStyle={{fontSize: '11px', paddingTop: '10px', color: '#94a3b8'}}/>
                     </PieChart>
                 </ResponsiveContainer>
             </div>
@@ -194,15 +195,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
       {/* Charts Row 2 */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Bar Chart */}
-          <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-            <h4 className="text-sm font-semibold text-slate-700 mb-4">Gastos por Categoria</h4>
+          <div className="lg:col-span-2 bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
+            <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-4">Gastos por Categoria</h4>
             <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={barData} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0"/>
-                        <XAxis type="number" tick={{fontSize: 12, fill: '#64748b'}} axisLine={false} tickLine={false} tickFormatter={(val) => `R$${val}`}/>
-                        <YAxis dataKey="name" type="category" width={100} tick={{fontSize: 12, fill: '#64748b'}} axisLine={false} tickLine={false}/>
-                        <Tooltip formatter={(value: number) => formatCurrency(value)} cursor={{fill: '#f8fafc'}} />
+                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#94a3b8" strokeOpacity={0.2}/>
+                        <XAxis type="number" tick={{fontSize: 12, fill: '#94a3b8'}} axisLine={false} tickLine={false} tickFormatter={(val) => `R$${val}`}/>
+                        <YAxis dataKey="name" type="category" width={100} tick={{fontSize: 12, fill: '#94a3b8'}} axisLine={false} tickLine={false}/>
+                        <Tooltip formatter={(value: number) => formatCurrency(value)} cursor={{fill: 'transparent'}} contentStyle={{color: '#333'}} />
                         <Bar dataKey="value" fill="#3b82f6" radius={[0, 4, 4, 0]} barSize={20} />
                     </BarChart>
                 </ResponsiveContainer>
@@ -210,8 +211,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
           </div>
 
           {/* Goals Thermometers */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 overflow-y-auto custom-scrollbar max-h-80">
-            <h4 className="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2">
+          <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-y-auto custom-scrollbar max-h-80 transition-colors">
+            <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
                 <PieIcon size={16}/>
                 Metas Financeiras
             </h4>
@@ -222,10 +223,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                     return (
                         <div key={goal.id}>
                             <div className="flex justify-between items-end mb-1">
-                                <span className="text-sm font-medium text-slate-700">{goal.name}</span>
-                                <span className="text-xs text-slate-500">{Math.round(percentage)}%</span>
+                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{goal.name}</span>
+                                <span className="text-xs text-slate-500 dark:text-slate-400">{Math.round(percentage)}%</span>
                             </div>
-                            <div className="w-full bg-slate-100 rounded-full h-2.5">
+                            <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2.5">
                                 <div 
                                     className={`h-2.5 rounded-full ${percentage >= 100 ? 'bg-emerald-500' : 'bg-blue-500'}`} 
                                     style={{ width: `${percentage}%` }}

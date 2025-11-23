@@ -23,6 +23,7 @@ export interface Goal {
 
 export interface AppConfig {
   userId?: string;
+  theme?: 'light' | 'dark'; // New Theme Field
   categories: string[];
   paymentMethods: string[];
   // New fields for Reminders

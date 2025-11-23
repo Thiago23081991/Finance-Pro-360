@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Transaction, TransactionType } from '../types';
 import { formatCurrency, generateId } from '../utils';
@@ -77,10 +78,10 @@ export const SheetView: React.FC<SheetViewProps> = ({
   const sheetData = transactions.filter(t => t.type === type).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return (
-    <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden flex flex-col h-[calc(100vh-140px)]">
+    <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm overflow-hidden flex flex-col h-[calc(100vh-140px)] transition-colors">
         {/* Toolbar */}
-        <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-            <h2 className="font-semibold text-slate-700 flex items-center gap-2">
+        <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+            <h2 className="font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
                 <div className={`w-3 h-3 rounded-full ${type === 'income' ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
                 {type === 'income' ? 'Receitas' : 'Despesas'}
             </h2>
@@ -95,33 +96,33 @@ export const SheetView: React.FC<SheetViewProps> = ({
 
         {/* Input Row (Sheet Style) - Only visible when adding */}
         {isAdding && (
-            <div className="p-4 bg-blue-50 border-b border-blue-100 grid grid-cols-12 gap-3 items-end animate-fade-in">
+            <div className="p-4 bg-blue-50 dark:bg-slate-700 border-b border-blue-100 dark:border-slate-600 grid grid-cols-12 gap-3 items-end animate-fade-in">
                 <div className="col-span-2">
-                    <label className="block text-xs font-medium text-slate-500 mb-1">Data Início</label>
+                    <label className="block text-xs font-medium text-slate-500 dark:text-slate-300 mb-1">Data Início</label>
                     <input 
                         type="date" 
                         value={newDate} 
                         onChange={(e) => setNewDate(e.target.value)}
-                        className="w-full border border-slate-300 rounded px-2 py-1 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                        className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded px-2 py-1 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
                     />
                 </div>
                 <div className="col-span-2">
-                    <label className="block text-xs font-medium text-slate-500 mb-1">Valor {installments > 1 ? '(Parcela)' : ''}</label>
+                    <label className="block text-xs font-medium text-slate-500 dark:text-slate-300 mb-1">Valor {installments > 1 ? '(Parcela)' : ''}</label>
                     <input 
                         type="number" 
                         step="0.01"
                         placeholder="0.00"
                         value={newAmount} 
                         onChange={(e) => setNewAmount(e.target.value)}
-                        className="w-full border border-slate-300 rounded px-2 py-1 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                        className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded px-2 py-1 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
                     />
                 </div>
                 <div className="col-span-2">
-                    <label className="block text-xs font-medium text-slate-500 mb-1">Categoria</label>
+                    <label className="block text-xs font-medium text-slate-500 dark:text-slate-300 mb-1">Categoria</label>
                     <select 
                         value={newCategory} 
                         onChange={(e) => setNewCategory(e.target.value)}
-                        className="w-full border border-slate-300 rounded px-2 py-1 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                        className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded px-2 py-1 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
                     >
                         {categories.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
@@ -131,24 +132,24 @@ export const SheetView: React.FC<SheetViewProps> = ({
                 {type === 'expense' ? (
                     <>
                         <div className="col-span-2">
-                             <label className="block text-xs font-medium text-slate-500 mb-1">Pagamento</label>
+                             <label className="block text-xs font-medium text-slate-500 dark:text-slate-300 mb-1">Pagamento</label>
                              <select 
                                 value={newPayment} 
                                 onChange={(e) => setNewPayment(e.target.value)}
-                                className="w-full border border-slate-300 rounded px-2 py-1 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                                className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded px-2 py-1 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
                             >
                                 {paymentMethods.map(p => <option key={p} value={p}>{p}</option>)}
                             </select>
                         </div>
                         <div className="col-span-1">
-                            <label className="block text-xs font-medium text-slate-500 mb-1" title="Número de Parcelas">Parc.</label>
+                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-300 mb-1" title="Número de Parcelas">Parc.</label>
                             <input 
                                 type="number"
                                 min="1"
                                 max="60"
                                 value={installments}
                                 onChange={(e) => setInstallments(parseInt(e.target.value) || 1)}
-                                className="w-full border border-slate-300 rounded px-2 py-1 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none text-center"
+                                className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded px-2 py-1 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none text-center"
                             />
                         </div>
                     </>
@@ -156,13 +157,13 @@ export const SheetView: React.FC<SheetViewProps> = ({
 
                 {/* Adjust description width based on type */}
                 <div className={`${type === 'expense' ? 'col-span-2' : 'col-span-5'}`}>
-                    <label className="block text-xs font-medium text-slate-500 mb-1">Descrição</label>
+                    <label className="block text-xs font-medium text-slate-500 dark:text-slate-300 mb-1">Descrição</label>
                     <input 
                         type="text" 
                         placeholder="Descrição opcional"
                         value={newDesc} 
                         onChange={(e) => setNewDesc(e.target.value)}
-                        className="w-full border border-slate-300 rounded px-2 py-1 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                        className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded px-2 py-1 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
                     />
                 </div>
                 
@@ -170,7 +171,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
                     <button onClick={handleSave} className="p-2 bg-emerald-500 text-white rounded hover:bg-emerald-600 transition-colors" title="Salvar">
                         <Save size={16} />
                     </button>
-                    <button onClick={() => { setIsAdding(false); setInstallments(1); }} className="p-2 bg-slate-200 text-slate-600 rounded hover:bg-slate-300 transition-colors" title="Cancelar">
+                    <button onClick={() => { setIsAdding(false); setInstallments(1); }} className="p-2 bg-slate-200 dark:bg-slate-600 text-slate-600 dark:text-slate-200 rounded hover:bg-slate-300 dark:hover:bg-slate-500 transition-colors" title="Cancelar">
                         <X size={16} />
                     </button>
                 </div>
@@ -180,39 +181,39 @@ export const SheetView: React.FC<SheetViewProps> = ({
         {/* Table Area */}
         <div className="flex-1 overflow-auto custom-scrollbar relative">
              <table className="w-full text-left border-collapse">
-                <thead className="bg-slate-50 sticky top-0 z-10 shadow-sm">
+                <thead className="bg-slate-50 dark:bg-slate-800 sticky top-0 z-10 shadow-sm">
                     <tr>
-                        <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 w-32">Data</th>
-                        <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 w-32">Valor</th>
-                        <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 w-48">Categoria</th>
-                        {type === 'expense' && <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 w-40">Forma Pag.</th>}
-                        <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">Descrição</th>
-                        <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 w-16 text-center">Ações</th>
+                        <th className="py-3 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 w-32">Data</th>
+                        <th className="py-3 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 w-32">Valor</th>
+                        <th className="py-3 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 w-48">Categoria</th>
+                        {type === 'expense' && <th className="py-3 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 w-40">Forma Pag.</th>}
+                        <th className="py-3 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Descrição</th>
+                        <th className="py-3 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 w-16 text-center">Ações</th>
                     </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                     {sheetData.length === 0 ? (
                         <tr>
-                            <td colSpan={type === 'expense' ? 6 : 5} className="py-12 text-center text-slate-400 italic">
+                            <td colSpan={type === 'expense' ? 6 : 5} className="py-12 text-center text-slate-400 dark:text-slate-500 italic">
                                 Nenhuma transação registrada. Adicione uma nova acima.
                             </td>
                         </tr>
                     ) : (
                         sheetData.map(t => (
-                            <tr key={t.id} className="hover:bg-slate-50 transition-colors group">
-                                <td className="py-2 px-4 text-sm text-slate-600 font-mono flex items-center gap-2">
+                            <tr key={t.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group">
+                                <td className="py-2 px-4 text-sm text-slate-600 dark:text-slate-300 font-mono flex items-center gap-2">
                                     {new Date(t.date).toLocaleDateString('pt-BR')}
                                     {/* Indicate if it's a future transaction */}
                                     {new Date(t.date) > new Date() && <CalendarClock size={12} className="text-blue-400" title="Transação Futura" />}
                                 </td>
-                                <td className={`py-2 px-4 text-sm font-medium font-mono ${type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                <td className={`py-2 px-4 text-sm font-medium font-mono ${type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                                     {formatCurrency(t.amount)}
                                 </td>
-                                <td className="py-2 px-4 text-sm text-slate-700">
-                                    <span className="px-2 py-1 bg-slate-100 rounded-full text-xs">{t.category}</span>
+                                <td className="py-2 px-4 text-sm text-slate-700 dark:text-slate-300">
+                                    <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded-full text-xs">{t.category}</span>
                                 </td>
-                                {type === 'expense' && <td className="py-2 px-4 text-sm text-slate-600">{t.paymentMethod}</td>}
-                                <td className="py-2 px-4 text-sm text-slate-600 truncate max-w-[200px]">{t.description}</td>
+                                {type === 'expense' && <td className="py-2 px-4 text-sm text-slate-600 dark:text-slate-400">{t.paymentMethod}</td>}
+                                <td className="py-2 px-4 text-sm text-slate-600 dark:text-slate-400 truncate max-w-[200px]">{t.description}</td>
                                 <td className="py-2 px-4 text-center">
                                     <button 
                                         onClick={() => onDelete(t.id)}
