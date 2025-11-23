@@ -354,7 +354,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                     <Bell className="text-blue-600" size={20} />
                     Notificações e Lembretes
                 </h3>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-2">
                     <div>
                         <p className="text-sm font-medium text-slate-800">Lembretes de Metas</p>
                         <p className="text-xs text-slate-500 mt-1">
@@ -371,6 +371,24 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                         <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                     </label>
                 </div>
+
+                {/* Frequency Settings - Conditional */}
+                 {(config.enableReminders ?? true) && (
+                    <div className="mt-4 pt-4 border-t border-slate-100 animate-fade-in pl-2">
+                        <div className="flex items-center justify-between max-w-sm">
+                            <label className="text-sm text-slate-600 font-medium">Frequência dos alertas:</label>
+                            <select 
+                                value={config.reminderFrequency || 'weekly'} 
+                                onChange={(e) => onUpdateConfig({...config, reminderFrequency: e.target.value as any})}
+                                className="bg-white border border-slate-300 text-slate-700 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block p-2 outline-none w-40"
+                            >
+                                <option value="weekly">Semanal</option>
+                                <option value="biweekly">Quinzenal</option>
+                                <option value="monthly">Mensal</option>
+                            </select>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Google Sheets / Data Integration Card */}
@@ -445,3 +463,19 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                             <Plus size={20} />
                         </button>
                     </div>
+
+                    <ul className="space-y-2 overflow-y-auto custom-scrollbar pr-2 flex-1 max-h-80">
+                        {config.paymentMethods.map(met => (
+                            <li key={met} className="flex justify-between items-center bg-slate-50 p-2 rounded border border-slate-100 group">
+                                <span className="text-sm text-slate-700">{met}</span>
+                                <button onClick={() => removeMethod(met)} className="text-slate-400 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Trash2 size={16} />
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    );
+};

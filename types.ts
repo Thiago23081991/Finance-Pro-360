@@ -27,6 +27,7 @@ export interface AppConfig {
   paymentMethods: string[];
   // New fields for Reminders
   enableReminders?: boolean;
+  reminderFrequency?: 'weekly' | 'biweekly' | 'monthly';
   lastSeenGoals?: string; // ISO Date of last time user checked/updated goals
   // Tutorial flag
   hasSeenTutorial?: boolean;

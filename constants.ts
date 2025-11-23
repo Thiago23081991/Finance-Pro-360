@@ -20,6 +20,7 @@ export const DEFAULT_CONFIG: AppConfig = {
     "Dinheiro"
   ],
   enableReminders: true,
+  reminderFrequency: 'weekly',
   lastSeenGoals: new Date().toISOString(),
   hasSeenTutorial: false
 };

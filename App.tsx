@@ -114,7 +114,11 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
           const diffTime = Math.abs(now.getTime() - lastSeen.getTime());
           const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-          if (diffDays > 3) {
+          let thresholdDays = 7; // Default: Weekly
+          if (config.reminderFrequency === 'biweekly') thresholdDays = 15;
+          if (config.reminderFrequency === 'monthly') thresholdDays = 30;
+
+          if (diffDays > thresholdDays) {
               const timer = setTimeout(() => {
                   setToastMessage("Faz um tempo que você não atualiza suas metas. Que tal conferir seu progresso hoje?");
                   setToastAction({
@@ -125,7 +129,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
               return () => clearTimeout(timer);
           }
       }
-  }, [loading, config.enableReminders, showTutorial, isAdmin]);
+  }, [loading, config.enableReminders, config.reminderFrequency, showTutorial, isAdmin, config.lastSeenGoals]);
 
   // Enhanced Tab Change Handler to track usage
   const handleTabChange = async (tab: Tab) => {
