@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Transaction, TransactionType } from '../types';
 import { formatCurrency, generateId } from '../utils';
-import { Plus, Trash2, Save, X, CalendarClock } from 'lucide-react';
+import { Plus, Trash2, Save, X, CalendarClock, AlertCircle } from 'lucide-react';
 
 interface SheetViewProps {
   type: TransactionType;
@@ -32,10 +32,29 @@ export const SheetView: React.FC<SheetViewProps> = ({
   const [newPayment, setNewPayment] = useState(paymentMethods[0] || '');
   // State for installments
   const [installments, setInstallments] = useState(1);
+  
+  // Error state for validation
+  const [dateError, setDateError] = useState('');
 
   const handleSave = () => {
+    // Basic fields check
     if (!newAmount || !newCategory || !newDate) return;
     
+    // Future Date Validation
+    const [y, m, d] = newDate.split('-').map(Number);
+    // Create date object treating input as local time (00:00:00)
+    const inputDate = new Date(y, m - 1, d);
+    
+    // Get today's date normalized to 00:00:00 for comparison
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Logic: If date is in the future AND it is NOT an installment (installments <= 1)
+    if (inputDate > today && installments <= 1) {
+        setDateError('Data futura não permitida para lançamentos à vista.');
+        return;
+    }
+
     const amountVal = parseFloat(newAmount);
     const numInstallments = Math.max(1, Math.floor(installments));
 
@@ -71,7 +90,14 @@ export const SheetView: React.FC<SheetViewProps> = ({
     setNewAmount('');
     setNewDesc('');
     setInstallments(1);
+    setDateError('');
     setIsAdding(false);
+  };
+
+  const handleCancel = () => {
+      setIsAdding(false);
+      setInstallments(1);
+      setDateError('');
   };
 
   // Filter transactions by type for this sheet
@@ -96,15 +122,21 @@ export const SheetView: React.FC<SheetViewProps> = ({
 
         {/* Input Row (Sheet Style) - Only visible when adding */}
         {isAdding && (
-            <div className="p-4 bg-blue-50 dark:bg-slate-700 border-b border-blue-100 dark:border-slate-600 grid grid-cols-12 gap-3 items-end animate-fade-in">
+            <div className="p-4 bg-blue-50 dark:bg-slate-700 border-b border-blue-100 dark:border-slate-600 grid grid-cols-12 gap-3 items-start animate-fade-in relative">
                 <div className="col-span-2">
                     <label className="block text-xs font-medium text-slate-500 dark:text-slate-300 mb-1">Data Início</label>
                     <input 
                         type="date" 
                         value={newDate} 
-                        onChange={(e) => setNewDate(e.target.value)}
-                        className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded px-2 py-1 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                        onChange={(e) => { setNewDate(e.target.value); setDateError(''); }}
+                        className={`w-full border ${dateError ? 'border-rose-500' : 'border-slate-300 dark:border-slate-600'} dark:bg-slate-800 dark:text-white rounded px-2 py-1 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none`}
                     />
+                    {dateError && (
+                        <div className="absolute top-full mt-1 left-4 z-10 bg-rose-100 text-rose-700 text-[10px] px-2 py-1 rounded shadow-md border border-rose-200 flex items-center gap-1">
+                            <AlertCircle size={10} />
+                            {dateError}
+                        </div>
+                    )}
                 </div>
                 <div className="col-span-2">
                     <label className="block text-xs font-medium text-slate-500 dark:text-slate-300 mb-1">Valor {installments > 1 ? '(Parcela)' : ''}</label>
@@ -148,7 +180,10 @@ export const SheetView: React.FC<SheetViewProps> = ({
                                 min="1"
                                 max="60"
                                 value={installments}
-                                onChange={(e) => setInstallments(parseInt(e.target.value) || 1)}
+                                onChange={(e) => { 
+                                    setInstallments(parseInt(e.target.value) || 1); 
+                                    setDateError(''); // Clear error if user switches to installments
+                                }}
                                 className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded px-2 py-1 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none text-center"
                             />
                         </div>
@@ -167,11 +202,11 @@ export const SheetView: React.FC<SheetViewProps> = ({
                     />
                 </div>
                 
-                <div className="col-span-1 flex gap-2">
+                <div className="col-span-1 flex gap-2 mt-6">
                     <button onClick={handleSave} className="p-2 bg-emerald-500 text-white rounded hover:bg-emerald-600 transition-colors" title="Salvar">
                         <Save size={16} />
                     </button>
-                    <button onClick={() => { setIsAdding(false); setInstallments(1); }} className="p-2 bg-slate-200 dark:bg-slate-600 text-slate-600 dark:text-slate-200 rounded hover:bg-slate-300 dark:hover:bg-slate-500 transition-colors" title="Cancelar">
+                    <button onClick={handleCancel} className="p-2 bg-slate-200 dark:bg-slate-600 text-slate-600 dark:text-slate-200 rounded hover:bg-slate-300 dark:hover:bg-slate-500 transition-colors" title="Cancelar">
                         <X size={16} />
                     </button>
                 </div>
@@ -204,7 +239,11 @@ export const SheetView: React.FC<SheetViewProps> = ({
                                 <td className="py-2 px-4 text-sm text-slate-600 dark:text-slate-300 font-mono flex items-center gap-2">
                                     {new Date(t.date).toLocaleDateString('pt-BR')}
                                     {/* Indicate if it's a future transaction */}
-                                    {new Date(t.date) > new Date() && <CalendarClock size={12} className="text-blue-400" title="Transação Futura" />}
+                                    {new Date(t.date) > new Date() && (
+                                        <span title="Transação Futura">
+                                            <CalendarClock size={12} className="text-blue-400" />
+                                        </span>
+                                    )}
                                 </td>
                                 <td className={`py-2 px-4 text-sm font-medium font-mono ${type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                                     {formatCurrency(t.amount)}

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { PurchaseRequest, AdminMessage } from '../types';
 import { DBService } from '../db';
-import { Check, X, ShieldAlert, User, MessageSquare, Send, FileText, Mail, Eye, EyeOff, LayoutList, RefreshCw, AlertCircle, Key, Copy, Smartphone, Lock } from 'lucide-react';
+import { Check, X, ShieldAlert, User, MessageSquare, Send, FileText, Mail, Eye, EyeOff, LayoutList, RefreshCw, AlertCircle, Key, Copy, Smartphone, Lock, Loader2 } from 'lucide-react';
 import { generateId, generateLicenseKey } from '../utils';
 
 type AdminTab = 'requests' | 'messages' | 'generator';
@@ -72,6 +72,12 @@ export const AdminPanel: React.FC = () => {
 
   const handleSendMessage = async () => {
       if (!msgContent.trim()) return;
+
+      // Confirmação Visual antes de processar
+      if (!window.confirm(`Tem certeza que deseja enviar esta mensagem para o usuário ${msgTargetUser}?`)) {
+        return;
+      }
+
       setSending(true);
       try {
           const msg: AdminMessage = {
@@ -408,16 +414,29 @@ export const AdminPanel: React.FC = () => {
                     <div className="flex justify-end gap-3">
                         <button 
                             onClick={() => setMsgModalOpen(false)}
-                            className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded text-sm font-medium transition-colors"
+                            disabled={sending}
+                            className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded text-sm font-medium transition-colors disabled:opacity-50"
                         >
                             Cancelar
                         </button>
                         <button 
                             onClick={handleSendMessage}
                             disabled={sending || !msgContent.trim()}
-                            className="px-4 py-2 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-700 flex items-center gap-2 disabled:opacity-50"
+                            className={`px-4 py-2 rounded text-sm font-medium flex items-center gap-2 transition-colors ${
+                                sending ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+                            } text-white disabled:opacity-50`}
                         >
-                            {sending ? 'Enviando...' : <><Send size={16} /> Enviar</>}
+                            {sending ? (
+                                <>
+                                    <Loader2 size={16} className="animate-spin" />
+                                    Enviando...
+                                </>
+                            ) : (
+                                <>
+                                    <Send size={16} />
+                                    Enviar Mensagem
+                                </>
+                            )}
                         </button>
                     </div>
                 </div>
