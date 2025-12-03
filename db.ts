@@ -1,3 +1,4 @@
+
 import { Transaction, Goal, AppConfig, UserAccount, PurchaseRequest, AdminMessage } from "./types";
 import { DEFAULT_CONFIG } from "./constants";
 import { supabase } from "./supabaseClient";
@@ -9,7 +10,7 @@ export class DBService {
 
   // --- AUTH OPERATIONS ---
 
-  static async registerUser(user: UserAccount): Promise<void> {
+  static async registerUser(user: UserAccount): Promise<any> {
     // 1. Criar usuário no Auth do Supabase
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: user.username, // Username tratado como email
@@ -20,21 +21,26 @@ export class DBService {
     if (!authData.user) throw new Error("Erro ao criar usuário.");
 
     // 2. Criar perfil inicial na tabela 'profiles'
-    const { error: profileError } = await supabase.from('profiles').insert({
-      id: authData.user.id,
-      email: user.username,
-      username: user.username.split('@')[0], // Nome de exibição simples
-      theme: 'light',
-      categories: DEFAULT_CONFIG.categories,
-      payment_methods: DEFAULT_CONFIG.paymentMethods,
-      enable_reminders: true,
-      has_seen_tutorial: false
-    });
+    // Apenas se o usuário foi criado
+    if (authData.user) {
+        const { error: profileError } = await supabase.from('profiles').insert({
+        id: authData.user.id,
+        email: user.username,
+        username: user.username.split('@')[0], // Nome de exibição simples
+        theme: 'light',
+        categories: DEFAULT_CONFIG.categories,
+        payment_methods: DEFAULT_CONFIG.paymentMethods,
+        enable_reminders: true,
+        has_seen_tutorial: false
+        });
 
-    if (profileError) {
-      console.error("Erro ao criar perfil:", profileError);
-      // Não bloqueia o registro, o getConfig vai lidar com isso depois
+        if (profileError) {
+            console.error("Erro ao criar perfil:", profileError);
+            // Não bloqueia o registro, o getConfig vai lidar com isso depois
+        }
     }
+    
+    return authData;
   }
 
   static async loginUser(username: string, password: string): Promise<boolean> {

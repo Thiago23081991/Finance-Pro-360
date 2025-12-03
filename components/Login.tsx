@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Lock, Mail, ArrowRight, Wallet, Database, Loader2, Check, X as XIcon, KeyRound, User } from 'lucide-react';
 import { DBService } from '../db';
@@ -74,18 +75,34 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 return;
             }
 
-            await DBService.registerUser({
+            // Registrar usuário
+            const authData = await DBService.registerUser({
                 username, // Email
                 password,
                 createdAt: new Date().toISOString()
             });
             
             handleSaveCredentials();
-            // Supabase auto-logs in after sign up usually, unless email confirm is on.
-            // Assuming email confirm is OFF for this demo.
-            const user = await DBService.getCurrentUser();
-            if (user) onLogin(user.id);
-            else setError("Verifique seu email para confirmar o cadastro.");
+
+            // Verificar se o Supabase já logou automaticamente
+            let user = await DBService.getCurrentUser();
+            
+            // Se não logou (session null), tenta logar explicitamente
+            // Isso cobre o caso onde "email confirm is off" mas o session não veio no sign up
+            if (!user) {
+                await DBService.loginUser(username, password);
+                user = await DBService.getCurrentUser();
+            }
+
+            if (user) {
+                // Sucesso total - App.tsx vai detectar a sessão, mas chamamos onLogin por garantia
+                onLogin(user.id);
+            } else {
+                // Se ainda assim não logou, pode ser erro de conexão ou confirmação obrigatória
+                // Mas a UI não vai travar pedindo email.
+                setError('Conta criada com sucesso! Faça login para continuar.');
+                setIsRegistering(false);
+            }
 
         } else {
             const isValid = await DBService.loginUser(username, password);
@@ -168,7 +185,11 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
           </div>
 
           {error && (
-            <div className="p-3 rounded-lg bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 text-sm font-medium text-center border border-rose-100 dark:border-rose-800 animate-fade-in">
+            <div className={`p-3 rounded-lg text-sm font-medium text-center border animate-fade-in ${
+                error.includes('sucesso') 
+                ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800' 
+                : 'bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 border-rose-100 dark:border-rose-800'
+            }`}>
               {error}
             </div>
           )}
