@@ -132,7 +132,7 @@ export const AdminPanel: React.FC = () => {
             <div className="bg-blue-50 border-l-4 border-blue-500 p-3 mb-6 rounded-r text-sm text-blue-700 flex items-start gap-2">
                 <AlertCircle size={16} className="mt-0.5 shrink-0" />
                 <div>
-                    <span className="font-bold">Modo Remoto:</span> Como o banco de dados é local, usuários em outros dispositivos não aparecerão na aba "Solicitações Locais". Use a aba <strong>"Gerador de Chaves"</strong> para criar licenças manualmente para eles.
+                    <span className="font-bold">Modo Remoto:</span> Como o banco de dados é local, usuários em outros dispositivos não aparecerão na aba "Solicitações de Compra". Use a aba <strong>"Gerador de Chaves"</strong> para criar licenças manualmente para eles.
                 </div>
             </div>
 
@@ -147,7 +147,7 @@ export const AdminPanel: React.FC = () => {
                     }`}
                 >
                     <FileText size={18} />
-                    Solicitações Locais
+                    Solicitações de Compra
                     {pendingRequestsCount > 0 && (
                         <span className="bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
                             {pendingRequestsCount}
@@ -159,6 +159,21 @@ export const AdminPanel: React.FC = () => {
                 </button>
                 
                 <button
+                    onClick={() => setActiveTab('messages')}
+                    className={`pb-3 px-2 text-sm font-medium flex items-center gap-2 transition-colors relative whitespace-nowrap ${
+                        activeTab === 'messages' 
+                        ? 'text-blue-600' 
+                        : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                >
+                    <MessageSquare size={18} />
+                    Mensagens do Admin
+                    {activeTab === 'messages' && (
+                        <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 rounded-t-full"></span>
+                    )}
+                </button>
+
+                <button
                     onClick={() => setActiveTab('generator')}
                     className={`pb-3 px-2 text-sm font-medium flex items-center gap-2 transition-colors relative whitespace-nowrap ${
                         activeTab === 'generator' 
@@ -169,21 +184,6 @@ export const AdminPanel: React.FC = () => {
                     <Key size={18} />
                     Gerador de Chaves
                     {activeTab === 'generator' && (
-                        <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 rounded-t-full"></span>
-                    )}
-                </button>
-
-                <button
-                    onClick={() => setActiveTab('messages')}
-                    className={`pb-3 px-2 text-sm font-medium flex items-center gap-2 transition-colors relative whitespace-nowrap ${
-                        activeTab === 'messages' 
-                        ? 'text-blue-600' 
-                        : 'text-slate-500 hover:text-slate-700'
-                    }`}
-                >
-                    <MessageSquare size={18} />
-                    Histórico de Mensagens
-                    {activeTab === 'messages' && (
                         <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 rounded-t-full"></span>
                     )}
                 </button>

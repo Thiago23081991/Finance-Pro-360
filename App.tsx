@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Transaction, Goal, AppConfig, FilterState } from './types';
 import { DEFAULT_CONFIG, MONTH_NAMES } from './constants';
@@ -12,6 +11,7 @@ import { Toast } from './components/Toast';
 import { Inbox } from './components/Inbox';
 import { Tutorial, TutorialStepTarget } from './components/Tutorial';
 import { DBService } from './db';
+import { supabase } from './supabaseClient';
 import { LayoutDashboard, CreditCard, TrendingUp, Target, Settings as SettingsIcon, Menu, Filter, LogOut, Loader2, ShieldCheck, Mail, Sun, Moon } from 'lucide-react';
 
 type Tab = 'dashboard' | 'receitas' | 'despesas' | 'metas' | 'config' | 'admin';
@@ -24,8 +24,9 @@ interface FinanceAppProps {
 // --- Authenticated Application Component ---
 const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
   
-  // Define admin users here
-  const isAdmin = user === 'admin' || user === 'Thiago Nascimento';
+  // Define admin logic based on Email (Supabase)
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
 
   // State Management
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
@@ -59,6 +60,15 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
     const fetchData = async () => {
         setLoading(true);
         try {
+            const currentUser = await DBService.getCurrentUser();
+            if (currentUser) {
+                setUserEmail(currentUser.email || '');
+                // Check admin
+                if (currentUser.email === 'admin@finance360.com' || currentUser.email === 'thiago@finance360.com') {
+                    setIsAdmin(true);
+                }
+            }
+
             const [txs, gls, cfg] = await Promise.all([
                 DBService.getTransactions(user),
                 DBService.getGoals(user),
@@ -68,27 +78,23 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
             setTransactions(txs);
             setGoals(gls);
             
-            // CRITICAL FIX: Ensure userId is always merged into config state
-            // This prevents issues where config might be loaded without userId context
             const mergedConfig = { ...DEFAULT_CONFIG, ...cfg, userId: user };
             setConfig(mergedConfig);
 
-            // Load unread messages count
             checkUnreadMessages();
 
-            // Check for tutorial (skip for admin)
             if (!isAdmin && mergedConfig.hasSeenTutorial === false) {
                 setTimeout(() => setShowTutorial(true), 500);
             }
 
         } catch (error) {
-            console.error("Failed to load data from DB", error);
+            console.error("Failed to load data from Supabase", error);
         } finally {
             setLoading(false);
         }
     };
     fetchData();
-  }, [user, isAdmin]);
+  }, [user]); // user is the UUID from supabase
 
   // Apply Theme Effect
   useEffect(() => {
@@ -99,9 +105,9 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
     }
   }, [config.theme]);
 
-  // Poll for unread messages periodically (Simulating real-time)
+  // Poll for unread messages periodically
   useEffect(() => {
-    const interval = setInterval(checkUnreadMessages, 15000); // Check every 15s
+    const interval = setInterval(checkUnreadMessages, 15000); 
     return () => clearInterval(interval);
   }, [user]);
 
@@ -123,7 +129,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
           const diffTime = Math.abs(now.getTime() - lastSeen.getTime());
           const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-          let thresholdDays = 7; // Default: Weekly
+          let thresholdDays = 7; 
           if (config.reminderFrequency === 'biweekly') thresholdDays = 15;
           if (config.reminderFrequency === 'monthly') thresholdDays = 30;
 
@@ -140,18 +146,14 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
       }
   }, [loading, config.enableReminders, config.reminderFrequency, showTutorial, isAdmin, config.lastSeenGoals]);
 
-  // Enhanced Tab Change Handler to track usage
   const handleTabChange = async (tab: Tab) => {
     setActiveTab(tab);
     
-    // If user visits 'metas', update the lastSeenGoals timestamp
     if (tab === 'metas') {
         const now = new Date().toISOString();
         const newConfig = { ...config, lastSeenGoals: now };
         setConfig(newConfig);
-        
-        const configWithUser = { ...newConfig, userId: user };
-        await DBService.saveConfig(configWithUser);
+        await DBService.saveConfig(newConfig);
         
         if (toastMessage && toastMessage.includes("metas")) {
             setToastMessage(null);
@@ -159,10 +161,10 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
     }
   };
 
-  // Handlers with Async DB Updates
   const addTransaction = async (t: Transaction) => {
       const tWithUser = { ...t, userId: user };
       await DBService.addTransaction(tWithUser);
+      // Refresh to ensure ID consistency if needed, but local push is faster
       setTransactions(prev => [...prev, tWithUser]);
   };
 
@@ -276,8 +278,8 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
       return (
           <div className="h-screen w-full flex items-center justify-center bg-[#f3f4f6] dark:bg-slate-950 transition-colors">
               <div className="flex flex-col items-center gap-4">
-                  <Loader2 className="animate-spin text-blue-600" size={48} />
-                  <p className="text-slate-500 dark:text-slate-400 font-medium animate-pulse">Carregando banco de dados seguro...</p>
+                  <Loader2 className="animate-spin text-emerald-600" size={48} />
+                  <p className="text-slate-500 dark:text-slate-400 font-medium animate-pulse">Sincronizando dados...</p>
               </div>
           </div>
       );
@@ -289,7 +291,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
       <aside className="w-64 bg-slate-900 text-white flex flex-col shadow-xl z-20 hidden md:flex border-r border-slate-800 dark:border-slate-800">
         <div className="p-6 border-b border-slate-800">
             <h1 className="text-lg font-bold tracking-tight flex items-center gap-2">
-                <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white font-black">F</div>
+                <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-white font-black">F</div>
                 Finance Pro 360
             </h1>
         </div>
@@ -303,7 +305,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                     onClick={() => handleTabChange(item.id as Tab)}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
                         activeTab === item.id 
-                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/50 translate-x-1' 
+                        ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/50 translate-x-1' 
                         : 'text-slate-400 hover:bg-slate-800 hover:text-white'
                     }`}
                 >
@@ -316,11 +318,11 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
             <div className="flex items-center justify-between px-2 mb-3">
                 <div className="flex items-center gap-2">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white ${isAdmin ? 'bg-indigo-600 ring-2 ring-indigo-400' : 'bg-slate-700'}`}>
-                        {user.substring(0, 2).toUpperCase()}
+                        {(userEmail || 'U').substring(0, 2).toUpperCase()}
                     </div>
                     <div>
-                        <div className="text-sm font-medium text-slate-200 truncate max-w-[100px]" title={user}>
-                            {user}
+                        <div className="text-xs font-medium text-slate-200 truncate max-w-[100px]" title={userEmail}>
+                            {userEmail}
                         </div>
                         {isAdmin && <span className="text-[10px] text-indigo-400 font-semibold uppercase">Administrator</span>}
                     </div>
@@ -332,9 +334,6 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                 >
                     <LogOut size={18} />
                 </button>
-            </div>
-            <div className="text-xs text-slate-600 text-center pt-2 border-t border-slate-800">
-                Finance Pro 360 © 2030
             </div>
         </div>
       </aside>
@@ -353,16 +352,13 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
             <div className="flex items-center gap-4">
                 <FilterBar />
                 
-                {/* Theme Toggle (Quick Access) */}
                 <button
                     onClick={() => updateConfig({...config, theme: config.theme === 'dark' ? 'light' : 'dark'})}
                     className="p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors hidden sm:block"
-                    title={config.theme === 'dark' ? 'Mudar para Claro' : 'Mudar para Escuro'}
                 >
                     {config.theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
                 </button>
 
-                {/* Inbox Icon */}
                 <button 
                     onClick={() => setShowInbox(true)}
                     className="relative p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
@@ -428,7 +424,6 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
             )}
         </div>
 
-        {/* Toast Notifications */}
         {toastMessage && (
             <Toast 
                 message={toastMessage} 
@@ -438,7 +433,6 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
             />
         )}
 
-        {/* Tutorial Overlay */}
         {showTutorial && (
             <Tutorial 
                 onComplete={handleTutorialComplete}
@@ -446,7 +440,6 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
             />
         )}
 
-        {/* Inbox Overlay */}
         <Inbox 
             userId={user}
             isOpen={showInbox}
@@ -460,25 +453,45 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
 
 // --- Root App Component ---
 function App() {
-  const [currentUser, setCurrentUser] = useState<string | null>(() => {
-      return localStorage.getItem('fp360_active_session');
-  });
+  const [session, setSession] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setLoading(false);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handleLogin = (user: string) => {
-      localStorage.setItem('fp360_active_session', user);
-      setCurrentUser(user);
+    // Legacy support or fallback
   };
 
-  const handleLogout = () => {
-      localStorage.removeItem('fp360_active_session');
-      setCurrentUser(null);
+  const handleLogout = async () => {
+      await supabase.auth.signOut();
   };
 
-  if (!currentUser) {
+  if (loading) {
+      return (
+          <div className="h-screen w-full flex items-center justify-center bg-slate-950">
+               <Loader2 className="animate-spin text-white" size={32} />
+          </div>
+      )
+  }
+
+  if (!session) {
       return <Login onLogin={handleLogin} />;
   }
 
-  return <FinanceApp key={currentUser} user={currentUser} onLogout={handleLogout} />;
+  return <FinanceApp key={session.user.id} user={session.user.id} onLogout={handleLogout} />;
 }
 
 export default App;

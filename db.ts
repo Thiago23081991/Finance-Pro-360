@@ -1,412 +1,353 @@
-
 import { Transaction, Goal, AppConfig, UserAccount, PurchaseRequest, AdminMessage } from "./types";
 import { DEFAULT_CONFIG } from "./constants";
+import { supabase } from "./supabaseClient";
 
-const DB_NAME = 'FinancePro360_EnterpriseDB';
-const DB_VERSION = 7; // Incrementado para garantir criação correta de stores (v7)
+// O Supabase substitui o IndexedDB.
+// Mantemos a classe DBService como fachada para facilitar a migração.
 
-// Database Schema Definition
 export class DBService {
-  private static async open(): Promise<IDBDatabase> {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-      request.onerror = () => reject(request.error);
-      
-      request.onsuccess = () => resolve(request.result);
-
-      request.onupgradeneeded = (event) => {
-        const db = (event.target as IDBOpenDBRequest).result;
-
-        // Users Store
-        if (!db.objectStoreNames.contains('users')) {
-          db.createObjectStore('users', { keyPath: 'username' });
-        }
-
-        // Transactions Store (Indexed by userId for fast retrieval)
-        if (!db.objectStoreNames.contains('transactions')) {
-          const store = db.createObjectStore('transactions', { keyPath: 'id' });
-          store.createIndex('by_user', 'userId', { unique: false });
-        }
-
-        // Goals Store
-        if (!db.objectStoreNames.contains('goals')) {
-          const store = db.createObjectStore('goals', { keyPath: 'id' });
-          store.createIndex('by_user', 'userId', { unique: false });
-        }
-
-        // Config Store
-        if (!db.objectStoreNames.contains('configs')) {
-          db.createObjectStore('configs', { keyPath: 'userId' });
-        }
-
-        // Purchase Requests Store - Ensure it exists
-        if (!db.objectStoreNames.contains('purchase_requests')) {
-          const store = db.createObjectStore('purchase_requests', { keyPath: 'userId' }); 
-        }
-
-        // Messages Store
-        if (!db.objectStoreNames.contains('messages')) {
-          const store = db.createObjectStore('messages', { keyPath: 'id' });
-          store.createIndex('by_receiver', 'receiver', { unique: false });
-        }
-      };
-    });
-  }
 
   // --- AUTH OPERATIONS ---
 
   static async registerUser(user: UserAccount): Promise<void> {
-    const db = await this.open();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(['users'], 'readwrite');
-      const store = transaction.objectStore('users');
-      
-      const checkRequest = store.get(user.username);
-      
-      checkRequest.onsuccess = () => {
-        if (checkRequest.result) {
-          reject(new Error("Usuário já existe"));
-        } else {
-          const addRequest = store.add(user);
-          addRequest.onsuccess = () => resolve();
-          addRequest.onerror = () => reject(addRequest.error);
-        }
-      };
-      checkRequest.onerror = () => reject(checkRequest.error);
+    // 1. Criar usuário no Auth do Supabase
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: user.username, // Username tratado como email
+      password: user.password,
     });
+
+    if (authError) throw new Error(authError.message);
+    if (!authData.user) throw new Error("Erro ao criar usuário.");
+
+    // 2. Criar perfil inicial na tabela 'profiles'
+    const { error: profileError } = await supabase.from('profiles').insert({
+      id: authData.user.id,
+      email: user.username,
+      username: user.username.split('@')[0], // Nome de exibição simples
+      theme: 'light',
+      categories: DEFAULT_CONFIG.categories,
+      payment_methods: DEFAULT_CONFIG.paymentMethods,
+      enable_reminders: true,
+      has_seen_tutorial: false
+    });
+
+    if (profileError) {
+      console.error("Erro ao criar perfil:", profileError);
+      // Não bloqueia o registro, o getConfig vai lidar com isso depois
+    }
   }
 
   static async loginUser(username: string, password: string): Promise<boolean> {
-    const db = await this.open();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(['users'], 'readonly');
-      const store = transaction.objectStore('users');
-      const request = store.get(username);
-
-      request.onsuccess = () => {
-        const user = request.result as UserAccount;
-        if (user && user.password === password) {
-          resolve(true);
-        } else {
-          resolve(false);
-        }
-      };
-      request.onerror = () => reject(request.error);
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: username,
+      password: password,
     });
+
+    if (error) {
+        console.error("Login falhou:", error.message);
+        return false;
+    }
+    return !!data.user;
+  }
+
+  static async logout(): Promise<void> {
+    await supabase.auth.signOut();
+  }
+
+  static async getCurrentUser(): Promise<any> {
+    const { data } = await supabase.auth.getUser();
+    return data.user;
   }
 
   static async resetUserPassword(username: string, newPass: string): Promise<void> {
-    const db = await this.open();
-    return new Promise((resolve, reject) => {
-        const transaction = db.transaction(['users'], 'readwrite');
-        const store = transaction.objectStore('users');
-        const request = store.get(username);
-
-        request.onsuccess = () => {
-            const user = request.result as UserAccount;
-            if (user) {
-                user.password = newPass;
-                const updateRequest = store.put(user);
-                updateRequest.onsuccess = () => resolve();
-                updateRequest.onerror = () => reject(updateRequest.error);
-            } else {
-                reject(new Error("Usuário não encontrado"));
-            }
-        };
-        request.onerror = () => reject(request.error);
-    });
+    // Nota: Em produção, o Supabase usa email para reset. 
+    // Como estamos usando a lógica de "Chave Mestra" do Admin para forçar o reset:
+    // O admin precisaria usar a API de Admin do Supabase (service_role) para alterar senha de outros,
+    // o que não é seguro expor no frontend.
+    // Para este caso específico, vamos permitir que o PRÓPRIO usuário logado mude sua senha.
+    
+    // Se for um reset não autenticado (tela de login), o Supabase exige envio de email.
+    // Vamos simular: se o usuário fornecer a chave mestra, usamos updateUser (mas precisaria estar logado).
+    // WORKAROUND: O fluxo 'Esqueci minha senha' com chave mestra não funciona nativamente no Supabase client-side
+    // sem enviar email. Vamos alterar para "Atualizar Senha" se o usuário conseguir logar ou usar a função de admin.
+    
+    const { error } = await supabase.auth.updateUser({ password: newPass });
+    if (error) throw new Error(error.message);
   }
 
   // --- DATA OPERATIONS ---
 
   static async getTransactions(userId: string): Promise<Transaction[]> {
-    const db = await this.open();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(['transactions'], 'readonly');
-      const store = transaction.objectStore('transactions');
-      const index = store.index('by_user');
-      const request = index.getAll(userId);
+    // userId no Supabase é o UUID do Auth. O parametro 'userId' vindo do App.tsx deve ser ignorado 
+    // em favor do auth.uid() real, mas o RLS já garante isso.
+    const { data, error } = await supabase
+      .from('transactions')
+      .select('*')
+      .order('date', { ascending: false });
 
-      request.onsuccess = () => resolve(request.result || []);
-      request.onerror = () => reject(request.error);
-    });
+    if (error) throw error;
+
+    // Mapear snake_case (DB) para camelCase (App)
+    return data.map((t: any) => ({
+      id: t.id,
+      userId: t.user_id,
+      date: t.date,
+      amount: parseFloat(t.amount),
+      category: t.category,
+      description: t.description,
+      paymentMethod: t.payment_method,
+      type: t.type
+    }));
   }
 
   static async addTransaction(t: Transaction): Promise<void> {
-    const db = await this.open();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(['transactions'], 'readwrite');
-      const store = transaction.objectStore('transactions');
-      const request = store.put(t); // put allows update if id exists
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
-    });
+    // Verifica se é update ou insert
+    // Supabase 'upsert' funciona bem se tiver ID.
+    const user = await this.getCurrentUser();
+    if (!user) throw new Error("Usuário não autenticado");
+
+    const payload = {
+      id: t.id, // Se for novo e gerado no front, ok. Se nao, o Supabase gera.
+      user_id: user.id,
+      date: t.date,
+      amount: t.amount,
+      category: t.category,
+      description: t.description,
+      payment_method: t.paymentMethod,
+      type: t.type
+    };
+
+    const { error } = await supabase.from('transactions').upsert(payload);
+    if (error) throw error;
   }
 
   static async deleteTransaction(id: string): Promise<void> {
-    const db = await this.open();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(['transactions'], 'readwrite');
-      const store = transaction.objectStore('transactions');
-      const request = store.delete(id);
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
-    });
+    const { error } = await supabase.from('transactions').delete().eq('id', id);
+    if (error) throw error;
   }
 
   static async getGoals(userId: string): Promise<Goal[]> {
-    const db = await this.open();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(['goals'], 'readonly');
-      const store = transaction.objectStore('goals');
-      const index = store.index('by_user');
-      const request = index.getAll(userId);
-      request.onsuccess = () => resolve(request.result || []);
-      request.onerror = () => reject(request.error);
-    });
+    const { data, error } = await supabase.from('goals').select('*');
+    if (error) throw error;
+
+    return data.map((g: any) => ({
+      id: g.id,
+      userId: g.user_id,
+      name: g.name,
+      targetValue: parseFloat(g.target_value),
+      currentValue: parseFloat(g.current_value),
+      status: g.status
+    }));
   }
 
   static async saveGoal(g: Goal): Promise<void> {
-    const db = await this.open();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(['goals'], 'readwrite');
-      const store = transaction.objectStore('goals');
-      const request = store.put(g);
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
-    });
+    const user = await this.getCurrentUser();
+    if (!user) throw new Error("Usuário não autenticado");
+
+    const payload = {
+      id: g.id,
+      user_id: user.id,
+      name: g.name,
+      target_value: g.targetValue,
+      current_value: g.currentValue,
+      status: g.status
+    };
+
+    const { error } = await supabase.from('goals').upsert(payload);
+    if (error) throw error;
   }
 
   static async deleteGoal(id: string): Promise<void> {
-    const db = await this.open();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(['goals'], 'readwrite');
-      const store = transaction.objectStore('goals');
-      const request = store.delete(id);
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
-    });
+    const { error } = await supabase.from('goals').delete().eq('id', id);
+    if (error) throw error;
   }
 
   static async getConfig(userId: string): Promise<AppConfig> {
-    const db = await this.open();
-    return new Promise((resolve, reject) => {
-      try {
-        const transaction = db.transaction(['configs'], 'readonly');
-        const store = transaction.objectStore('configs');
-        const request = store.get(userId);
-        request.onsuccess = () => {
-            if (request.result) {
-                resolve(request.result);
-            } else {
-                resolve({ ...DEFAULT_CONFIG, userId });
-            }
-        };
-        request.onerror = () => reject(request.error);
-      } catch (e) {
-        resolve({ ...DEFAULT_CONFIG, userId });
-      }
-    });
+    // Busca perfil. userId parametro é legacy, usamos auth.
+    const user = await this.getCurrentUser();
+    if (!user) return DEFAULT_CONFIG;
+
+    const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+
+    if (error || !data) {
+      // Se não tem perfil, retorna default
+      return { ...DEFAULT_CONFIG, userId: user.id };
+    }
+
+    return {
+      userId: data.id,
+      theme: data.theme as 'light' | 'dark',
+      categories: data.categories || DEFAULT_CONFIG.categories,
+      paymentMethods: data.payment_methods || DEFAULT_CONFIG.paymentMethods,
+      enableReminders: data.enable_reminders,
+      reminderFrequency: data.reminder_frequency,
+      lastSeenGoals: data.last_seen_goals,
+      hasSeenTutorial: data.has_seen_tutorial,
+      licenseKey: data.license_key,
+      licenseStatus: data.license_status
+    };
   }
 
   static async saveConfig(config: AppConfig): Promise<void> {
-      const db = await this.open();
-      return new Promise((resolve, reject) => {
-        const transaction = db.transaction(['configs'], 'readwrite');
-        const store = transaction.objectStore('configs');
-        const request = store.put(config);
-        request.onsuccess = () => resolve();
-        request.onerror = () => reject(request.error);
-      });
+    const user = await this.getCurrentUser();
+    if (!user) return;
+
+    const payload = {
+      id: user.id,
+      theme: config.theme,
+      categories: config.categories,
+      payment_methods: config.paymentMethods,
+      enable_reminders: config.enableReminders,
+      reminder_frequency: config.reminderFrequency,
+      last_seen_goals: config.lastSeenGoals,
+      has_seen_tutorial: config.hasSeenTutorial,
+      license_key: config.licenseKey,
+      license_status: config.licenseStatus
+    };
+
+    const { error } = await supabase.from('profiles').upsert(payload);
+    if (error) console.error("Erro ao salvar config", error);
   }
 
   // --- BACKUP OPERATIONS ---
+  // Adaptado para puxar tudo do Supabase
 
   static async createBackup(): Promise<string> {
-      const db = await this.open();
-      return new Promise((resolve, reject) => {
-          const stores = ['users', 'transactions', 'goals', 'configs', 'messages', 'purchase_requests'];
-          const transaction = db.transaction(stores, 'readonly');
-          const backup: any = {};
-          
-          let completed = 0;
+    const user = await this.getCurrentUser();
+    if (!user) throw new Error("Não logado");
 
-          stores.forEach(storeName => {
-              if (db.objectStoreNames.contains(storeName)) {
-                  const store = transaction.objectStore(storeName);
-                  const request = store.getAll();
-                  request.onsuccess = () => {
-                      backup[storeName] = request.result;
-                      completed++;
-                      if (completed === stores.length) {
-                          resolve(JSON.stringify(backup));
-                      }
-                  };
-                  request.onerror = () => reject(request.error);
-              } else {
-                  completed++;
-                  if (completed === stores.length) resolve(JSON.stringify(backup));
-              }
-          });
-      });
+    const [txs, goals, profile, reqs, msgs] = await Promise.all([
+      supabase.from('transactions').select('*'),
+      supabase.from('goals').select('*'),
+      supabase.from('profiles').select('*').eq('id', user.id).single(),
+      supabase.from('purchase_requests').select('*'),
+      supabase.from('messages').select('*').or(`receiver.eq.${user.id},sender.eq.Admin`) // Lógica simplificada
+    ]);
+
+    const backup = {
+      transactions: txs.data,
+      goals: goals.data,
+      configs: [profile.data],
+      purchase_requests: reqs.data,
+      messages: msgs.data
+    };
+
+    return JSON.stringify(backup);
   }
 
   static async restoreBackup(jsonString: string): Promise<void> {
-      const data = JSON.parse(jsonString);
-      const db = await this.open();
-      
-      return new Promise((resolve, reject) => {
-          const stores = ['users', 'transactions', 'goals', 'configs', 'messages', 'purchase_requests'];
-          const transaction = db.transaction(stores, 'readwrite');
-          
-          transaction.oncomplete = () => resolve();
-          transaction.onerror = () => reject(transaction.error);
+    const data = JSON.parse(jsonString);
+    const user = await this.getCurrentUser();
+    if (!user) return;
 
-          if (data.users) {
-              const store = transaction.objectStore('users');
-              data.users.forEach((item: any) => store.put(item));
-          }
-          if (data.transactions) {
-              const store = transaction.objectStore('transactions');
-              data.transactions.forEach((item: any) => store.put(item));
-          }
-          if (data.goals) {
-              const store = transaction.objectStore('goals');
-              data.goals.forEach((item: any) => store.put(item));
-          }
-          if (data.configs) {
-              const store = transaction.objectStore('configs');
-              data.configs.forEach((item: any) => store.put(item));
-          }
-           if (data.messages) {
-              const store = transaction.objectStore('messages');
-              data.messages.forEach((item: any) => store.put(item));
-          }
-           if (data.purchase_requests) {
-              const store = transaction.objectStore('purchase_requests');
-              data.purchase_requests.forEach((item: any) => store.put(item));
-          }
-      });
+    // Restaurar Transações
+    if (data.transactions && data.transactions.length > 0) {
+       const cleanTxs = data.transactions.map((t: any) => ({
+         ...t, user_id: user.id // Força propriedade do usuário atual
+       }));
+       await supabase.from('transactions').upsert(cleanTxs);
+    }
+    
+    // Restaurar Metas
+    if (data.goals && data.goals.length > 0) {
+       const cleanGoals = data.goals.map((g: any) => ({
+         ...g, user_id: user.id
+       }));
+       await supabase.from('goals').upsert(cleanGoals);
+    }
+
+    // Configs - Apenas update
+    if (data.configs && data.configs.length > 0) {
+       // Pega o primeiro config compatível
+       const cfg = data.configs[0];
+       delete cfg.id; // Não sobrescrever ID
+       await supabase.from('profiles').update(cfg).eq('id', user.id);
+    }
   }
 
   // --- PURCHASE REQUEST OPERATIONS (ADMIN) ---
 
   static async getPurchaseRequest(userId: string): Promise<PurchaseRequest | null> {
-    const db = await this.open();
-    return new Promise((resolve, reject) => {
-        try {
-            const transaction = db.transaction(['purchase_requests'], 'readonly');
-            const store = transaction.objectStore('purchase_requests');
-            const request = store.get(userId);
-            request.onsuccess = () => resolve(request.result || null);
-            request.onerror = () => resolve(null);
-        } catch (e) {
-            resolve(null);
-        }
-    });
+    // userId aqui pode ser o UUID do user
+    const { data } = await supabase.from('purchase_requests').select('*').eq('user_id', userId).maybeSingle();
+    
+    if (!data) return null;
+    return {
+      id: data.id,
+      userId: data.user_id,
+      requestDate: data.request_date,
+      status: data.status
+    };
   }
 
   static async savePurchaseRequest(req: PurchaseRequest): Promise<void> {
-    const db = await this.open();
-    return new Promise((resolve, reject) => {
-        const transaction = db.transaction(['purchase_requests'], 'readwrite');
-        const store = transaction.objectStore('purchase_requests');
-        const request = store.put(req);
-        request.onsuccess = () => resolve();
-        request.onerror = () => reject(request.error);
-    });
+    const payload = {
+      id: req.id,
+      user_id: req.userId,
+      request_date: req.requestDate,
+      status: req.status
+    };
+    const { error } = await supabase.from('purchase_requests').upsert(payload);
+    if (error) console.error(error);
   }
 
   static async getAllPurchaseRequests(): Promise<PurchaseRequest[]> {
-    const db = await this.open();
-    return new Promise((resolve, reject) => {
-        try {
-            const transaction = db.transaction(['purchase_requests'], 'readonly');
-            const store = transaction.objectStore('purchase_requests');
-            const request = store.getAll();
-            request.onsuccess = () => resolve(request.result || []);
-            request.onerror = () => reject(request.error);
-        } catch (e) {
-            // If store missing or other error, return empty to avoid crash
-            resolve([]);
-        }
-    });
+    const { data, error } = await supabase.from('purchase_requests').select('*');
+    if (error) return [];
+
+    return data.map((r: any) => ({
+      id: r.id,
+      userId: r.user_id,
+      requestDate: r.request_date,
+      status: r.status
+    }));
   }
 
   // --- MESSAGING OPERATIONS ---
 
   static async sendMessage(msg: AdminMessage): Promise<void> {
-    const db = await this.open();
-    return new Promise((resolve, reject) => {
-        const transaction = db.transaction(['messages'], 'readwrite');
-        const store = transaction.objectStore('messages');
-        const request = store.add(msg);
-        request.onsuccess = () => resolve();
-        request.onerror = () => reject(request.error);
-    });
+    const payload = {
+      id: msg.id,
+      sender: msg.sender,
+      receiver: msg.receiver, // UUID do destinatário
+      content: msg.content,
+      read: msg.read,
+      timestamp: msg.timestamp
+    };
+    const { error } = await supabase.from('messages').insert(payload);
+    if (error) throw error;
   }
 
   static async getMessagesForUser(userId: string): Promise<AdminMessage[]> {
-    const db = await this.open();
-    return new Promise((resolve, reject) => {
-        const transaction = db.transaction(['messages'], 'readonly');
-        const store = transaction.objectStore('messages');
-        const index = store.index('by_receiver');
-        const request = index.getAll(userId);
-        request.onsuccess = () => {
-            const msgs = request.result || [];
-            // Sort by timestamp desc
-            msgs.sort((a: AdminMessage, b: AdminMessage) => 
-                new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-            );
-            resolve(msgs);
-        };
-        request.onerror = () => reject(request.error);
-    });
+    const { data, error } = await supabase.from('messages').select('*').eq('receiver', userId);
+    
+    if (error) return [];
+    
+    return data.map((m: any) => ({
+      id: m.id,
+      sender: m.sender,
+      receiver: m.receiver,
+      content: m.content,
+      timestamp: m.timestamp,
+      read: m.read
+    })).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
   }
 
-  // New method for Admin Panel to see sent messages
   static async getAllMessages(): Promise<AdminMessage[]> {
-    const db = await this.open();
-    return new Promise((resolve, reject) => {
-        try {
-            const transaction = db.transaction(['messages'], 'readonly');
-            const store = transaction.objectStore('messages');
-            const request = store.getAll();
-            request.onsuccess = () => {
-                 const msgs = request.result || [];
-                 // Sort by timestamp desc
-                 msgs.sort((a: AdminMessage, b: AdminMessage) => 
-                    new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-                 );
-                 resolve(msgs);
-            };
-            request.onerror = () => reject(request.error);
-        } catch (e) {
-            resolve([]);
-        }
-    });
+     const { data, error } = await supabase.from('messages').select('*');
+     if (error) return [];
+
+     return data.map((m: any) => ({
+      id: m.id,
+      sender: m.sender,
+      receiver: m.receiver,
+      content: m.content,
+      timestamp: m.timestamp,
+      read: m.read
+    })).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
   }
 
   static async markMessageAsRead(msgId: string): Promise<void> {
-    const db = await this.open();
-    return new Promise((resolve, reject) => {
-        const transaction = db.transaction(['messages'], 'readwrite');
-        const store = transaction.objectStore('messages');
-        const getRequest = store.get(msgId);
-        
-        getRequest.onsuccess = () => {
-            const msg = getRequest.result as AdminMessage;
-            if (msg) {
-                msg.read = true;
-                store.put(msg);
-                resolve();
-            } else {
-                resolve();
-            }
-        };
-        getRequest.onerror = () => reject(getRequest.error);
-    });
+    await supabase.from('messages').update({ read: true }).eq('id', msgId);
   }
 }
