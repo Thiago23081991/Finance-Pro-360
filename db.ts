@@ -18,28 +18,13 @@ export class DBService {
     });
 
     if (authError) throw new Error(authError.message);
-    if (!authData.user) throw new Error("Erro ao criar usuário.");
-
-    // 2. Criar perfil inicial na tabela 'profiles'
-    // Apenas se o usuário foi criado
-    if (authData.user) {
-        const { error: profileError } = await supabase.from('profiles').insert({
-        id: authData.user.id,
-        email: user.username,
-        username: user.username.split('@')[0], // Nome de exibição simples
-        theme: 'light',
-        categories: DEFAULT_CONFIG.categories,
-        payment_methods: DEFAULT_CONFIG.paymentMethods,
-        enable_reminders: true,
-        has_seen_tutorial: false
-        });
-
-        if (profileError) {
-            console.error("Erro ao criar perfil:", profileError);
-            // Não bloqueia o registro, o getConfig vai lidar com isso depois
-        }
-    }
     
+    // Opcional: tentar fazer login automático se a sessão não vier
+    if (!authData.session && authData.user) {
+        // As vezes o signup não retorna sessão se email confirmation estiver ligado (mas desligamos no login fallback)
+    }
+
+    // A criação do perfil agora é tratada no getConfig para ser mais resiliente
     return authData;
   }
 
@@ -173,10 +158,27 @@ export class DBService {
     const user = await this.getCurrentUser();
     if (!user) return DEFAULT_CONFIG;
 
-    const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+    const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
 
-    if (error || !data) {
-      // Se não tem perfil, retorna default
+    if (!data) {
+      // SELF-HEALING: Se o usuário existe no Auth mas não tem perfil (ex: erro no registro ou DB não criado na hora), cria agora.
+      console.log("Perfil não encontrado. Tentando criar perfil padrão...");
+      const { error: insertError } = await supabase.from('profiles').insert({
+        id: user.id,
+        email: user.email,
+        username: user.email?.split('@')[0] || 'User',
+        theme: 'light',
+        categories: DEFAULT_CONFIG.categories,
+        payment_methods: DEFAULT_CONFIG.paymentMethods,
+        enable_reminders: true,
+        has_seen_tutorial: false
+      });
+      
+      if (!insertError) {
+          return { ...DEFAULT_CONFIG, userId: user.id };
+      }
+      
+      console.error("Erro fatal ao criar perfil:", insertError);
       return { ...DEFAULT_CONFIG, userId: user.id };
     }
 
