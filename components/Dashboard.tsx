@@ -3,7 +3,7 @@ import React, { useMemo } from 'react';
 import { Transaction, Goal, FilterState } from '../types';
 import { formatCurrency } from '../utils';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
-import { TrendingUp, TrendingDown, DollarSign, PieChart as PieIcon, AlertCircle, CalendarRange } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, PieChart as PieIcon, AlertCircle, CalendarRange, PiggyBank } from 'lucide-react';
 
 interface DashboardProps {
   transactions: Transaction[];
@@ -33,6 +33,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
     const income = filteredTransactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
     const expense = filteredTransactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
     const balance = income - expense;
+    
+    // Savings Rate (Taxa de Poupança)
+    const savingsRate = income > 0 ? ((income - expense) / income) * 100 : 0;
 
     // Most expensive category
     const expensesByCategory: Record<string, number> = {};
@@ -48,7 +51,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
         }
     });
 
-    return { income, expense, balance, mostExpensiveCategory: maxCat, mostExpensiveValue: maxVal };
+    return { income, expense, balance, savingsRate, mostExpensiveCategory: maxCat, mostExpensiveValue: maxVal };
   }, [filteredTransactions]);
 
   // Chart Data Preparation
@@ -121,15 +124,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
   }, [transactions, filter]);
 
   return (
-    <div className="space-y-6 animate-fade-in pb-10">
+    <div className="space-y-6 animate-fade-in pb-20 md:pb-10">
       
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between transition-colors">
             <div className="flex justify-between items-start">
                 <div>
-                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Receitas</p>
-                    <h3 className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{formatCurrency(kpiData.income)}</h3>
+                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Receitas</p>
+                    <h3 className="text-xl lg:text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{formatCurrency(kpiData.income)}</h3>
                 </div>
                 <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg text-emerald-600 dark:text-emerald-400">
                     <TrendingUp size={20} />
@@ -140,8 +143,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
         <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between transition-colors">
             <div className="flex justify-between items-start">
                 <div>
-                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Despesas</p>
-                    <h3 className="text-2xl font-bold text-rose-600 dark:text-rose-400 mt-1">{formatCurrency(kpiData.expense)}</h3>
+                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Despesas</p>
+                    <h3 className="text-xl lg:text-2xl font-bold text-rose-600 dark:text-rose-400 mt-1">{formatCurrency(kpiData.expense)}</h3>
                 </div>
                 <div className="p-2 bg-rose-100 dark:bg-rose-900/30 rounded-lg text-rose-600 dark:text-rose-400">
                     <TrendingDown size={20} />
@@ -153,7 +156,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
             <div className="flex justify-between items-start">
                 <div>
                     <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Saldo Final</p>
-                    <h3 className={`text-2xl font-bold mt-1 ${kpiData.balance >= 0 ? 'text-slate-800 dark:text-slate-100' : 'text-rose-600 dark:text-rose-400'}`}>
+                    <h3 className={`text-xl lg:text-2xl font-bold mt-1 ${kpiData.balance >= 0 ? 'text-slate-800 dark:text-slate-100' : 'text-rose-600 dark:text-rose-400'}`}>
                         {formatCurrency(kpiData.balance)}
                     </h3>
                 </div>
@@ -163,16 +166,32 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
             </div>
         </div>
 
-         <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between transition-colors">
-            <div className="flex justify-between items-start">
+        {/* Savings Rate Card */}
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between transition-colors">
+             <div className="flex justify-between items-start">
                 <div>
-                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Categoria Mais Cara</p>
+                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Taxa de Poupança</p>
+                    <h3 className={`text-xl lg:text-2xl font-bold mt-1 ${kpiData.savingsRate >= 20 ? 'text-emerald-600' : kpiData.savingsRate > 0 ? 'text-blue-600' : 'text-rose-500'}`}>
+                        {kpiData.savingsRate.toFixed(1)}%
+                    </h3>
+                    <p className="text-[10px] text-slate-400 mt-1">Ideal: {">"} 20%</p>
+                </div>
+                <div className={`p-2 rounded-lg ${kpiData.savingsRate >= 20 ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-600'} dark:bg-slate-700 dark:text-slate-300`}>
+                    <PiggyBank size={20} />
+                </div>
+            </div>
+        </div>
+
+         <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between transition-colors sm:col-span-2 lg:col-span-1">
+            <div className="flex justify-between items-start">
+                <div className="overflow-hidden">
+                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Maior Gasto</p>
                     <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mt-1 truncate" title={kpiData.mostExpensiveCategory}>
                         {kpiData.mostExpensiveCategory}
                     </h3>
                     <p className="text-sm text-slate-500 dark:text-slate-400">{formatCurrency(kpiData.mostExpensiveValue)}</p>
                 </div>
-                <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg text-orange-600 dark:text-orange-400">
+                <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg text-orange-600 dark:text-orange-400 shrink-0">
                     <AlertCircle size={20} />
                 </div>
             </div>

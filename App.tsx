@@ -13,7 +13,7 @@ import { Inbox } from './components/Inbox';
 import { Tutorial, TutorialStepTarget } from './components/Tutorial';
 import { DBService } from './db';
 import { supabase } from './supabaseClient';
-import { LayoutDashboard, CreditCard, TrendingUp, Target, Settings as SettingsIcon, Menu, Filter, LogOut, Loader2, ShieldCheck, Mail, Sun, Moon, X } from 'lucide-react';
+import { LayoutDashboard, CreditCard, TrendingUp, Target, Settings as SettingsIcon, Menu, Filter, LogOut, Loader2, ShieldCheck, Mail, Sun, Moon, X, Home } from 'lucide-react';
 
 type Tab = 'dashboard' | 'receitas' | 'despesas' | 'metas' | 'config' | 'admin';
 
@@ -355,7 +355,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
         </div>
       </aside>
 
-      {/* Sidebar - Mobile Overlay */}
+      {/* Mobile Sidebar (Only for Secondary items like Config/Logout) */}
       {isMobileMenuOpen && (
           <div className="fixed inset-0 z-50 md:hidden flex">
               <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)}></div>
@@ -370,6 +370,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
                     </button>
                 </div>
                 <nav className="flex-1 px-4 space-y-1 mt-4">
+                    {/* Show all items in burger menu too */}
                     {menuItems.map(item => (
                         <button
                             key={item.id}
@@ -439,8 +440,8 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
             </div>
         </header>
 
-        {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar">
+        {/* Content Area - Adjusted padding for bottom nav on mobile */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar mb-16 md:mb-0">
             {/* Mobile Filter Bar (Visible only on small screens inside content) */}
             <div className="sm:hidden mb-4">
                  <FilterBar />
@@ -495,6 +496,46 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
                 <AdminPanel />
             )}
         </div>
+
+        {/* BOTTOM NAVIGATION FOR MOBILE */}
+        <nav className="md:hidden fixed bottom-0 w-full bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 z-40 flex justify-around items-center pb-safe pt-1 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+            <button 
+                onClick={() => handleTabChange('dashboard')}
+                className={`flex flex-col items-center justify-center p-2 w-full ${activeTab === 'dashboard' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`}
+            >
+                <LayoutDashboard size={20} className={activeTab === 'dashboard' ? 'fill-current opacity-20' : ''} />
+                <span className="text-[10px] mt-1 font-medium">Início</span>
+            </button>
+            <button 
+                onClick={() => handleTabChange('receitas')}
+                className={`flex flex-col items-center justify-center p-2 w-full ${activeTab === 'receitas' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`}
+            >
+                <TrendingUp size={20} />
+                <span className="text-[10px] mt-1 font-medium">Receitas</span>
+            </button>
+            <div className="relative -top-5">
+                <button 
+                    onClick={() => handleTabChange('despesas')}
+                    className="flex items-center justify-center w-14 h-14 bg-blue-600 rounded-full shadow-lg shadow-blue-900/30 text-white hover:scale-105 transition-transform border-4 border-[#f3f4f6] dark:border-slate-950"
+                >
+                    <CreditCard size={24} />
+                </button>
+            </div>
+            <button 
+                onClick={() => handleTabChange('metas')}
+                className={`flex flex-col items-center justify-center p-2 w-full ${activeTab === 'metas' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`}
+            >
+                <Target size={20} />
+                <span className="text-[10px] mt-1 font-medium">Metas</span>
+            </button>
+            <button 
+                onClick={() => handleTabChange('config')}
+                className={`flex flex-col items-center justify-center p-2 w-full ${activeTab === 'config' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`}
+            >
+                <SettingsIcon size={20} />
+                <span className="text-[10px] mt-1 font-medium">Ajustes</span>
+            </button>
+        </nav>
 
         {toastMessage && (
             <Toast 
