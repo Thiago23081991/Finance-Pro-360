@@ -63,8 +63,14 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
             const currentUser = await DBService.getCurrentUser();
             if (currentUser) {
                 setUserEmail(currentUser.email || '');
-                // Check admin
-                if (currentUser.email === 'admin@finance360.com' || currentUser.email === 'thiago@finance360.com') {
+                // Check admin list
+                const adminEmails = [
+                    'admin@finance360.com', 
+                    'thiago@finance360.com', 
+                    'tsngti@gmail.com'
+                ];
+                
+                if (currentUser.email && adminEmails.includes(currentUser.email)) {
                     setIsAdmin(true);
                 }
             }
