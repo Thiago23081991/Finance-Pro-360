@@ -16,13 +16,6 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Reset Password State
-  const [isResetting, setIsResetting] = useState(false);
-  const [resetUser, setResetUser] = useState('');
-  const [resetPass, setResetPass] = useState('');
-  const [masterKey, setMasterKey] = useState('');
-  const [resetStatus, setResetStatus] = useState<'idle' | 'success' | 'error'>('idle');
-
   // Carregar credenciais salvas ao iniciar
   useEffect(() => {
     const savedUser = localStorage.getItem('fp360_saved_user');
@@ -32,14 +25,6 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
         setRememberMe(true);
     }
   }, []);
-
-  // Critérios de validação
-  const validations = {
-    minLength: password.length >= 6, // Supabase default is 6
-    hasUpperCase: true, // Simplificado para Supabase
-    hasNumber: true,
-    hasSpecialChar: true
-  };
 
   const handleSaveCredentials = () => {
     if (rememberMe) {
@@ -76,7 +61,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
             }
 
             // Registrar usuário
-            const authData = await DBService.registerUser({
+            const { user, session } = await DBService.registerUser({
                 username, // Email
                 password,
                 createdAt: new Date().toISOString()
@@ -84,38 +69,35 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
             
             handleSaveCredentials();
 
-            // Verificar se o Supabase já logou automaticamente
-            let user = await DBService.getCurrentUser();
-            
-            // Se não logou (session null), tenta logar explicitamente
-            // Isso cobre o caso onde "email confirm is off" mas o session não veio no sign up
-            if (!user) {
-                await DBService.loginUser(username, password);
-                user = await DBService.getCurrentUser();
-            }
-
-            if (user) {
-                // Sucesso total - App.tsx vai detectar a sessão, mas chamamos onLogin por garantia
+            if (session) {
+                // Sessão criada automaticamente (Email confirmation OFF no Supabase)
                 onLogin(user.id);
-            } else {
-                // Se ainda assim não logou, pode ser erro de conexão ou confirmação obrigatória
-                // Mas a UI não vai travar pedindo email.
-                setError('Conta criada com sucesso! Faça login para continuar.');
-                setIsRegistering(false);
+            } else if (user) {
+                // Usuário criado, mas sem sessão (Email confirmation ON)
+                setError('Cadastro realizado! Verifique seu e-mail para confirmar a conta antes de entrar.');
+                setIsRegistering(false); // Volta para tela de login
             }
 
         } else {
-            const isValid = await DBService.loginUser(username, password);
-            if (isValid) {
+            // Login
+            const user = await DBService.loginUser(username, password);
+            if (user) {
                 handleSaveCredentials();
-                const user = await DBService.getCurrentUser();
                 onLogin(user.id);
-            } else {
-                setError('E-mail ou senha incorretos.');
             }
         }
     } catch (err: any) {
-        setError(err.message || 'Ocorreu um erro na autenticação.');
+        console.error("Erro auth:", err);
+        // Tradução amigável de erros comuns do Supabase
+        if (err.message.includes('Invalid login credentials')) {
+            setError('E-mail ou senha incorretos.');
+        } else if (err.message.includes('Email not confirmed')) {
+            setError('Por favor, confirme seu e-mail antes de fazer login.');
+        } else if (err.message.includes('User already registered')) {
+            setError('Este e-mail já está cadastrado.');
+        } else {
+            setError(err.message || 'Ocorreu um erro na autenticação.');
+        }
     } finally {
         setIsLoading(false);
     }
@@ -186,7 +168,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
           {error && (
             <div className={`p-3 rounded-lg text-sm font-medium text-center border animate-fade-in ${
-                error.includes('sucesso') 
+                error.includes('sucesso') || error.includes('realizado')
                 ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800' 
                 : 'bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 border-rose-100 dark:border-rose-800'
             }`}>

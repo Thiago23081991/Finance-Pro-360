@@ -3,7 +3,7 @@ import React, { useMemo } from 'react';
 import { Transaction, Goal, FilterState } from '../types';
 import { formatCurrency } from '../utils';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
-import { TrendingUp, TrendingDown, DollarSign, PieChart as PieIcon, AlertCircle } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, PieChart as PieIcon, AlertCircle, CalendarRange } from 'lucide-react';
 
 interface DashboardProps {
   transactions: Transaction[];
@@ -82,6 +82,43 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
     }
     return data;
   }, [filteredTransactions, filter]);
+
+  // --- QUARTERLY ANALYSIS LOGIC ---
+  const quarterData = useMemo(() => {
+    // Determine Quarter based on selected filter month
+    const qIndex = Math.floor(filter.month / 3); // 0 (Jan-Mar), 1 (Apr-Jun), etc.
+    const startMonth = qIndex * 3;
+    const endMonth = startMonth + 2;
+
+    const quarterTxs = transactions.filter(t => {
+        const d = new Date(t.date);
+        return t.type === 'expense' &&
+               d.getFullYear() === filter.year &&
+               d.getMonth() >= startMonth &&
+               d.getMonth() <= endMonth;
+    });
+
+    const totalQuarterExpense = quarterTxs.reduce((sum, t) => sum + t.amount, 0);
+    const agg: Record<string, number> = {};
+
+    quarterTxs.forEach(t => {
+        agg[t.category] = (agg[t.category] || 0) + t.amount;
+    });
+
+    const sortedCats = Object.entries(agg)
+        .map(([name, value]) => ({ 
+            name, 
+            value,
+            percent: totalQuarterExpense > 0 ? (value / totalQuarterExpense) * 100 : 0
+        }))
+        .sort((a, b) => b.value - a.value);
+
+    return {
+        quarterName: `${qIndex + 1}º Trimestre`,
+        total: totalQuarterExpense,
+        categories: sortedCats
+    };
+  }, [transactions, filter]);
 
   return (
     <div className="space-y-6 animate-fade-in pb-10">
@@ -241,6 +278,55 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                 })}
             </div>
           </div>
+      </div>
+
+      {/* NEW SECTION: Quarterly Analysis */}
+      <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
+        <div className="flex items-center justify-between mb-6">
+            <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                <CalendarRange size={18} className="text-indigo-500" />
+                Resumo do {quarterData.quarterName}
+            </h4>
+            <span className="text-xs font-bold bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 px-3 py-1 rounded-full border border-indigo-100 dark:border-indigo-800">
+                Total: {formatCurrency(quarterData.total)}
+            </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {quarterData.categories.length === 0 ? (
+                <p className="col-span-full text-center text-sm text-slate-400 py-4">
+                    Nenhuma despesa registrada neste trimestre.
+                </p>
+            ) : (
+                quarterData.categories.map((cat, idx) => (
+                    <div key={idx} className="relative pt-1">
+                        <div className="flex mb-2 items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <div 
+                                    className="w-3 h-3 rounded-full" 
+                                    style={{ backgroundColor: COLORS[idx % COLORS.length] }}
+                                ></div>
+                                <span className="text-xs font-semibold inline-block text-slate-600 dark:text-slate-300">
+                                    {cat.name}
+                                </span>
+                            </div>
+                            <div className="text-right">
+                                <span className="text-xs font-semibold inline-block text-slate-600 dark:text-slate-300">
+                                    {formatCurrency(cat.value)}
+                                </span>
+                            </div>
+                        </div>
+                        <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-slate-100 dark:bg-slate-700">
+                            <div 
+                                style={{ width: `${cat.percent}%`, backgroundColor: COLORS[idx % COLORS.length] }} 
+                                className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center transition-all duration-500"
+                            ></div>
+                        </div>
+                        <p className="text-[10px] text-slate-400 text-right -mt-3">{cat.percent.toFixed(1)}% do total</p>
+                    </div>
+                ))
+            )}
+        </div>
       </div>
 
     </div>

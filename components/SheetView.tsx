@@ -1,8 +1,8 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Transaction, TransactionType } from '../types';
 import { formatCurrency, generateId } from '../utils';
-import { Plus, Trash2, Save, X, CalendarClock, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, Save, X, CalendarClock, AlertCircle, Search, Filter, XCircle, ArrowRight } from 'lucide-react';
 
 interface SheetViewProps {
   type: TransactionType;
@@ -24,7 +24,16 @@ export const SheetView: React.FC<SheetViewProps> = ({
 }) => {
   const [isAdding, setIsAdding] = useState(false);
   
-  // New Transaction State
+  // --- Search & Filter State ---
+  const [showFilters, setShowFilters] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterCategory, setFilterCategory] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [minValue, setMinValue] = useState('');
+  const [maxValue, setMaxValue] = useState('');
+
+  // --- New Transaction State ---
   const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0]);
   const [newAmount, setNewAmount] = useState('');
   const [newCategory, setNewCategory] = useState(categories[0] || '');
@@ -100,25 +109,189 @@ export const SheetView: React.FC<SheetViewProps> = ({
       setDateError('');
   };
 
-  // Filter transactions by type for this sheet
-  const sheetData = transactions.filter(t => t.type === type).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const clearFilters = () => {
+      setSearchTerm('');
+      setFilterCategory('');
+      setStartDate('');
+      setEndDate('');
+      setMinValue('');
+      setMaxValue('');
+  };
+
+  const activeFiltersCount = (searchTerm ? 1 : 0) + 
+                             (filterCategory ? 1 : 0) + 
+                             (startDate ? 1 : 0) + 
+                             (endDate ? 1 : 0) + 
+                             (minValue ? 1 : 0) + 
+                             (maxValue ? 1 : 0);
+
+  // Filter transactions logic
+  const sheetData = useMemo(() => {
+    return transactions
+        .filter(t => t.type === type)
+        .filter(t => {
+            // Text Search
+            const searchLower = searchTerm.toLowerCase();
+            const matchesSearch = 
+                t.description.toLowerCase().includes(searchLower) || 
+                t.category.toLowerCase().includes(searchLower) ||
+                (t.paymentMethod && t.paymentMethod.toLowerCase().includes(searchLower));
+
+            // Category Filter
+            const matchesCategory = filterCategory ? t.category === filterCategory : true;
+
+            // Date Range
+            const matchesStart = startDate ? t.date >= startDate : true;
+            const matchesEnd = endDate ? t.date <= endDate : true;
+
+            // Value Range
+            const val = t.amount;
+            const min = minValue ? parseFloat(minValue) : -Infinity;
+            const max = maxValue ? parseFloat(maxValue) : Infinity;
+            const matchesValue = val >= min && val <= max;
+
+            return matchesSearch && matchesCategory && matchesStart && matchesEnd && matchesValue;
+        })
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [transactions, type, searchTerm, filterCategory, startDate, endDate, minValue, maxValue]);
 
   return (
     <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm overflow-hidden flex flex-col h-[calc(100vh-140px)] transition-colors">
         {/* Toolbar */}
-        <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
-            <h2 className="font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
-                <div className={`w-3 h-3 rounded-full ${type === 'income' ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
-                {type === 'income' ? 'Receitas' : 'Despesas'}
-            </h2>
-            <button 
-                onClick={() => setIsAdding(true)}
-                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
-            >
-                <Plus size={16} />
-                Novo Lançamento
-            </button>
+        <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50 dark:bg-slate-800/50">
+            <div className="flex items-center gap-4 w-full sm:w-auto">
+                <h2 className="font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2 whitespace-nowrap">
+                    <div className={`w-3 h-3 rounded-full ${type === 'income' ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
+                    {type === 'income' ? 'Receitas' : 'Despesas'}
+                </h2>
+                
+                {/* Quick Search */}
+                <div className="relative hidden md:block">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                    <input 
+                        type="text" 
+                        placeholder="Buscar..." 
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-8 pr-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 w-48 transition-all"
+                    />
+                </div>
+            </div>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                <button 
+                    onClick={() => setShowFilters(!showFilters)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors border relative ${
+                        showFilters || activeFiltersCount > 0
+                        ? 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800' 
+                        : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-600 dark:hover:bg-slate-700'
+                    }`}
+                >
+                    <Filter size={16} />
+                    <span className="hidden sm:inline">Filtros</span>
+                    {activeFiltersCount > 0 && (
+                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white text-[10px] flex items-center justify-center rounded-full font-bold shadow-sm">
+                            {activeFiltersCount}
+                        </span>
+                    )}
+                </button>
+                <button 
+                    onClick={() => setIsAdding(true)}
+                    className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm whitespace-nowrap"
+                >
+                    <Plus size={16} />
+                    Novo
+                </button>
+            </div>
         </div>
+
+        {/* Filters Panel */}
+        {showFilters && (
+            <div className="p-4 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 animate-fade-in">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    {/* Mobile Search - Only visible on small screens */}
+                    <div className="md:hidden col-span-1">
+                        <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Buscar</label>
+                        <div className="relative">
+                            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                            <input 
+                                type="text" 
+                                placeholder="Descrição..." 
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full pl-8 pr-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded focus:outline-none focus:border-blue-500"
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Período</label>
+                        <div className="flex items-center gap-2">
+                            <input 
+                                type="date" 
+                                value={startDate}
+                                onChange={(e) => setStartDate(e.target.value)}
+                                className="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded focus:outline-none focus:border-blue-500"
+                            />
+                            <span className="text-slate-400 text-xs">até</span>
+                            <input 
+                                type="date" 
+                                value={endDate}
+                                onChange={(e) => setEndDate(e.target.value)}
+                                className="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded focus:outline-none focus:border-blue-500"
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Categoria</label>
+                        <select 
+                            value={filterCategory}
+                            onChange={(e) => setFilterCategory(e.target.value)}
+                            className="w-full px-2 py-1.5 text-sm border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded focus:outline-none focus:border-blue-500"
+                        >
+                            <option value="">Todas</option>
+                            {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Valor (R$)</label>
+                        <div className="flex items-center gap-2">
+                            <input 
+                                type="number" 
+                                placeholder="Mín 0.00"
+                                value={minValue}
+                                onChange={(e) => setMinValue(e.target.value)}
+                                className="w-full px-2 py-1.5 text-sm border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded focus:outline-none focus:border-blue-500"
+                            />
+                            <span className="text-slate-400">-</span>
+                            <input 
+                                type="number" 
+                                placeholder="Máx..."
+                                value={maxValue}
+                                onChange={(e) => setMaxValue(e.target.value)}
+                                className="w-full px-2 py-1.5 text-sm border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded focus:outline-none focus:border-blue-500"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex items-end">
+                        <button 
+                            onClick={clearFilters}
+                            disabled={activeFiltersCount === 0}
+                            className={`w-full px-3 py-1.5 text-xs font-medium border rounded transition-colors flex items-center justify-center gap-1 ${
+                                activeFiltersCount > 0 
+                                ? 'text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-900 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 dark:hover:bg-rose-900/40'
+                                : 'text-slate-400 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 cursor-not-allowed'
+                            }`}
+                        >
+                            <XCircle size={14} /> Limpar Filtros
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
 
         {/* Input Row (Sheet Style) - Only visible when adding */}
         {isAdding && (
@@ -230,7 +403,9 @@ export const SheetView: React.FC<SheetViewProps> = ({
                     {sheetData.length === 0 ? (
                         <tr>
                             <td colSpan={type === 'expense' ? 6 : 5} className="py-12 text-center text-slate-400 dark:text-slate-500 italic">
-                                Nenhuma transação registrada. Adicione uma nova acima.
+                                {transactions.length > 0 
+                                    ? "Nenhuma transação encontrada com os filtros atuais." 
+                                    : "Nenhuma transação registrada. Adicione uma nova acima."}
                             </td>
                         </tr>
                     ) : (

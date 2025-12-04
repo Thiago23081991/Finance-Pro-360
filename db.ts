@@ -19,26 +19,21 @@ export class DBService {
 
     if (authError) throw new Error(authError.message);
     
-    // Opcional: tentar fazer login automático se a sessão não vier
-    if (!authData.session && authData.user) {
-        // As vezes o signup não retorna sessão se email confirmation estiver ligado (mas desligamos no login fallback)
-    }
-
-    // A criação do perfil agora é tratada no getConfig para ser mais resiliente
+    // Retornar dados completos para o frontend decidir se precisa de confirmação de email
     return authData;
   }
 
-  static async loginUser(username: string, password: string): Promise<boolean> {
+  static async loginUser(username: string, password: string): Promise<any> {
     const { data, error } = await supabase.auth.signInWithPassword({
       email: username,
       password: password,
     });
 
     if (error) {
-        console.error("Login falhou:", error.message);
-        return false;
+        // Lançar o erro real para que a UI possa mostrar "Email não confirmado" ou "Senha inválida"
+        throw new Error(error.message);
     }
-    return !!data.user;
+    return data.user;
   }
 
   static async logout(): Promise<void> {
