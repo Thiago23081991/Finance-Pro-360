@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { Transaction, Goal, AppConfig, FilterState } from './types';
-import { DEFAULT_CONFIG, MONTH_NAMES } from './constants';
+import { DEFAULT_CONFIG, MONTH_NAMES, ADMIN_EMAILS } from './constants';
 import { Dashboard } from './components/Dashboard';
 import { SheetView } from './components/SheetView';
 import { GoalsSheet } from './components/GoalsSheet';
@@ -12,7 +13,7 @@ import { Inbox } from './components/Inbox';
 import { Tutorial, TutorialStepTarget } from './components/Tutorial';
 import { DBService } from './db';
 import { supabase } from './supabaseClient';
-import { LayoutDashboard, CreditCard, TrendingUp, Target, Settings as SettingsIcon, Menu, Filter, LogOut, Loader2, ShieldCheck, Mail, Sun, Moon } from 'lucide-react';
+import { LayoutDashboard, CreditCard, TrendingUp, Target, Settings as SettingsIcon, Menu, Filter, LogOut, Loader2, ShieldCheck, Mail, Sun, Moon, Lock, UserX } from 'lucide-react';
 
 type Tab = 'dashboard' | 'receitas' | 'despesas' | 'metas' | 'config' | 'admin';
 
@@ -63,34 +64,33 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
             const currentUser = await DBService.getCurrentUser();
             if (currentUser) {
                 setUserEmail(currentUser.email || '');
-                // Check admin list
-                const adminEmails = [
-                    'admin@finance360.com', 
-                    'thiago@finance360.com', 
-                    'tsngti@gmail.com'
-                ];
-                
-                if (currentUser.email && adminEmails.includes(currentUser.email)) {
+                if (currentUser.email && ADMIN_EMAILS.includes(currentUser.email)) {
                     setIsAdmin(true);
                 }
             }
 
-            const [txs, gls, cfg] = await Promise.all([
-                DBService.getTransactions(user),
-                DBService.getGoals(user),
-                DBService.getConfig(user)
-            ]);
-            
-            setTransactions(txs);
-            setGoals(gls);
-            
+            // Load Config First to check account status
+            const cfg = await DBService.getConfig(user);
             const mergedConfig = { ...DEFAULT_CONFIG, ...cfg, userId: user };
             setConfig(mergedConfig);
 
-            checkUnreadMessages();
+            // If account is not active, don't load other data (except for admins)
+            const isAccountLocked = mergedConfig.accountStatus !== 'active' && !ADMIN_EMAILS.includes(currentUser?.email || '');
+            
+            if (!isAccountLocked) {
+                const [txs, gls] = await Promise.all([
+                    DBService.getTransactions(user),
+                    DBService.getGoals(user),
+                ]);
+                
+                setTransactions(txs);
+                setGoals(gls);
 
-            if (!isAdmin && mergedConfig.hasSeenTutorial === false) {
-                setTimeout(() => setShowTutorial(true), 500);
+                checkUnreadMessages();
+
+                if (!isAdmin && mergedConfig.hasSeenTutorial === false) {
+                    setTimeout(() => setShowTutorial(true), 500);
+                }
             }
 
         } catch (error) {
@@ -286,6 +286,45 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
               <div className="flex flex-col items-center gap-4">
                   <Loader2 className="animate-spin text-emerald-600" size={48} />
                   <p className="text-slate-500 dark:text-slate-400 font-medium animate-pulse">Sincronizando dados...</p>
+              </div>
+          </div>
+      );
+  }
+
+  // --- ACCESS BLOCKED SCREEN ---
+  // If account is pending or blocked (and user is not an admin), show this screen
+  if (config.accountStatus !== 'active' && !isAdmin) {
+      const isBlocked = config.accountStatus === 'blocked';
+      return (
+          <div className="h-screen w-full flex items-center justify-center bg-slate-50 dark:bg-slate-950 p-6">
+              <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-xl max-w-md w-full border border-slate-200 dark:border-slate-700 text-center animate-fade-in">
+                  <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 ${isBlocked ? 'bg-rose-100 text-rose-600' : 'bg-amber-100 text-amber-600'}`}>
+                      {isBlocked ? <UserX size={40} /> : <Lock size={40} />}
+                  </div>
+                  
+                  <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">
+                      {isBlocked ? 'Acesso Bloqueado' : 'Aguardando Aprovação'}
+                  </h2>
+                  
+                  <p className="text-slate-600 dark:text-slate-300 mb-6 leading-relaxed">
+                      {isBlocked 
+                        ? 'Sua conta foi suspensa temporariamente pela administração. Entre em contato para mais informações.'
+                        : 'Seu cadastro foi realizado com sucesso! Por medidas de segurança, um administrador precisa liberar seu acesso manualmente.'
+                      }
+                  </p>
+
+                  <div className="bg-slate-50 dark:bg-slate-700/50 p-4 rounded-lg text-sm text-slate-500 dark:text-slate-400 mb-6">
+                      <p className="font-semibold mb-1">ID do Usuário:</p>
+                      <code className="font-mono bg-white dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-600 block">{user}</code>
+                  </div>
+
+                  <button 
+                      onClick={onLogout}
+                      className="w-full bg-slate-800 hover:bg-slate-900 text-white font-medium py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
+                  >
+                      <LogOut size={18} />
+                      Sair e Tentar Novamente
+                  </button>
               </div>
           </div>
       );

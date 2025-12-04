@@ -1,8 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { Lock, Mail, ArrowRight, Wallet, Database, Loader2, Check, X as XIcon, KeyRound, User } from 'lucide-react';
+import { Lock, Mail, ArrowRight, Wallet, Database, Loader2, User } from 'lucide-react';
 import { DBService } from '../db';
-import { supabase } from '../supabaseClient';
 
 interface LoginProps {
   onLogin: (username: string) => void;
@@ -10,11 +9,12 @@ interface LoginProps {
 
 export const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [isRegistering, setIsRegistering] = useState(false);
-  const [username, setUsername] = useState(''); // Agora será tratado como Email
+  const [username, setUsername] = useState(''); // Pode ser Username ou Email
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Carregar credenciais salvas ao iniciar
   useEffect(() => {
@@ -39,13 +39,6 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
     setError('');
     setIsLoading(true);
 
-    // Validação básica de email
-    if (!username.includes('@')) {
-        setError('Por favor, insira um e-mail válido.');
-        setIsLoading(false);
-        return;
-    }
-
     if (!username || !password) {
       setError('Preencha todos os campos.');
       setIsLoading(false);
@@ -62,7 +55,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
             // Registrar usuário
             const { user, session } = await DBService.registerUser({
-                username, // Email
+                username, // Será normalizado no DBService
                 password,
                 createdAt: new Date().toISOString()
             });
@@ -70,12 +63,13 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
             handleSaveCredentials();
 
             if (session) {
-                // Sessão criada automaticamente (Email confirmation OFF no Supabase)
+                // Sessão criada automaticamente
                 onLogin(user.id);
             } else if (user) {
-                // Usuário criado, mas sem sessão (Email confirmation ON)
-                setError('Cadastro realizado! Verifique seu e-mail para confirmar a conta antes de entrar.');
-                setIsRegistering(false); // Volta para tela de login
+                // Caso raro onde o Supabase exige confirmação mesmo com email fictício
+                // Mas com o normalizeAuthInput e settings corretas, deve logar direto.
+                setError('Cadastro realizado! Tente fazer login agora.');
+                setIsRegistering(false); 
             }
 
         } else {
@@ -90,11 +84,11 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
         console.error("Erro auth:", err);
         // Tradução amigável de erros comuns do Supabase
         if (err.message.includes('Invalid login credentials')) {
-            setError('E-mail ou senha incorretos.');
+            setError('Usuário ou senha incorretos.');
         } else if (err.message.includes('Email not confirmed')) {
-            setError('Por favor, confirme seu e-mail antes de fazer login.');
+            setError('Conta pendente de confirmação.');
         } else if (err.message.includes('User already registered')) {
-            setError('Este e-mail já está cadastrado.');
+            setError('Este usuário já está cadastrado.');
         } else {
             setError(err.message || 'Ocorreu um erro na autenticação.');
         }
@@ -116,22 +110,23 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
           <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Finance Pro 360</h1>
           <p className="text-slate-500 dark:text-slate-400 mt-2 flex items-center justify-center gap-2">
             <Database size={14} className="text-blue-500"/>
-            Cloud Database (Supabase)
+            Cloud Database
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 relative z-10">
           <div>
-            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1 ml-1">E-mail</label>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1 ml-1">Usuário ou E-mail</label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input 
-                type="email" 
+                type="text" 
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-lg py-2.5 pl-10 pr-4 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
-                placeholder="seu@email.com"
+                placeholder="Ex: thiago ou email@exemplo.com"
                 disabled={isLoading}
+                autoCapitalize="none"
               />
             </div>
           </div>
@@ -141,13 +136,20 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input 
-                type="password" 
+                type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-lg py-2.5 pl-10 pr-4 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-lg py-2.5 pl-10 pr-10 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
                 placeholder="Sua senha segura"
                 disabled={isLoading}
               />
+              <button 
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+              >
+                {showPassword ? "Ocultar" : "Ver"}
+              </button>
             </div>
           </div>
 
@@ -161,7 +163,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     className="w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500 cursor-pointer"
                 />
                 <label htmlFor="rememberMe" className="text-xs text-slate-600 dark:text-slate-400 cursor-pointer select-none">
-                    Lembrar E-mail
+                    Lembrar Usuário
                 </label>
             </div>
           </div>
@@ -185,7 +187,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 <Loader2 className="animate-spin" size={20} />
             ) : (
                 <>
-                    {isRegistering ? 'Criar Conta Nuvem' : 'Entrar'}
+                    {isRegistering ? 'Criar Conta' : 'Entrar'}
                     <ArrowRight size={18} />
                 </>
             )}
@@ -198,7 +200,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
             className="text-sm text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 font-medium transition-colors"
             disabled={isLoading}
           >
-            {isRegistering ? 'Já possui conta? Fazer Login' : 'Criar nova conta'}
+            {isRegistering ? 'Já possui conta? Fazer Login' : 'Criar nova conta (Usuário/Senha)'}
           </button>
         </div>
       </div>

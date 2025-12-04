@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { PurchaseRequest, AdminMessage, SystemStats, UserProfile } from '../types';
 import { DBService } from '../db';
-import { Check, X, ShieldAlert, User, MessageSquare, Send, FileText, Mail, Eye, EyeOff, LayoutList, RefreshCw, AlertCircle, Key, Copy, Smartphone, Lock, Loader2, Users, BarChart3, TrendingUp, Wallet, Database } from 'lucide-react';
+import { Check, X, ShieldAlert, User, MessageSquare, Send, FileText, Mail, Eye, EyeOff, LayoutList, RefreshCw, AlertCircle, Key, Copy, Smartphone, Lock, Loader2, Users, BarChart3, TrendingUp, Wallet, Database, UserCheck, UserX } from 'lucide-react';
 import { generateId, generateLicenseKey, formatCurrency } from '../utils';
 
 type AdminTab = 'dashboard' | 'users' | 'requests' | 'messages' | 'generator';
@@ -78,6 +78,15 @@ export const AdminPanel: React.FC = () => {
     } catch (error: any) {
         alert("Erro ao atualizar status: " + error.message);
     }
+  };
+
+  const handleUserStatusChange = async (userId: string, status: 'active' | 'blocked' | 'pending') => {
+      try {
+          await DBService.updateUserStatus(userId, status);
+          setProfiles(prev => prev.map(p => p.id === userId ? { ...p, accountStatus: status } : p));
+      } catch (error: any) {
+          alert("Erro ao alterar status do usuário: " + error.message);
+      }
   };
 
   const openMessageModal = (userId: string) => {
@@ -265,14 +274,15 @@ export const AdminPanel: React.FC = () => {
                         <thead className="bg-slate-50 dark:bg-slate-900">
                             <tr>
                                 <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Email / ID</th>
-                                <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Status Licença</th>
+                                <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Status Acesso</th>
+                                <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Licença</th>
                                 <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 text-center">Ações</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                             {profiles.length === 0 ? (
                                 <tr>
-                                    <td colSpan={3} className="py-12 text-center text-slate-400 dark:text-slate-500">
+                                    <td colSpan={4} className="py-12 text-center text-slate-400 dark:text-slate-500">
                                         Nenhum usuário encontrado.
                                     </td>
                                 </tr>
@@ -287,21 +297,52 @@ export const AdminPanel: React.FC = () => {
                                         </td>
                                         <td className="py-4 px-6">
                                              <span className={`px-2 py-1 rounded-full text-xs font-bold uppercase ${
-                                                profile.licenseStatus === 'active' 
+                                                profile.accountStatus === 'active' 
                                                 ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' 
+                                                : profile.accountStatus === 'blocked'
+                                                ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400'
+                                                : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
+                                            }`}>
+                                                {profile.accountStatus === 'active' ? 'Liberado' : profile.accountStatus === 'blocked' ? 'Bloqueado' : 'Pendente'}
+                                            </span>
+                                        </td>
+                                        <td className="py-4 px-6">
+                                             <span className={`px-2 py-1 rounded-full text-xs font-bold uppercase ${
+                                                profile.licenseStatus === 'active' 
+                                                ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' 
                                                 : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
                                             }`}>
                                                 {profile.licenseStatus === 'active' ? 'Premium' : 'Gratuito'}
                                             </span>
                                         </td>
                                         <td className="py-4 px-6 text-center">
-                                            <button 
-                                                onClick={() => openMessageModal(profile.id)}
-                                                className="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
-                                                title="Enviar Mensagem"
-                                            >
-                                                <Mail size={16} />
-                                            </button>
+                                            <div className="flex items-center justify-center gap-2">
+                                                {profile.accountStatus !== 'active' && (
+                                                    <button 
+                                                        onClick={() => handleUserStatusChange(profile.id, 'active')}
+                                                        className="p-2 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded hover:bg-emerald-200 dark:hover:bg-emerald-800 transition-colors"
+                                                        title="Liberar Acesso"
+                                                    >
+                                                        <UserCheck size={16} />
+                                                    </button>
+                                                )}
+                                                {profile.accountStatus !== 'blocked' && (
+                                                    <button 
+                                                        onClick={() => handleUserStatusChange(profile.id, 'blocked')}
+                                                        className="p-2 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded hover:bg-rose-200 dark:hover:bg-rose-800 transition-colors"
+                                                        title="Bloquear Usuário"
+                                                    >
+                                                        <UserX size={16} />
+                                                    </button>
+                                                )}
+                                                <button 
+                                                    onClick={() => openMessageModal(profile.id)}
+                                                    className="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
+                                                    title="Enviar Mensagem"
+                                                >
+                                                    <Mail size={16} />
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))
