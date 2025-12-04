@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Transaction, Goal, AppConfig, FilterState } from './types';
-import { DEFAULT_CONFIG, MONTH_NAMES, ADMIN_EMAILS } from './constants';
+import { DEFAULT_CONFIG, MONTH_NAMES } from './constants';
 import { Dashboard } from './components/Dashboard';
 import { SheetView } from './components/SheetView';
 import { GoalsSheet } from './components/GoalsSheet';
@@ -13,17 +13,18 @@ import { Inbox } from './components/Inbox';
 import { Tutorial, TutorialStepTarget } from './components/Tutorial';
 import { DBService } from './db';
 import { supabase } from './supabaseClient';
-import { LayoutDashboard, CreditCard, TrendingUp, Target, Settings as SettingsIcon, Menu, Filter, LogOut, Loader2, ShieldCheck, Mail, Sun, Moon, Lock, UserX } from 'lucide-react';
+import { LayoutDashboard, CreditCard, TrendingUp, Target, Settings as SettingsIcon, Menu, Filter, LogOut, Loader2, ShieldCheck, Mail, Sun, Moon, X } from 'lucide-react';
 
 type Tab = 'dashboard' | 'receitas' | 'despesas' | 'metas' | 'config' | 'admin';
 
 interface FinanceAppProps {
   user: string;
   onLogout: () => void;
+  isEmailConfirmed?: boolean;
 }
 
 // --- Authenticated Application Component ---
-const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
+const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirmed }) => {
   
   // Define admin logic based on Email (Supabase)
   const [isAdmin, setIsAdmin] = useState(false);
@@ -32,6 +33,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
   // State Management
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [loading, setLoading] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
@@ -56,6 +58,13 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
       paymentMethod: 'Todas'
   });
 
+  // Handle Email Confirmation Toast
+  useEffect(() => {
+    if (isEmailConfirmed) {
+        setToastMessage("E-mail confirmado com sucesso! Seja bem-vindo.");
+    }
+  }, [isEmailConfirmed]);
+
   // Initial Data Fetch from Database
   useEffect(() => {
     const fetchData = async () => {
@@ -64,33 +73,34 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
             const currentUser = await DBService.getCurrentUser();
             if (currentUser) {
                 setUserEmail(currentUser.email || '');
-                if (currentUser.email && ADMIN_EMAILS.includes(currentUser.email)) {
+                // Check admin list
+                const adminEmails = [
+                    'admin@finance360.com', 
+                    'thiago@finance360.com', 
+                    'tsngti@gmail.com'
+                ];
+                
+                if (currentUser.email && adminEmails.includes(currentUser.email)) {
                     setIsAdmin(true);
                 }
             }
 
-            // Load Config First to check account status
-            const cfg = await DBService.getConfig(user);
+            const [txs, gls, cfg] = await Promise.all([
+                DBService.getTransactions(user),
+                DBService.getGoals(user),
+                DBService.getConfig(user)
+            ]);
+            
+            setTransactions(txs);
+            setGoals(gls);
+            
             const mergedConfig = { ...DEFAULT_CONFIG, ...cfg, userId: user };
             setConfig(mergedConfig);
 
-            // If account is not active, don't load other data (except for admins)
-            const isAccountLocked = mergedConfig.accountStatus !== 'active' && !ADMIN_EMAILS.includes(currentUser?.email || '');
-            
-            if (!isAccountLocked) {
-                const [txs, gls] = await Promise.all([
-                    DBService.getTransactions(user),
-                    DBService.getGoals(user),
-                ]);
-                
-                setTransactions(txs);
-                setGoals(gls);
+            checkUnreadMessages();
 
-                checkUnreadMessages();
-
-                if (!isAdmin && mergedConfig.hasSeenTutorial === false) {
-                    setTimeout(() => setShowTutorial(true), 500);
-                }
+            if (!isAdmin && mergedConfig.hasSeenTutorial === false) {
+                setTimeout(() => setShowTutorial(true), 500);
             }
 
         } catch (error) {
@@ -154,6 +164,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
 
   const handleTabChange = async (tab: Tab) => {
     setActiveTab(tab);
+    setIsMobileMenuOpen(false); // Close mobile menu on navigation
     
     if (tab === 'metas') {
         const now = new Date().toISOString();
@@ -291,45 +302,6 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
       );
   }
 
-  // --- ACCESS BLOCKED SCREEN ---
-  // If account is pending or blocked (and user is not an admin), show this screen
-  if (config.accountStatus !== 'active' && !isAdmin) {
-      const isBlocked = config.accountStatus === 'blocked';
-      return (
-          <div className="h-screen w-full flex items-center justify-center bg-slate-50 dark:bg-slate-950 p-6">
-              <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-xl max-w-md w-full border border-slate-200 dark:border-slate-700 text-center animate-fade-in">
-                  <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 ${isBlocked ? 'bg-rose-100 text-rose-600' : 'bg-amber-100 text-amber-600'}`}>
-                      {isBlocked ? <UserX size={40} /> : <Lock size={40} />}
-                  </div>
-                  
-                  <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">
-                      {isBlocked ? 'Acesso Bloqueado' : 'Aguardando Aprovação'}
-                  </h2>
-                  
-                  <p className="text-slate-600 dark:text-slate-300 mb-6 leading-relaxed">
-                      {isBlocked 
-                        ? 'Sua conta foi suspensa temporariamente pela administração. Entre em contato para mais informações.'
-                        : 'Seu cadastro foi realizado com sucesso! Por medidas de segurança, um administrador precisa liberar seu acesso manualmente.'
-                      }
-                  </p>
-
-                  <div className="bg-slate-50 dark:bg-slate-700/50 p-4 rounded-lg text-sm text-slate-500 dark:text-slate-400 mb-6">
-                      <p className="font-semibold mb-1">ID do Usuário:</p>
-                      <code className="font-mono bg-white dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-600 block">{user}</code>
-                  </div>
-
-                  <button 
-                      onClick={onLogout}
-                      className="w-full bg-slate-800 hover:bg-slate-900 text-white font-medium py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
-                  >
-                      <LogOut size={18} />
-                      Sair e Tentar Novamente
-                  </button>
-              </div>
-          </div>
-      );
-  }
-
   return (
     <div className="flex h-screen bg-[#f3f4f6] dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans overflow-hidden transition-colors">
       {/* Sidebar - Desktop */}
@@ -383,23 +355,73 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
         </div>
       </aside>
 
+      {/* Sidebar - Mobile Overlay */}
+      {isMobileMenuOpen && (
+          <div className="fixed inset-0 z-50 md:hidden flex">
+              <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)}></div>
+              <aside className="relative w-64 bg-slate-900 text-white flex flex-col shadow-2xl h-full animate-fade-in">
+                <div className="p-6 border-b border-slate-800 flex justify-between items-center">
+                    <h1 className="text-lg font-bold tracking-tight flex items-center gap-2">
+                        <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-white font-black">F</div>
+                        Finance Pro
+                    </h1>
+                    <button onClick={() => setIsMobileMenuOpen(false)} className="text-slate-400 hover:text-white">
+                        <X size={20} />
+                    </button>
+                </div>
+                <nav className="flex-1 px-4 space-y-1 mt-4">
+                    {menuItems.map(item => (
+                        <button
+                            key={item.id}
+                            onClick={() => handleTabChange(item.id as Tab)}
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                                activeTab === item.id 
+                                ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/50' 
+                                : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                            }`}
+                        >
+                            {item.icon}
+                            {item.label}
+                        </button>
+                    ))}
+                </nav>
+                <div className="p-4 border-t border-slate-800">
+                    <button 
+                        onClick={onLogout}
+                        className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-rose-400 hover:bg-rose-900/20 hover:text-rose-300 transition-colors"
+                    >
+                        <LogOut size={20} />
+                        Sair da Conta
+                    </button>
+                </div>
+              </aside>
+          </div>
+      )}
+
       {/* Main Content */}
       <main className="flex-1 flex flex-col h-full overflow-hidden relative">
         {/* Header */}
-        <header className="bg-white dark:bg-slate-900 h-16 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-6 shadow-sm z-10 transition-colors">
+        <header className="bg-white dark:bg-slate-900 h-16 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-4 sm:px-6 shadow-sm z-10 transition-colors">
             <div className="flex items-center gap-4">
-                <button className="md:hidden text-slate-500 dark:text-slate-400"><Menu /></button>
-                <h2 className="text-lg font-semibold text-slate-800 dark:text-white capitalize">
-                    {activeTab === 'admin' ? 'Painel Administrativo' : activeTab.replace('config', 'Configurações')}
+                <button 
+                    onClick={() => setIsMobileMenuOpen(true)}
+                    className="md:hidden text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 p-2 rounded-lg transition-colors"
+                >
+                    <Menu />
+                </button>
+                <h2 className="text-lg font-semibold text-slate-800 dark:text-white capitalize truncate max-w-[120px] sm:max-w-none">
+                    {activeTab === 'admin' ? 'Painel Admin' : activeTab.replace('config', 'Configurações')}
                 </h2>
             </div>
 
-            <div className="flex items-center gap-4">
-                <FilterBar />
+            <div className="flex items-center gap-2 sm:gap-4">
+                <div className="hidden sm:block">
+                    <FilterBar />
+                </div>
                 
                 <button
                     onClick={() => updateConfig({...config, theme: config.theme === 'dark' ? 'light' : 'dark'})}
-                    className="p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors hidden sm:block"
+                    className="p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
                 >
                     {config.theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
                 </button>
@@ -418,7 +440,12 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
         </header>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar">
+            {/* Mobile Filter Bar (Visible only on small screens inside content) */}
+            <div className="sm:hidden mb-4">
+                 <FilterBar />
+            </div>
+
             {activeTab === 'dashboard' && (
                 <Dashboard transactions={transactions} goals={goals} filter={filter} />
             )}
@@ -500,8 +527,28 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
 function App() {
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [emailConfirmed, setEmailConfirmed] = useState(false);
 
   useEffect(() => {
+    // Check URL Hash for errors or confirmation signals before Supabase clears them
+    const hash = window.location.hash;
+    
+    // Check for error description in URL (Supabase redirect)
+    if (hash && hash.includes('error_description')) {
+        const params = new URLSearchParams(hash.substring(1)); // remove #
+        const errorDesc = params.get('error_description');
+        if (errorDesc) {
+            setAuthError(decodeURIComponent(errorDesc).replace(/\+/g, ' '));
+        }
+    }
+
+    // Check for email confirmation (type=signup or type=invite)
+    // Note: Supabase puts these in the hash for implicit flow
+    if (hash && (hash.includes('type=signup') || hash.includes('type=invite') || hash.includes('type=recovery'))) {
+        setEmailConfirmed(true);
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setLoading(false);
@@ -509,8 +556,14 @@ function App() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          setSession(session);
+          // If we detected a signup flow in the hash earlier, it persists here
+      } else if (event === 'SIGNED_OUT') {
+          setSession(null);
+          setEmailConfirmed(false);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -522,6 +575,8 @@ function App() {
 
   const handleLogout = async () => {
       await supabase.auth.signOut();
+      window.location.hash = ''; // Clear hash on logout
+      setAuthError(null);
   };
 
   if (loading) {
@@ -533,10 +588,23 @@ function App() {
   }
 
   if (!session) {
-      return <Login onLogin={handleLogin} />;
+      return (
+        <Login 
+            onLogin={handleLogin} 
+            initialMessage={authError} 
+            messageType="error" 
+        />
+      );
   }
 
-  return <FinanceApp key={session.user.id} user={session.user.id} onLogout={handleLogout} />;
+  return (
+    <FinanceApp 
+        key={session.user.id} 
+        user={session.user.id} 
+        onLogout={handleLogout} 
+        isEmailConfirmed={emailConfirmed}
+    />
+  );
 }
 
 export default App;

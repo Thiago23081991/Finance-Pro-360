@@ -35,8 +35,6 @@ export interface AppConfig {
   // Remote Licensing
   licenseKey?: string;
   licenseStatus?: 'active' | 'inactive';
-  // Account Approval Status
-  accountStatus?: 'active' | 'pending' | 'blocked';
 }
 
 export interface FilterState {
@@ -89,6 +87,5 @@ export interface UserProfile {
   email: string;
   username: string;
   licenseStatus?: string;
-  accountStatus?: 'active' | 'pending' | 'blocked';
   createdAt?: string; // If available
 }

@@ -155,6 +155,11 @@ export const SheetView: React.FC<SheetViewProps> = ({
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [transactions, type, searchTerm, filterCategory, startDate, endDate, minValue, maxValue]);
 
+  // Calculate Total Value of filtered items
+  const totalValue = useMemo(() => {
+      return sheetData.reduce((acc, curr) => acc + curr.amount, 0);
+  }, [sheetData]);
+
   return (
     <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm overflow-hidden flex flex-col h-[calc(100vh-140px)] transition-colors">
         {/* Toolbar */}
@@ -441,6 +446,21 @@ export const SheetView: React.FC<SheetViewProps> = ({
                         ))
                     )}
                 </tbody>
+                
+                {/* TABLE FOOTER SUMMARY */}
+                {sheetData.length > 0 && (
+                    <tfoot className="bg-slate-100 dark:bg-slate-900 sticky bottom-0 z-10 font-semibold text-slate-700 dark:text-slate-200 shadow-md border-t border-slate-300 dark:border-slate-600">
+                        <tr>
+                            <td className="py-3 px-4 text-xs uppercase tracking-wider text-right">Total:</td>
+                            <td className={`py-3 px-4 text-sm font-mono ${type === 'income' ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
+                                {formatCurrency(totalValue)}
+                            </td>
+                            <td colSpan={type === 'expense' ? 4 : 3} className="py-3 px-4 text-xs text-slate-500 dark:text-slate-400 text-right italic font-normal">
+                                {sheetData.length} registros exibidos
+                            </td>
+                        </tr>
+                    </tfoot>
+                )}
              </table>
         </div>
     </div>

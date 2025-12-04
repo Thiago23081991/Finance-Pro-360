@@ -1,47 +1,36 @@
 
 import { Transaction, Goal, AppConfig, UserAccount, PurchaseRequest, AdminMessage, SystemStats, UserProfile } from "./types";
-import { DEFAULT_CONFIG, ADMIN_EMAILS } from "./constants";
+import { DEFAULT_CONFIG } from "./constants";
 import { supabase } from "./supabaseClient";
 
-// Helper para permitir login por username simples
-// Se o usuário digitar "thiago", transforma em "thiago@finance.app"
-// Se digitar um email real, mantém o email.
-const normalizeAuthInput = (input: string): string => {
-  const clean = input.trim();
-  if (clean.includes('@')) return clean;
-  
-  // Remove espaços e converte para minusculo para criar um "email virtual" consistente
-  const username = clean.toLowerCase().replace(/\s/g, '');
-  return `${username}@finance.app`;
-};
+// O Supabase substitui o IndexedDB.
+// Mantemos a classe DBService como fachada para facilitar a migração.
 
 export class DBService {
 
   // --- AUTH OPERATIONS ---
 
   static async registerUser(user: UserAccount): Promise<any> {
-    const email = normalizeAuthInput(user.username);
-    
     // 1. Criar usuário no Auth do Supabase
     const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: email,
+      email: user.username, // Username tratado como email
       password: user.password,
     });
 
     if (authError) throw new Error(authError.message);
     
+    // Retornar dados completos para o frontend decidir se precisa de confirmação de email
     return authData;
   }
 
   static async loginUser(username: string, password: string): Promise<any> {
-    const email = normalizeAuthInput(username);
-
     const { data, error } = await supabase.auth.signInWithPassword({
-      email: email,
+      email: username,
       password: password,
     });
 
     if (error) {
+        // Lançar o erro real para que a UI possa mostrar "Email não confirmado" ou "Senha inválida"
         throw new Error(error.message);
     }
     return data.user;
@@ -57,6 +46,12 @@ export class DBService {
   }
 
   static async resetUserPassword(username: string, newPass: string): Promise<void> {
+    // Nota: Em produção, o Supabase usa email para reset. 
+    // Como estamos usando a lógica de "Chave Mestra" do Admin para forçar o reset:
+    // O admin precisaria usar a API de Admin do Supabase (service_role) para alterar senha de outros,
+    // o que não é seguro expor no frontend.
+    // Para este caso específico, vamos permitir que o PRÓPRIO usuário logado mude sua senha.
+    
     const { error } = await supabase.auth.updateUser({ password: newPass });
     if (error) throw new Error(error.message);
   }
@@ -64,6 +59,8 @@ export class DBService {
   // --- DATA OPERATIONS ---
 
   static async getTransactions(userId: string): Promise<Transaction[]> {
+    // userId no Supabase é o UUID do Auth. O parametro 'userId' vindo do App.tsx deve ser ignorado 
+    // em favor do auth.uid() real, mas o RLS já garante isso.
     const { data, error } = await supabase
       .from('transactions')
       .select('*')
@@ -71,6 +68,7 @@ export class DBService {
 
     if (error) throw error;
 
+    // Mapear snake_case (DB) para camelCase (App)
     return data.map((t: any) => ({
       id: t.id,
       userId: t.user_id,
@@ -84,11 +82,13 @@ export class DBService {
   }
 
   static async addTransaction(t: Transaction): Promise<void> {
+    // Verifica se é update ou insert
+    // Supabase 'upsert' funciona bem se tiver ID.
     const user = await this.getCurrentUser();
     if (!user) throw new Error("Usuário não autenticado");
 
     const payload = {
-      id: t.id,
+      id: t.id, // Se for novo e gerado no front, ok. Se nao, o Supabase gera.
       user_id: user.id,
       date: t.date,
       amount: t.amount,
@@ -144,38 +144,32 @@ export class DBService {
   }
 
   static async getConfig(userId: string): Promise<AppConfig> {
+    // Busca perfil. userId parametro é legacy, usamos auth.
     const user = await this.getCurrentUser();
     if (!user) return DEFAULT_CONFIG;
 
     const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
 
     if (!data) {
-      // SELF-HEALING: Cria perfil se não existir
-      // Usa a parte antes do @ como username visual
-      const usernameVisual = user.email?.split('@')[0] || 'User';
-      
-      // Define status inicial: Admins são 'active', outros 'pending'
-      const isAdmin = user.email && ADMIN_EMAILS.includes(user.email);
-      const initialStatus = isAdmin ? 'active' : 'pending';
-
+      // SELF-HEALING: Se o usuário existe no Auth mas não tem perfil (ex: erro no registro ou DB não criado na hora), cria agora.
+      console.log("Perfil não encontrado. Tentando criar perfil padrão...");
       const { error: insertError } = await supabase.from('profiles').insert({
         id: user.id,
         email: user.email,
-        username: usernameVisual,
+        username: user.email?.split('@')[0] || 'User',
         theme: 'light',
         categories: DEFAULT_CONFIG.categories,
         payment_methods: DEFAULT_CONFIG.paymentMethods,
         enable_reminders: true,
-        has_seen_tutorial: false,
-        account_status: initialStatus
+        has_seen_tutorial: false
       });
       
       if (!insertError) {
-          return { ...DEFAULT_CONFIG, userId: user.id, accountStatus: initialStatus };
+          return { ...DEFAULT_CONFIG, userId: user.id };
       }
       
       console.error("Erro fatal ao criar perfil:", insertError);
-      return { ...DEFAULT_CONFIG, userId: user.id, accountStatus: 'pending' };
+      return { ...DEFAULT_CONFIG, userId: user.id };
     }
 
     return {
@@ -188,8 +182,7 @@ export class DBService {
       lastSeenGoals: data.last_seen_goals,
       hasSeenTutorial: data.has_seen_tutorial,
       licenseKey: data.license_key,
-      licenseStatus: data.license_status,
-      accountStatus: data.account_status || 'active' // Retrocompatibilidade: antigos são active
+      licenseStatus: data.license_status
     };
   }
 
@@ -208,7 +201,6 @@ export class DBService {
       has_seen_tutorial: config.hasSeenTutorial,
       license_key: config.licenseKey,
       license_status: config.licenseStatus
-      // account_status geralmente só é alterado pelo admin via updateUserStatus, não aqui
     };
 
     const { error } = await supabase.from('profiles').upsert(payload);
@@ -245,13 +237,15 @@ export class DBService {
     const user = await this.getCurrentUser();
     if (!user) return;
 
+    // Restaurar Transações
     if (data.transactions && data.transactions.length > 0) {
        const cleanTxs = data.transactions.map((t: any) => ({
-         ...t, user_id: user.id 
+         ...t, user_id: user.id // Força propriedade do usuário atual
        }));
        await supabase.from('transactions').upsert(cleanTxs);
     }
     
+    // Restaurar Metas
     if (data.goals && data.goals.length > 0) {
        const cleanGoals = data.goals.map((g: any) => ({
          ...g, user_id: user.id
@@ -259,9 +253,11 @@ export class DBService {
        await supabase.from('goals').upsert(cleanGoals);
     }
 
+    // Configs - Apenas update
     if (data.configs && data.configs.length > 0) {
+       // Pega o primeiro config compatível
        const cfg = data.configs[0];
-       delete cfg.id; 
+       delete cfg.id; // Não sobrescrever ID
        await supabase.from('profiles').update(cfg).eq('id', user.id);
     }
   }
@@ -269,12 +265,15 @@ export class DBService {
   // --- ADMIN OPERATIONS ---
 
   static async getSystemStats(): Promise<SystemStats> {
+    // Nota: count('exact') pode ser lento em tabelas gigantes, mas ok para este escopo
     const { count: usersCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
     const { count: txCount } = await supabase.from('transactions').select('*', { count: 'exact', head: true });
     
+    // Soma de volumes (requer query real)
     const { data: volData } = await supabase.from('transactions').select('amount');
     const totalVol = volData ? volData.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0) : 0;
     
+    // Licenças ativas
     const { count: licenseCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('license_status', 'active');
 
     return {
@@ -286,11 +285,7 @@ export class DBService {
   }
 
   static async getAllProfiles(): Promise<UserProfile[]> {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, email, username, license_status, account_status, created_at')
-        .order('created_at', { ascending: false });
-        
+      const { data, error } = await supabase.from('profiles').select('id, email, username, license_status, created_at');
       if (error) throw new Error(error.message);
       
       return data.map((p: any) => ({
@@ -298,18 +293,14 @@ export class DBService {
           email: p.email,
           username: p.username,
           licenseStatus: p.license_status,
-          accountStatus: p.account_status || 'active',
           createdAt: p.created_at
       }));
   }
 
-  static async updateUserStatus(userId: string, status: 'active' | 'pending' | 'blocked'): Promise<void> {
-      const { error } = await supabase.from('profiles').update({ account_status: status }).eq('id', userId);
-      if (error) throw new Error(error.message);
-  }
-
   static async getPurchaseRequest(userId: string): Promise<PurchaseRequest | null> {
+    // userId aqui pode ser o UUID do user
     const { data } = await supabase.from('purchase_requests').select('*').eq('user_id', userId).maybeSingle();
+    
     if (!data) return null;
     return {
       id: data.id,
@@ -348,7 +339,7 @@ export class DBService {
     const payload = {
       id: msg.id,
       sender: msg.sender,
-      receiver: msg.receiver, 
+      receiver: msg.receiver, // UUID do destinatário
       content: msg.content,
       read: msg.read,
       timestamp: msg.timestamp
