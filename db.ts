@@ -1,5 +1,5 @@
 
-import { Transaction, Goal, AppConfig, UserAccount, PurchaseRequest, AdminMessage } from "./types";
+import { Transaction, Goal, AppConfig, UserAccount, PurchaseRequest, AdminMessage, SystemStats, UserProfile } from "./types";
 import { DEFAULT_CONFIG } from "./constants";
 import { supabase } from "./supabaseClient";
 
@@ -57,11 +57,6 @@ export class DBService {
     // o que não é seguro expor no frontend.
     // Para este caso específico, vamos permitir que o PRÓPRIO usuário logado mude sua senha.
     
-    // Se for um reset não autenticado (tela de login), o Supabase exige envio de email.
-    // Vamos simular: se o usuário fornecer a chave mestra, usamos updateUser (mas precisaria estar logado).
-    // WORKAROUND: O fluxo 'Esqueci minha senha' com chave mestra não funciona nativamente no Supabase client-side
-    // sem enviar email. Vamos alterar para "Atualizar Senha" se o usuário conseguir logar ou usar a função de admin.
-    
     const { error } = await supabase.auth.updateUser({ password: newPass });
     if (error) throw new Error(error.message);
   }
@@ -109,12 +104,12 @@ export class DBService {
     };
 
     const { error } = await supabase.from('transactions').upsert(payload);
-    if (error) throw error;
+    if (error) throw new Error(error.message);
   }
 
   static async deleteTransaction(id: string): Promise<void> {
     const { error } = await supabase.from('transactions').delete().eq('id', id);
-    if (error) throw error;
+    if (error) throw new Error(error.message);
   }
 
   static async getGoals(userId: string): Promise<Goal[]> {
@@ -145,12 +140,12 @@ export class DBService {
     };
 
     const { error } = await supabase.from('goals').upsert(payload);
-    if (error) throw error;
+    if (error) throw new Error(error.message);
   }
 
   static async deleteGoal(id: string): Promise<void> {
     const { error } = await supabase.from('goals').delete().eq('id', id);
-    if (error) throw error;
+    if (error) throw new Error(error.message);
   }
 
   static async getConfig(userId: string): Promise<AppConfig> {
@@ -218,7 +213,6 @@ export class DBService {
   }
 
   // --- BACKUP OPERATIONS ---
-  // Adaptado para puxar tudo do Supabase
 
   static async createBackup(): Promise<string> {
     const user = await this.getCurrentUser();
@@ -229,7 +223,7 @@ export class DBService {
       supabase.from('goals').select('*'),
       supabase.from('profiles').select('*').eq('id', user.id).single(),
       supabase.from('purchase_requests').select('*'),
-      supabase.from('messages').select('*').or(`receiver.eq.${user.id},sender.eq.Admin`) // Lógica simplificada
+      supabase.from('messages').select('*').or(`receiver.eq.${user.id},sender.eq.Admin`) 
     ]);
 
     const backup = {
@@ -273,7 +267,40 @@ export class DBService {
     }
   }
 
-  // --- PURCHASE REQUEST OPERATIONS (ADMIN) ---
+  // --- ADMIN OPERATIONS ---
+
+  static async getSystemStats(): Promise<SystemStats> {
+    // Nota: count('exact') pode ser lento em tabelas gigantes, mas ok para este escopo
+    const { count: usersCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
+    const { count: txCount } = await supabase.from('transactions').select('*', { count: 'exact', head: true });
+    
+    // Soma de volumes (requer query real)
+    const { data: volData } = await supabase.from('transactions').select('amount');
+    const totalVol = volData ? volData.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0) : 0;
+    
+    // Licenças ativas
+    const { count: licenseCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('license_status', 'active');
+
+    return {
+      totalUsers: usersCount || 0,
+      totalTransactions: txCount || 0,
+      totalVolume: totalVol,
+      activeLicenses: licenseCount || 0
+    };
+  }
+
+  static async getAllProfiles(): Promise<UserProfile[]> {
+      const { data, error } = await supabase.from('profiles').select('id, email, username, license_status, created_at');
+      if (error) throw new Error(error.message);
+      
+      return data.map((p: any) => ({
+          id: p.id,
+          email: p.email,
+          username: p.username,
+          licenseStatus: p.license_status,
+          createdAt: p.created_at
+      }));
+  }
 
   static async getPurchaseRequest(userId: string): Promise<PurchaseRequest | null> {
     // userId aqui pode ser o UUID do user
@@ -296,7 +323,7 @@ export class DBService {
       status: req.status
     };
     const { error } = await supabase.from('purchase_requests').upsert(payload);
-    if (error) console.error(error);
+    if (error) throw new Error(error.message);
   }
 
   static async getAllPurchaseRequests(): Promise<PurchaseRequest[]> {
@@ -323,7 +350,7 @@ export class DBService {
       timestamp: msg.timestamp
     };
     const { error } = await supabase.from('messages').insert(payload);
-    if (error) throw error;
+    if (error) throw new Error(error.message);
   }
 
   static async getMessagesForUser(userId: string): Promise<AdminMessage[]> {
@@ -356,6 +383,7 @@ export class DBService {
   }
 
   static async markMessageAsRead(msgId: string): Promise<void> {
-    await supabase.from('messages').update({ read: true }).eq('id', msgId);
+    const { error } = await supabase.from('messages').update({ read: true }).eq('id', msgId);
+    if (error) throw new Error(error.message);
   }
 }

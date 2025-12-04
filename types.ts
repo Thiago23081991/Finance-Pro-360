@@ -74,3 +74,18 @@ export interface BackupData {
   purchase_requests?: PurchaseRequest[];
   messages?: AdminMessage[];
 }
+
+export interface SystemStats {
+  totalUsers: number;
+  totalTransactions: number;
+  totalVolume: number;
+  activeLicenses: number;
+}
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  username: string;
+  licenseStatus?: string;
+  createdAt?: string; // If available
+}
