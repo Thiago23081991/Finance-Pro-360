@@ -1,9 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { AppConfig, Transaction, PurchaseRequest } from '../types';
-import { Trash2, Plus, FileSpreadsheet, Download, AlertCircle, Bell, CreditCard, CheckCircle, Clock, XCircle, Upload, Shield, Key, Smartphone, Copy, Lock, Moon, Sun } from 'lucide-react';
+import { Trash2, Plus, FileSpreadsheet, Download, AlertCircle, Bell, CreditCard, CheckCircle, Clock, XCircle, Upload, Shield, Key, Smartphone, Copy, Lock, Moon, Sun, AlertTriangle, FileText } from 'lucide-react';
 import { exportToCSV, generateId, validateLicenseKey } from '../utils';
 import { DBService } from '../db';
+import { PrivacyModal } from './PrivacyModal';
 
 interface SettingsProps {
     config: AppConfig;
@@ -26,6 +27,10 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
     // Change Password State
     const [newPassword, setNewPassword] = useState('');
     const [passSuccess, setPassSuccess] = useState(false);
+
+    // Privacy Modal State
+    const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const isLicensed = config.licenseStatus === 'active' || config.licenseKey;
 
@@ -172,6 +177,24 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
             setPassSuccess(true);
             setNewPassword('');
             setTimeout(() => setPassSuccess(false), 3000);
+        }
+    };
+
+    const handleDeleteAccount = async () => {
+        if (!config.userId) return;
+        
+        const confirmation = window.prompt("ATENÇÃO: Isso excluirá permanentemente TODOS os seus dados. Para confirmar, digite 'DELETAR':");
+        
+        if (confirmation === 'DELETAR') {
+            setIsDeleting(true);
+            try {
+                await DBService.deleteUserAccount(config.userId);
+                alert('Sua conta e seus dados foram excluídos com sucesso.');
+                window.location.reload();
+            } catch (error: any) {
+                alert('Erro ao excluir conta: ' + error.message);
+                setIsDeleting(false);
+            }
         }
     };
 
@@ -324,7 +347,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
             <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
                 <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2 mb-6">
                     <Shield className="text-indigo-600 dark:text-indigo-400" size={20} />
-                    Segurança e Dados
+                    Segurança e Privacidade
                 </h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -349,9 +372,17 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                             </button>
                         </div>
                         {passSuccess && <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1"><CheckCircle size={12}/> Senha atualizada com sucesso!</p>}
-                        <p className="text-xs text-slate-400">
-                            Atualize sua senha de acesso periodicamente para manter sua conta segura.
-                        </p>
+                        
+                        {/* Privacy Policy Link */}
+                        <div className="mt-4 pt-2">
+                            <button 
+                                onClick={() => setShowPrivacyModal(true)}
+                                className="text-sm text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 font-medium"
+                            >
+                                <FileText size={16} />
+                                Ver Política de Privacidade e LGPD
+                            </button>
+                        </div>
                     </div>
 
                     {/* Backup & Restore */}
@@ -383,6 +414,34 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                             Grave todas as funções e cadastros em um arquivo seguro. Use a restauração para recuperar seus dados em caso de problemas ou mudança de navegador.
                         </p>
                     </div>
+                </div>
+            </div>
+
+            {/* DANGER ZONE - LGPD Right to be Forgotten */}
+            <div className="bg-rose-50 dark:bg-rose-950/20 p-6 rounded-xl shadow-sm border border-rose-200 dark:border-rose-900 transition-colors">
+                 <h3 className="text-lg font-semibold text-rose-700 dark:text-rose-500 flex items-center gap-2 mb-2">
+                    <AlertTriangle size={20} />
+                    Zona de Perigo
+                </h3>
+                <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                    Ações irreversíveis relacionadas à sua conta e dados.
+                </p>
+                
+                <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-lg border border-rose-100 dark:border-rose-900/50">
+                    <div>
+                        <p className="text-sm font-bold text-slate-800 dark:text-white">Excluir Minha Conta (LGPD)</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                            Isso apagará permanentemente todos os seus dados e revogará seu acesso.
+                        </p>
+                    </div>
+                    <button 
+                        onClick={handleDeleteAccount}
+                        disabled={isDeleting}
+                        className="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded text-sm font-bold transition-colors flex items-center gap-2"
+                    >
+                        <Trash2 size={16} />
+                        {isDeleting ? 'Excluindo...' : 'Excluir Conta'}
+                    </button>
                 </div>
             </div>
 
@@ -514,6 +573,8 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                     </ul>
                 </div>
             </div>
+            
+            <PrivacyModal isOpen={showPrivacyModal} onClose={() => setShowPrivacyModal(false)} />
         </div>
     );
 };

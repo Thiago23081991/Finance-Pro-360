@@ -56,6 +56,33 @@ export class DBService {
     if (error) throw new Error(error.message);
   }
 
+  // LGPD: Direito ao Esquecimento
+  static async deleteUserAccount(userId: string): Promise<void> {
+      // Nota: Pela API Client-side do Supabase, um usuário não pode deletar seu próprio registro da tabela auth.users.
+      // Isso requer uma Edge Function ou Service Role.
+      // Para cumprir a LGPD no frontend, vamos deletar TODOS os dados das tabelas públicas.
+      // O registro de Auth ficará órfão (sem dados) e inativo.
+      
+      const tablesToDelete = ['transactions', 'goals', 'profiles', 'purchase_requests', 'messages'];
+      
+      try {
+          // Deleta dados em paralelo
+          await Promise.all(tablesToDelete.map(table => {
+              // Condição: algumas tabelas usam 'user_id', profiles usa 'id', messages usa 'receiver'
+              let column = 'user_id';
+              if (table === 'profiles') column = 'id';
+              if (table === 'messages') column = 'receiver'; 
+              
+              return supabase.from(table).delete().eq(column, userId);
+          }));
+
+          // Deslogar após limpar os dados
+          await this.logout();
+      } catch (error: any) {
+          throw new Error("Erro ao excluir dados: " + error.message);
+      }
+  }
+
   // --- DATA OPERATIONS ---
 
   static async getTransactions(userId: string): Promise<Transaction[]> {

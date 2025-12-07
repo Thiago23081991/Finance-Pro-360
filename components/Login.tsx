@@ -1,8 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { Lock, Mail, ArrowRight, Wallet, Database, Loader2, Check, X as XIcon, KeyRound, User, AlertCircle } from 'lucide-react';
+import { Lock, Mail, ArrowRight, Wallet, Database, Loader2, Check, X as XIcon, KeyRound, User, AlertCircle, ShieldCheck } from 'lucide-react';
 import { DBService } from '../db';
 import { supabase } from '../supabaseClient';
+import { PrivacyModal } from './PrivacyModal';
 
 interface LoginProps {
   onLogin: (username: string) => void;
@@ -15,6 +16,9 @@ export const Login: React.FC<LoginProps> = ({ onLogin, initialMessage, messageTy
   const [username, setUsername] = useState(''); // Agora será tratado como Email
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+  
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -70,6 +74,12 @@ export const Login: React.FC<LoginProps> = ({ onLogin, initialMessage, messageTy
 
     try {
         if (isRegistering) {
+            if (!acceptedTerms) {
+                setError('Você precisa aceitar os Termos e Política de Privacidade para criar uma conta.');
+                setIsLoading(false);
+                return;
+            }
+
             if (cleanPassword.length < 6) {
                 setError('A senha deve ter no mínimo 6 caracteres.');
                 setIsLoading(false);
@@ -184,6 +194,24 @@ export const Login: React.FC<LoginProps> = ({ onLogin, initialMessage, messageTy
                 </label>
             </div>
           </div>
+          
+          {/* LGPD Consent Checkbox - Only on Register */}
+          {isRegistering && (
+             <div className="bg-slate-50 dark:bg-slate-700/50 p-3 rounded-lg border border-slate-100 dark:border-slate-600">
+                <div className="flex items-start gap-3">
+                    <input 
+                        type="checkbox" 
+                        id="terms"
+                        checked={acceptedTerms}
+                        onChange={(e) => setAcceptedTerms(e.target.checked)}
+                        className="mt-1 w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500 cursor-pointer shrink-0"
+                    />
+                    <label htmlFor="terms" className="text-xs text-slate-600 dark:text-slate-300 cursor-pointer leading-relaxed">
+                        Li e concordo com os <button type="button" onClick={() => setShowPrivacyModal(true)} className="text-blue-600 dark:text-blue-400 font-bold hover:underline">Termos de Uso e Política de Privacidade</button>, consentindo com a coleta e tratamento dos meus dados para fins de gestão financeira.
+                    </label>
+                </div>
+             </div>
+          )}
 
           {successMsg && (
              <div className="p-3 rounded-lg text-sm font-medium text-center border animate-fade-in bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800 flex flex-col items-center gap-2">
@@ -228,8 +256,12 @@ export const Login: React.FC<LoginProps> = ({ onLogin, initialMessage, messageTy
       
       <div className="fixed bottom-4 text-xs text-slate-400 flex flex-col items-center">
         <span>© 2030 Finance Pro 360 Inc.</span>
-        <span className="text-[10px] opacity-70">Secured by Supabase</span>
+        <button onClick={() => setShowPrivacyModal(true)} className="text-[10px] opacity-70 hover:opacity-100 underline mt-1">
+            Política de Privacidade & LGPD
+        </button>
       </div>
+
+      <PrivacyModal isOpen={showPrivacyModal} onClose={() => setShowPrivacyModal(false)} />
     </div>
   );
 };
