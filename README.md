@@ -1,20 +1,33 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Finance Pro 360
 
-# Run and deploy your AI Studio app
+O Finance Pro 360 é uma aplicação completa de gestão financeira pessoal, desenvolvida com React, TypeScript, Tailwind CSS e Supabase.
 
-This contains everything you need to run your app locally.
+## Funcionalidades
 
-View your app in AI Studio: https://ai.studio/apps/drive/1tDg2IwYMZh_nO-JhP0uE5AyufCnGb9Co
+- **Dashboard**: Visão geral com gráficos de receitas, despesas e taxa de poupança.
+- **Transações**: Cadastro de receitas e despesas com suporte a parcelamento e repetições.
+- **Metas**: Definição e acompanhamento de objetivos financeiros.
+- **Relatórios**: Gráficos de categorias, evolução mensal e análise trimestral.
+- **Administração**: Painel para gestão de usuários e licenças (Admin).
+- **Segurança**: Autenticação via Email, suporte a LGPD (exclusão de conta) e Backup de dados.
 
-## Run Locally
+## Como Rodar Localmente
 
-**Prerequisites:**  Node.js
+1. Clone o repositório.
+2. Instale as dependências:
+   ```bash
+   npm install
+   ```
+3. Rode o servidor de desenvolvimento:
+   ```bash
+   npm run dev
+   ```
 
+## Deploy
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+Este projeto está configurado para deploy fácil na Vercel.
+
+1. Faça push para o GitHub.
+2. Importe o projeto na Vercel.
+3. Defina as variáveis de ambiente (se necessário, embora as chaves do Supabase estejam no cliente neste exemplo de demonstração).
+4. Deploy!
