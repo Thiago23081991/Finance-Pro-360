@@ -4,88 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Finance Pro 360</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        darkMode: 'class',
-        theme: {
-          extend: {
-            colors: {
-              slate: {
-                750: '#2d3748',
-                850: '#1a202c',
-                950: '#020617',
-              }
-            },
-            fontFamily: {
-              sans: ['Inter', 'sans-serif'],
-            }
-          }
-        }
-      }
-    </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-      :root {
-        --tooltip-bg: #ffffff;
-        --tooltip-border: #e2e8f0;
-        --tooltip-text: #1e293b;
-      }
-      html.dark {
-        --tooltip-bg: #1e293b;
-        --tooltip-border: #334155;
-        --tooltip-text: #f8fafc;
-      }
-
-      body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
-      html.dark body { background-color: #020617; }
-
-      /* Custom Scrollbar for table containers */
-      .custom-scrollbar::-webkit-scrollbar {
-          width: 8px;
-          height: 8px;
-      }
-      .custom-scrollbar::-webkit-scrollbar-track {
-          background: #f1f1f1; 
-      }
-      .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #c1c1c1; 
-          border-radius: 4px;
-      }
-      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #a8a8a8; 
-      }
-      
-      /* Dark mode scrollbar */
-      html.dark .custom-scrollbar::-webkit-scrollbar-track {
-          background: #0f172a; 
-      }
-      html.dark .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #334155; 
-      }
-      html.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #475569; 
-      }
-      
-      /* Animations */
-      @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-      .animate-fade-in {
-        animation: fadeIn 0.5s ease-out forwards;
-      }
-    </style>
-<script type="importmap">
+  <script type="importmap">
 {
   "imports": {
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.556.0",
-    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1",
     "react/": "https://aistudiocdn.com/react@^19.2.1/",
     "react": "https://aistudiocdn.com/react@^19.2.1",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.556.0",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
     "recharts": "https://aistudiocdn.com/recharts@^3.5.1",
     "@supabase/supabase-js": "https://aistudiocdn.com/@supabase/supabase-js@^2.86.2",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1",
     "vite": "https://aistudiocdn.com/vite@^7.2.6"
   }
 }
