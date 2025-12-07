@@ -1,4 +1,3 @@
-
 import { Transaction } from "./types";
 
 export const formatCurrency = (value: number) => {
@@ -31,6 +30,12 @@ export const generateId = () => {
 
 export const getStatusColor = (status: string) => {
   return status === 'Concluída' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
+};
+
+export const formatDateRaw = (dateString: string) => {
+  if (!dateString) return '';
+  const [year, month, day] = dateString.split('-');
+  return `${day}/${month}/${year}`;
 };
 
 export const exportToCSV = (transactions: Transaction[]) => {

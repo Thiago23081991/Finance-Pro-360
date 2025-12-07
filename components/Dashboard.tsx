@@ -3,7 +3,7 @@ import React, { useMemo } from 'react';
 import { Transaction, Goal, FilterState } from '../types';
 import { formatCurrency } from '../utils';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
-import { TrendingUp, TrendingDown, DollarSign, PieChart as PieIcon, AlertCircle, CalendarRange, PiggyBank } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, PieChart as PieIcon, AlertCircle, CalendarRange, PiggyBank, History, Utensils, Car, Home, HeartPulse, PartyPopper, GraduationCap, Banknote, ShoppingBag, Zap, CircleDollarSign } from 'lucide-react';
 
 interface DashboardProps {
   transactions: Transaction[];
@@ -13,20 +13,43 @@ interface DashboardProps {
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658'];
 
+// Helper to get Icon based on category name
+const getCategoryIcon = (category: string) => {
+    const lower = category.toLowerCase();
+    if (lower.includes('aliment')) return <Utensils size={16} />;
+    if (lower.includes('transporte') || lower.includes('carro') || lower.includes('combust')) return <Car size={16} />;
+    if (lower.includes('moradia') || lower.includes('casa') || lower.includes('aluguel')) return <Home size={16} />;
+    if (lower.includes('saúde') || lower.includes('medico') || lower.includes('farmacia')) return <HeartPulse size={16} />;
+    if (lower.includes('lazer') || lower.includes('viagem') || lower.includes('restaurante')) return <PartyPopper size={16} />;
+    if (lower.includes('educa') || lower.includes('curso') || lower.includes('escola')) return <GraduationCap size={16} />;
+    if (lower.includes('salário') || lower.includes('renda')) return <Banknote size={16} />;
+    if (lower.includes('invest')) return <TrendingUp size={16} />;
+    if (lower.includes('mercado') || lower.includes('compras')) return <ShoppingBag size={16} />;
+    if (lower.includes('luz') || lower.includes('agua') || lower.includes('internet')) return <Zap size={16} />;
+    return <CircleDollarSign size={16} />;
+};
+
 export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filter }) => {
   
   // Filter Logic
   const filteredTransactions = useMemo(() => {
     return transactions.filter(t => {
-      const d = new Date(t.date);
+      const d = new Date(t.date + 'T12:00:00'); // Force time to avoid timezone issues
       const matchMonth = d.getMonth() === filter.month;
       const matchYear = d.getFullYear() === filter.year;
       const matchCategory = filter.category === 'Todas' || t.category === filter.category;
-      const matchPayment = filter.paymentMethod === 'Todas' || t.paymentMethod === filter.paymentMethod || t.type === 'income'; // Income doesn't strict check payment method for this simplified view
+      const matchPayment = filter.paymentMethod === 'Todas' || t.paymentMethod === filter.paymentMethod || t.type === 'income'; 
 
       return matchMonth && matchYear && matchCategory && matchPayment;
     });
   }, [transactions, filter]);
+
+  // Recent Transactions (Global - not filtered by date, just last 5)
+  const recentTransactions = useMemo(() => {
+      return [...transactions]
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, 5);
+  }, [transactions]);
 
   // KPI Calculations
   const kpiData = useMemo(() => {
@@ -64,8 +87,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
   }, [filteredTransactions]);
 
   const timelineData = useMemo(() => {
-    // Ensure we show the whole month or year trend depending on data
-    // For simplicity, showing daily evolution within the selected month
+    // Ensure we show the whole month
     const daysInMonth = new Date(filter.year, filter.month + 1, 0).getDate();
     const data = [];
     
@@ -75,7 +97,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
         let expense = 0;
 
         filteredTransactions.forEach(t => {
-            const d = new Date(t.date);
+            const d = new Date(t.date + 'T12:00:00');
             if (d.getDate() === i) {
                 if (t.type === 'income') income += t.amount;
                 else expense += t.amount;
@@ -88,13 +110,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
 
   // --- QUARTERLY ANALYSIS LOGIC ---
   const quarterData = useMemo(() => {
-    // Determine Quarter based on selected filter month
-    const qIndex = Math.floor(filter.month / 3); // 0 (Jan-Mar), 1 (Apr-Jun), etc.
+    const qIndex = Math.floor(filter.month / 3); 
     const startMonth = qIndex * 3;
     const endMonth = startMonth + 2;
 
     const quarterTxs = transactions.filter(t => {
-        const d = new Date(t.date);
+        const d = new Date(t.date + 'T12:00:00');
         return t.type === 'expense' &&
                d.getFullYear() === filter.year &&
                d.getMonth() >= startMonth &&
@@ -198,7 +219,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
         </div>
       </div>
 
-      {/* Charts Row 1 */}
+      {/* Main Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Line Chart */}
         <div className="lg:col-span-2 bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
@@ -221,34 +242,41 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
             </div>
         </div>
 
-        {/* Pie Chart */}
-        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
-            <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-4">Proporção de Despesas</h4>
-            <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                        <Pie
-                            data={barData}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={60}
-                            outerRadius={80}
-                            paddingAngle={5}
-                            dataKey="value"
-                        >
-                            {barData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                            ))}
-                        </Pie>
-                        <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                        <Legend layout="horizontal" verticalAlign="bottom" align="center" wrapperStyle={{fontSize: '11px', paddingTop: '10px', color: '#94a3b8'}}/>
-                    </PieChart>
-                </ResponsiveContainer>
+        {/* Recent Transactions List (NEW) */}
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors flex flex-col">
+            <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
+                <History size={16} /> Últimas Movimentações
+            </h4>
+            <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-3 max-h-64 lg:max-h-full">
+                {recentTransactions.length === 0 ? (
+                    <p className="text-sm text-slate-400 text-center py-4">Nenhuma transação recente.</p>
+                ) : (
+                    recentTransactions.map(t => (
+                        <div key={t.id} className="flex justify-between items-center p-3 rounded-lg bg-slate-50 dark:bg-slate-700/50 border border-slate-100 dark:border-slate-700">
+                            <div className="flex items-center gap-3">
+                                <div className={`p-2 rounded-full ${t.type === 'income' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'} dark:bg-opacity-20`}>
+                                    {getCategoryIcon(t.category)}
+                                </div>
+                                <div className="overflow-hidden">
+                                    <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate max-w-[120px]" title={t.description}>
+                                        {t.description || t.category}
+                                    </p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                                        {new Date(t.date + 'T12:00:00').toLocaleDateString('pt-BR')}
+                                    </p>
+                                </div>
+                            </div>
+                            <span className={`text-sm font-bold ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                                {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
+                            </span>
+                        </div>
+                    ))
+                )}
             </div>
         </div>
       </div>
 
-      {/* Charts Row 2 */}
+      {/* Analysis Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Bar Chart */}
           <div className="lg:col-span-2 bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
@@ -325,8 +353,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                                     className="w-3 h-3 rounded-full" 
                                     style={{ backgroundColor: COLORS[idx % COLORS.length] }}
                                 ></div>
-                                <span className="text-xs font-semibold inline-block text-slate-600 dark:text-slate-300">
-                                    {cat.name}
+                                <span className="text-xs font-semibold inline-block text-slate-600 dark:text-slate-300 flex items-center gap-1">
+                                    {getCategoryIcon(cat.name)} {cat.name}
                                 </span>
                             </div>
                             <div className="text-right">
