@@ -33,6 +33,8 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
   // State Management
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [loading, setLoading] = useState(true);
+  // New state for tab content loading
+  const [contentLoading, setContentLoading] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -163,18 +165,43 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
   }, [loading, config.enableReminders, config.reminderFrequency, showTutorial, isAdmin, config.lastSeenGoals]);
 
   const handleTabChange = async (tab: Tab) => {
-    setActiveTab(tab);
-    setIsMobileMenuOpen(false); // Close mobile menu on navigation
+    if (tab === activeTab) return;
     
-    if (tab === 'metas') {
-        const now = new Date().toISOString();
-        const newConfig = { ...config, lastSeenGoals: now };
-        setConfig(newConfig);
-        await DBService.saveConfig(newConfig);
+    setIsMobileMenuOpen(false); // Close mobile menu on navigation
+    setContentLoading(true); // Start loading visual
+    setActiveTab(tab);
+    
+    // Smooth Transition + Data Refresh Logic
+    // This ensures data is fresh when switching context
+    try {
+        const minLoadTime = new Promise(resolve => setTimeout(resolve, 400)); // Min 400ms for visual smoothness
         
-        if (toastMessage && toastMessage.includes("metas")) {
-            setToastMessage(null);
+        const dataPromises: Promise<any>[] = [minLoadTime];
+
+        if (tab === 'dashboard' || tab === 'receitas' || tab === 'despesas') {
+             dataPromises.push(DBService.getTransactions(user).then(setTransactions));
+        } else if (tab === 'metas') {
+             dataPromises.push(DBService.getGoals(user).then(setGoals));
+        } else if (tab === 'config') {
+             dataPromises.push(DBService.getConfig(user).then((cfg) => setConfig({ ...DEFAULT_CONFIG, ...cfg, userId: user })));
         }
+
+        await Promise.all(dataPromises);
+
+        if (tab === 'metas') {
+            const now = new Date().toISOString();
+            const newConfig = { ...config, lastSeenGoals: now };
+            setConfig(newConfig);
+            await DBService.saveConfig(newConfig);
+            
+            if (toastMessage && toastMessage.includes("metas")) {
+                setToastMessage(null);
+            }
+        }
+    } catch (error) {
+        console.error("Error refreshing data on tab change", error);
+    } finally {
+        setContentLoading(false);
     }
   };
 
@@ -441,60 +468,72 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
         </header>
 
         {/* Content Area - Adjusted padding for bottom nav on mobile */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar mb-16 md:mb-0">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar mb-16 md:mb-0 relative">
+            
+            {contentLoading ? (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm z-20">
+                    <Loader2 size={40} className="animate-spin text-blue-600 dark:text-blue-400 mb-3" />
+                    <p className="text-sm font-medium text-slate-600 dark:text-slate-300 animate-pulse">
+                        Carregando {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}...
+                    </p>
+                </div>
+            ) : null}
+
             {/* Mobile Filter Bar (Visible only on small screens inside content) */}
             <div className="sm:hidden mb-4">
                  <FilterBar />
             </div>
 
-            {activeTab === 'dashboard' && (
-                <Dashboard transactions={transactions} goals={goals} filter={filter} />
-            )}
-            
-            {activeTab === 'receitas' && (
-                <SheetView 
-                    type="income"
-                    transactions={transactions}
-                    categories={config.categories}
-                    paymentMethods={config.paymentMethods}
-                    onAdd={addTransaction}
-                    onUpdate={updateTransaction}
-                    onDelete={deleteTransaction}
-                />
-            )}
+            <div className={`transition-opacity duration-300 ${contentLoading ? 'opacity-40' : 'opacity-100'}`}>
+                {activeTab === 'dashboard' && (
+                    <Dashboard transactions={transactions} goals={goals} filter={filter} />
+                )}
+                
+                {activeTab === 'receitas' && (
+                    <SheetView 
+                        type="income"
+                        transactions={transactions}
+                        categories={config.categories}
+                        paymentMethods={config.paymentMethods}
+                        onAdd={addTransaction}
+                        onUpdate={updateTransaction}
+                        onDelete={deleteTransaction}
+                    />
+                )}
 
-            {activeTab === 'despesas' && (
-                <SheetView 
-                    type="expense"
-                    transactions={transactions}
-                    categories={config.categories}
-                    paymentMethods={config.paymentMethods}
-                    onAdd={addTransaction}
-                    onUpdate={updateTransaction}
-                    onDelete={deleteTransaction}
-                />
-            )}
+                {activeTab === 'despesas' && (
+                    <SheetView 
+                        type="expense"
+                        transactions={transactions}
+                        categories={config.categories}
+                        paymentMethods={config.paymentMethods}
+                        onAdd={addTransaction}
+                        onUpdate={updateTransaction}
+                        onDelete={deleteTransaction}
+                    />
+                )}
 
-            {activeTab === 'metas' && (
-                <GoalsSheet 
-                    goals={goals}
-                    onAdd={addGoal}
-                    onDelete={deleteGoal}
-                    onUpdate={updateGoalValue}
-                />
-            )}
+                {activeTab === 'metas' && (
+                    <GoalsSheet 
+                        goals={goals}
+                        onAdd={addGoal}
+                        onDelete={deleteGoal}
+                        onUpdate={updateGoalValue}
+                    />
+                )}
 
-            {activeTab === 'config' && (
-                <Settings 
-                    config={config} 
-                    onUpdateConfig={updateConfig} 
-                    transactions={transactions}
-                />
-            )}
+                {activeTab === 'config' && (
+                    <Settings 
+                        config={config} 
+                        onUpdateConfig={updateConfig} 
+                        transactions={transactions}
+                    />
+                )}
 
-            {activeTab === 'admin' && isAdmin && (
-                <AdminPanel />
-            )}
+                {activeTab === 'admin' && isAdmin && (
+                    <AdminPanel />
+                )}
+            </div>
         </div>
 
         {/* BOTTOM NAVIGATION FOR MOBILE */}

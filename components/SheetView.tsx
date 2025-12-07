@@ -66,6 +66,14 @@ export const SheetView: React.FC<SheetViewProps> = ({
   // Error state for validation
   const [dateError, setDateError] = useState('');
 
+  // Get today's date in 'YYYY-MM-DD' format based on local timezone to ensure accurate comparison
+  const todayStr = useMemo(() => {
+      const now = new Date();
+      return new Date(now.getTime() - (now.getTimezoneOffset() * 60000))
+        .toISOString()
+        .split('T')[0];
+  }, []);
+
   const handleEdit = (t: Transaction) => {
       setEditingId(t.id);
       setNewDate(t.date);
@@ -217,10 +225,13 @@ export const SheetView: React.FC<SheetViewProps> = ({
             return matchesSearch && matchesCategory && matchesStart && matchesEnd && matchesValue;
         })
         .sort((a, b) => {
-            const dateA = new Date(a.date).getTime();
-            const dateB = new Date(b.date).getTime();
-            // Toggle sort order
-            return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+            // Use String localeCompare for 'YYYY-MM-DD' which is strictly chronological and safer than Date parsing
+            // This handles future dates correctly as '2025-01-01' > '2024-01-01'
+            if (sortOrder === 'asc') {
+                return a.date.localeCompare(b.date);
+            } else {
+                return b.date.localeCompare(a.date);
+            }
         });
   }, [transactions, type, searchTerm, filterCategory, startDate, endDate, minValue, maxValue, sortOrder]);
 
@@ -517,8 +528,8 @@ export const SheetView: React.FC<SheetViewProps> = ({
                             <tr key={t.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group">
                                 <td className="py-2 px-4 text-sm text-slate-600 dark:text-slate-300 font-mono flex items-center gap-2">
                                     {formatDateRaw(t.date)}
-                                    {/* Indicate if it's a future transaction */}
-                                    {new Date(t.date) > new Date() && (
+                                    {/* Indicate if it's a future transaction - Robust comparison using string format */}
+                                    {t.date > todayStr && (
                                         <span title="Transação Futura">
                                             <CalendarClock size={12} className="text-blue-400" />
                                         </span>
