@@ -151,7 +151,7 @@ export const AdminPanel: React.FC = () => {
                         activeTab === 'dashboard' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
                     }`}
                 >
-                    <BarChart3 size={18} /> Dashboard
+                    <BarChart3 size={18} /> Visão Geral
                     {activeTab === 'dashboard' && <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 dark:bg-blue-400 rounded-t-full"></span>}
                 </button>
 

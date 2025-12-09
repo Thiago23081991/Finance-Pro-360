@@ -13,9 +13,44 @@ import { Inbox } from './components/Inbox';
 import { Tutorial, TutorialStepTarget } from './components/Tutorial';
 import { DBService } from './db';
 import { supabase } from './supabaseClient';
-import { LayoutDashboard, CreditCard, TrendingUp, Target, Settings as SettingsIcon, Menu, Filter, LogOut, Loader2, ShieldCheck, Mail, Sun, Moon, X, Home } from 'lucide-react';
+import { LayoutDashboard, CreditCard, TrendingUp, Target, Settings as SettingsIcon, Menu, Filter, LogOut, Loader2, ShieldCheck, Mail, Sun, Moon, X } from 'lucide-react';
 
 type Tab = 'controle' | 'receitas' | 'despesas' | 'metas' | 'config' | 'admin';
+
+// Centralized Metadata for Tabs (Title, Label, Icon)
+// This refactors page title generation for better maintainability and i18n
+const TAB_METADATA: Record<Tab, { label: string; pageTitle: string; icon: React.ReactNode }> = {
+    controle: { 
+        label: 'Controle', 
+        pageTitle: 'Painel de Controle', 
+        icon: <LayoutDashboard size={20} /> 
+    },
+    receitas: { 
+        label: 'Receitas', 
+        pageTitle: 'Gerenciar Receitas', 
+        icon: <TrendingUp size={20} /> 
+    },
+    despesas: { 
+        label: 'Despesas', 
+        pageTitle: 'Gerenciar Despesas', 
+        icon: <CreditCard size={20} /> 
+    },
+    metas: { 
+        label: 'Metas', 
+        pageTitle: 'Metas Financeiras', 
+        icon: <Target size={20} /> 
+    },
+    config: { 
+        label: 'Configurações', 
+        pageTitle: 'Ajustes do Sistema', 
+        icon: <SettingsIcon size={20} /> 
+    },
+    admin: { 
+        label: 'Administração', 
+        pageTitle: 'Painel Administrativo', 
+        icon: <ShieldCheck size={20} /> 
+    }
+};
 
 interface FinanceAppProps {
   user: string;
@@ -260,28 +295,12 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
       setActiveTab(target as Tab);
   };
 
-  // Helper for page titles
-  const getPageTitle = (tab: Tab) => {
-    switch (tab) {
-        case 'controle': return 'Controle'; // Aba 1 - CON
-        case 'config': return 'Configurações';
-        case 'admin': return 'Painel Admin';
-        default: return tab.charAt(0).toUpperCase() + tab.slice(1);
-    }
-  };
+  // Helper for page titles using metadata
+  const getPageTitle = (tab: Tab) => TAB_METADATA[tab].pageTitle;
 
-  // Sidebar Menu
-  let menuItems = [
-      { id: 'controle', label: 'Controle', icon: <LayoutDashboard size={20} /> },
-      { id: 'receitas', label: 'Receitas', icon: <TrendingUp size={20} /> },
-      { id: 'despesas', label: 'Despesas', icon: <CreditCard size={20} /> },
-      { id: 'metas', label: 'Metas', icon: <Target size={20} /> },
-      { id: 'config', label: 'Configurações', icon: <SettingsIcon size={20} /> },
-  ];
-
-  if (isAdmin) {
-      menuItems.push({ id: 'admin', label: 'Administração', icon: <ShieldCheck size={20} /> });
-  }
+  // Sidebar Menu Logic
+  const sidebarTabs: Tab[] = ['controle', 'receitas', 'despesas', 'metas', 'config'];
+  if (isAdmin) sidebarTabs.push('admin');
 
   // Filter Component
   const FilterBar = () => (
@@ -353,20 +372,23 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
             Menu Principal
         </div>
         <nav className="flex-1 px-4 space-y-1">
-            {menuItems.map(item => (
-                <button
-                    key={item.id}
-                    onClick={() => handleTabChange(item.id as Tab)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
-                        activeTab === item.id 
-                        ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/50 translate-x-1' 
-                        : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-                    }`}
-                >
-                    {item.icon}
-                    {item.label}
-                </button>
-            ))}
+            {sidebarTabs.map(tabId => {
+                const meta = TAB_METADATA[tabId];
+                return (
+                    <button
+                        key={tabId}
+                        onClick={() => handleTabChange(tabId)}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                            activeTab === tabId 
+                            ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/50 translate-x-1' 
+                            : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                        }`}
+                    >
+                        {meta.icon}
+                        {meta.label}
+                    </button>
+                );
+            })}
         </nav>
         <div className="p-4 border-t border-slate-800">
             <div className="flex items-center justify-between px-2 mb-3">
@@ -378,7 +400,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
                         <div className="text-xs font-medium text-slate-200 truncate max-w-[100px]" title={userEmail}>
                             {userEmail}
                         </div>
-                        {isAdmin && <span className="text-[10px] text-indigo-400 font-semibold uppercase">Administrator</span>}
+                        {isAdmin && <span className="text-[10px] text-indigo-400 font-semibold uppercase">Administrador</span>}
                     </div>
                 </div>
                 <button 
@@ -408,20 +430,23 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
                 </div>
                 <nav className="flex-1 px-4 space-y-1 mt-4">
                     {/* Show all items in burger menu too */}
-                    {menuItems.map(item => (
-                        <button
-                            key={item.id}
-                            onClick={() => handleTabChange(item.id as Tab)}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
-                                activeTab === item.id 
-                                ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/50' 
-                                : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-                            }`}
-                        >
-                            {item.icon}
-                            {item.label}
-                        </button>
-                    ))}
+                    {sidebarTabs.map(tabId => {
+                        const meta = TAB_METADATA[tabId];
+                        return (
+                            <button
+                                key={tabId}
+                                onClick={() => handleTabChange(tabId)}
+                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                                    activeTab === tabId 
+                                    ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/50' 
+                                    : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                                }`}
+                            >
+                                {meta.icon}
+                                {meta.label}
+                            </button>
+                        );
+                    })}
                 </nav>
                 <div className="p-4 border-t border-slate-800">
                     <button 
@@ -484,7 +509,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm z-20">
                     <Loader2 size={40} className="animate-spin text-blue-600 dark:text-blue-400 mb-3" />
                     <p className="text-sm font-medium text-slate-600 dark:text-slate-300 animate-pulse">
-                        Carregando {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}...
+                        Carregando {TAB_METADATA[activeTab].label}...
                     </p>
                 </div>
             ) : null}
