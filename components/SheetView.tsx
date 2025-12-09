@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Transaction, TransactionType } from '../types';
 import { formatCurrency, generateId, formatDateRaw } from '../utils';
 import { Plus, Trash2, Save, X, CalendarClock, AlertCircle, Search, Filter, XCircle, Utensils, Car, Home, HeartPulse, PartyPopper, GraduationCap, Banknote, ShoppingBag, Zap, CircleDollarSign, Edit2, ArrowUp, ArrowDown } from 'lucide-react';
@@ -66,6 +66,27 @@ export const SheetView: React.FC<SheetViewProps> = ({
 
   // Error state for validation
   const [dateError, setDateError] = useState('');
+
+  // Reset states when type changes (e.g. switching between Income/Expense tabs)
+  useEffect(() => {
+    setIsAdding(false);
+    setEditingId(null);
+    setShowFilters(false);
+    setSearchTerm('');
+    setFilterCategory('');
+    setStartDate('');
+    setEndDate('');
+    setMinValue('');
+    setMaxValue('');
+    setNewDate(new Date().toISOString().split('T')[0]);
+    setNewAmount('');
+    setNewDesc('');
+    setInstallments(1);
+    setDateError('');
+    // Ensure default category is valid if list changes (optional, but good practice)
+    if (categories.length > 0) setNewCategory(categories[0]);
+    if (paymentMethods.length > 0) setNewPayment(paymentMethods[0]);
+  }, [type, categories, paymentMethods]);
 
   // Get today's date in 'YYYY-MM-DD' format based on local timezone to ensure accurate comparison
   const todayStr = useMemo(() => {
