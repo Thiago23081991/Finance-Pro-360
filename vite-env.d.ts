@@ -1,3 +1,6 @@
+// Error fix: Cannot find type definition file for 'vite/client'.
+// /// <reference types="vite/client" />
+
 declare module '*.css';
 declare module '*.svg';
 declare module '*.png';
