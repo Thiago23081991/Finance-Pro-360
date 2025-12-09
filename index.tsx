@@ -1,7 +1,6 @@
 import React, { Component, ReactNode, ErrorInfo } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import './index.css'; // Importante: Carrega o Tailwind e estilos globais
 import { AlertTriangle, RefreshCw, Trash2 } from 'lucide-react';
 
 interface ErrorBoundaryProps {
