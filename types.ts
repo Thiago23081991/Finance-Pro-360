@@ -1,4 +1,3 @@
-
 export type TransactionType = 'income' | 'expense';
 
 // Centralized Tab definition
