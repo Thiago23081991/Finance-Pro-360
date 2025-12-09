@@ -1,5 +1,13 @@
-// Error fix: Cannot find type definition file for 'vite/client'.
-// /// <reference types="vite/client" />
+interface ImportMetaEnv {
+  readonly VITE_SUPABASE_URL: string;
+  readonly VITE_SUPABASE_ANON_KEY: string;
+  // Add other env vars here if needed
+  [key: string]: any;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
 
 declare module '*.css';
 declare module '*.svg';

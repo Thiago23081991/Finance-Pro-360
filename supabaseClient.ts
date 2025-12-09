@@ -1,16 +1,15 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-// Safely access environment variables.
-// Use a function with try-catch to handle potential access errors in different environments.
-const getEnvVar = (key: string, defaultValue: string): string => {
+// Safely access environment variables with type checking
+const getEnvVar = (key: keyof ImportMetaEnv, defaultValue: string): string => {
   try {
-    const env = (import.meta as any).env;
-    if (env && env[key]) {
-      return env[key];
+    // Check if import.meta.env exists and has the key
+    if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env[key]) {
+      return import.meta.env[key];
     }
   } catch (e) {
-    // Ignore errors accessing import.meta
+    console.warn(`Error accessing environment variable ${key}`, e);
   }
   return defaultValue;
 };
