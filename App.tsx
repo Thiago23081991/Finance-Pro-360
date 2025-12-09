@@ -260,9 +260,19 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
       setActiveTab(target as Tab);
   };
 
+  // Helper for page titles
+  const getPageTitle = (tab: Tab) => {
+    switch (tab) {
+        case 'dashboard': return 'Controle'; // Aba 1 - Controle (Sheet style)
+        case 'config': return 'Configurações';
+        case 'admin': return 'Painel Admin';
+        default: return tab.charAt(0).toUpperCase() + tab.slice(1);
+    }
+  };
+
   // Sidebar Menu
   let menuItems = [
-      { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
+      { id: 'dashboard', label: 'Controle', icon: <LayoutDashboard size={20} /> },
       { id: 'receitas', label: 'Receitas', icon: <TrendingUp size={20} /> },
       { id: 'despesas', label: 'Despesas', icon: <CreditCard size={20} /> },
       { id: 'metas', label: 'Metas', icon: <Target size={20} /> },
@@ -438,7 +448,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
                     <Menu />
                 </button>
                 <h2 className="text-lg font-semibold text-slate-800 dark:text-white capitalize truncate max-w-[120px] sm:max-w-none">
-                    {activeTab === 'admin' ? 'Painel Admin' : activeTab.replace('config', 'Configurações')}
+                    {getPageTitle(activeTab)}
                 </h2>
             </div>
 
@@ -543,7 +553,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
                 className={`flex flex-col items-center justify-center p-2 w-full ${activeTab === 'dashboard' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`}
             >
                 <LayoutDashboard size={20} className={activeTab === 'dashboard' ? 'fill-current opacity-20' : ''} />
-                <span className="text-[10px] mt-1 font-medium">Início</span>
+                <span className="text-[10px] mt-1 font-medium">Controle</span>
             </button>
             <button 
                 onClick={() => handleTabChange('receitas')}
