@@ -15,7 +15,7 @@ import { DBService } from './db';
 import { supabase } from './supabaseClient';
 import { LayoutDashboard, CreditCard, TrendingUp, Target, Settings as SettingsIcon, Menu, Filter, LogOut, Loader2, ShieldCheck, Mail, Sun, Moon, X, Home } from 'lucide-react';
 
-type Tab = 'dashboard' | 'receitas' | 'despesas' | 'metas' | 'config' | 'admin';
+type Tab = 'controle' | 'receitas' | 'despesas' | 'metas' | 'config' | 'admin';
 
 interface FinanceAppProps {
   user: string;
@@ -31,7 +31,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
   const [userEmail, setUserEmail] = useState('');
 
   // State Management
-  const [activeTab, setActiveTab] = useState<Tab>('dashboard');
+  const [activeTab, setActiveTab] = useState<Tab>('controle');
   const [loading, setLoading] = useState(true);
   // New state for tab content loading
   const [contentLoading, setContentLoading] = useState(false);
@@ -178,7 +178,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
         
         const dataPromises: Promise<any>[] = [minLoadTime];
 
-        if (tab === 'dashboard' || tab === 'receitas' || tab === 'despesas') {
+        if (tab === 'controle' || tab === 'receitas' || tab === 'despesas') {
              dataPromises.push(DBService.getTransactions(user).then(setTransactions));
         } else if (tab === 'metas') {
              dataPromises.push(DBService.getGoals(user).then(setGoals));
@@ -263,7 +263,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
   // Helper for page titles
   const getPageTitle = (tab: Tab) => {
     switch (tab) {
-        case 'dashboard': return 'Controle'; // Aba 1 - Controle (Sheet style)
+        case 'controle': return 'Controle'; // Aba 1 - CON
         case 'config': return 'Configurações';
         case 'admin': return 'Painel Admin';
         default: return tab.charAt(0).toUpperCase() + tab.slice(1);
@@ -272,7 +272,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
 
   // Sidebar Menu
   let menuItems = [
-      { id: 'dashboard', label: 'Controle', icon: <LayoutDashboard size={20} /> },
+      { id: 'controle', label: 'Controle', icon: <LayoutDashboard size={20} /> },
       { id: 'receitas', label: 'Receitas', icon: <TrendingUp size={20} /> },
       { id: 'despesas', label: 'Despesas', icon: <CreditCard size={20} /> },
       { id: 'metas', label: 'Metas', icon: <Target size={20} /> },
@@ -305,7 +305,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
               </select>
           </div>
           
-          {activeTab === 'dashboard' && (
+          {activeTab === 'controle' && (
             <>
                 <select 
                     value={filter.category} 
@@ -495,7 +495,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
             </div>
 
             <div className={`transition-opacity duration-300 ${contentLoading ? 'opacity-40' : 'opacity-100'}`}>
-                {activeTab === 'dashboard' && (
+                {activeTab === 'controle' && (
                     <Dashboard transactions={transactions} goals={goals} filter={filter} />
                 )}
                 
@@ -549,10 +549,10 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
         {/* BOTTOM NAVIGATION FOR MOBILE */}
         <nav className="md:hidden fixed bottom-0 w-full bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 z-40 flex justify-around items-center pb-safe pt-1 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
             <button 
-                onClick={() => handleTabChange('dashboard')}
-                className={`flex flex-col items-center justify-center p-2 w-full ${activeTab === 'dashboard' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`}
+                onClick={() => handleTabChange('controle')}
+                className={`flex flex-col items-center justify-center p-2 w-full ${activeTab === 'controle' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`}
             >
-                <LayoutDashboard size={20} className={activeTab === 'dashboard' ? 'fill-current opacity-20' : ''} />
+                <LayoutDashboard size={20} className={activeTab === 'controle' ? 'fill-current opacity-20' : ''} />
                 <span className="text-[10px] mt-1 font-medium">Controle</span>
             </button>
             <button 

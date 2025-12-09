@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, ArrowRight, Check, Sparkles, LayoutDashboard, TrendingUp, Target, Settings } from 'lucide-react';
 
-export type TutorialStepTarget = 'dashboard' | 'receitas' | 'despesas' | 'metas' | 'config';
+export type TutorialStepTarget = 'controle' | 'receitas' | 'despesas' | 'metas' | 'config';
 
 interface TutorialProps {
   onComplete: () => void;
@@ -16,13 +16,13 @@ export const Tutorial: React.FC<TutorialProps> = ({ onComplete, onStepChange }) 
     {
       title: "Bem-vindo ao Finance Pro 360!",
       content: "Vamos fazer um tour rápido para te ensinar a gerenciar suas finanças como um profissional. Leva menos de 1 minuto.",
-      target: 'dashboard' as TutorialStepTarget,
+      target: 'controle' as TutorialStepTarget,
       icon: <Sparkles className="text-yellow-400" size={32} />
     },
     {
-      title: "Seu Dashboard",
+      title: "Seu Painel de Controle",
       content: "Aqui você tem uma visão geral da sua saúde financeira. Acompanhe saldo, gráficos de evolução e onde você está gastando mais.",
-      target: 'dashboard' as TutorialStepTarget,
+      target: 'controle' as TutorialStepTarget,
       icon: <LayoutDashboard className="text-blue-500" size={32} />
     },
     {
@@ -46,7 +46,7 @@ export const Tutorial: React.FC<TutorialProps> = ({ onComplete, onStepChange }) 
     {
       title: "Tudo pronto!",
       content: "Você já sabe o básico. Comece adicionando sua primeira receita ou meta agora mesmo.",
-      target: 'dashboard' as TutorialStepTarget,
+      target: 'controle' as TutorialStepTarget,
       icon: <Check className="text-green-500" size={32} />
     }
   ];
