@@ -30,18 +30,18 @@ const getCategoryIcon = (category: string) => {
     return <CircleDollarSign size={14} />;
 };
 
-export const SheetView: React.FC<SheetViewProps> = ({ 
-  type, 
-  transactions, 
-  categories, 
-  paymentMethods, 
+export const SheetView: React.FC<SheetViewProps> = ({
+  type,
+  transactions,
+  categories,
+  paymentMethods,
   onAdd,
   onUpdate,
   onDelete
 }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  
+
   // --- Search & Filter State ---
   const [showFilters, setShowFilters] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -50,10 +50,10 @@ export const SheetView: React.FC<SheetViewProps> = ({
   const [endDate, setEndDate] = useState('');
   const [minValue, setMinValue] = useState('');
   const [maxValue, setMaxValue] = useState('');
-  
+
   // --- Sorting State ---
   // Default changed to 'asc' (Crescente) so installments appear in chronological order (1/x -> 12/x)
-  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('asc'); 
+  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('asc');
 
   // --- New Transaction State ---
   const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0]);
@@ -63,7 +63,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
   const [newPayment, setNewPayment] = useState(paymentMethods[0] || '');
   // State for installments/recurrence
   const [installments, setInstallments] = useState(1);
-  
+
   // Error state for validation
   const [dateError, setDateError] = useState('');
 
@@ -90,12 +90,12 @@ export const SheetView: React.FC<SheetViewProps> = ({
   const handleSave = () => {
     // Basic fields check
     if (!newAmount || !newCategory || !newDate) return;
-    
+
     // Future Date Validation
     const [y, m, d] = newDate.split('-').map(Number);
     // Create date object treating input as local time (00:00:00)
     const inputDate = new Date(y, m - 1, d);
-    
+
     // Get today's date normalized to 00:00:00 for comparison
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -131,22 +131,22 @@ export const SheetView: React.FC<SheetViewProps> = ({
             // Meses em JS são 0-indexados (0=Jan, 11=Dez)
             // Definimos 12:00 para evitar problemas de fuso horário
             const dateObj = new Date(startYear, (startMonth - 1) + i, startDay, 12, 0, 0, 0);
-            
+
             // Verificação de "Dia Inexistente" (Ex: 31 de Jan + 1 mês = 03 de Março no padrão JS)
             // Queremos que vá para o último dia de Fevereiro (28 ou 29)
             // Lógica: Se o mês resultante do objeto Date for diferente do mês esperado matematicamente,
             // significa que o dia "estourou" o mês.
             const expectedMonthIndex = (startMonth - 1 + i) % 12;
-            
+
             if (dateObj.getMonth() !== expectedMonthIndex) {
                 // Voltar para o dia 0 do mês atual do objeto, que equivale ao último dia do mês anterior (o mês correto)
                 dateObj.setDate(0);
             }
-            
+
             const dateStr = dateObj.toISOString().split('T')[0];
 
-            const description = numInstallments > 1 
-                ? `${newDesc} (${i + 1}/${numInstallments})` 
+            const description = numInstallments > 1
+                ? `${newDesc} (${i + 1}/${numInstallments})`
                 : newDesc;
 
             const transaction: Transaction = {
@@ -163,7 +163,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
             onAdd(transaction);
         }
     }
-    
+
     // Reset form
     setNewAmount('');
     setNewDesc('');
@@ -191,11 +191,11 @@ export const SheetView: React.FC<SheetViewProps> = ({
       setMaxValue('');
   };
 
-  const activeFiltersCount = (searchTerm ? 1 : 0) + 
-                             (filterCategory ? 1 : 0) + 
-                             (startDate ? 1 : 0) + 
-                             (endDate ? 1 : 0) + 
-                             (minValue ? 1 : 0) + 
+  const activeFiltersCount = (searchTerm ? 1 : 0) +
+                             (filterCategory ? 1 : 0) +
+                             (startDate ? 1 : 0) +
+                             (endDate ? 1 : 0) +
+                             (minValue ? 1 : 0) +
                              (maxValue ? 1 : 0);
 
   // Filter transactions logic
@@ -205,8 +205,8 @@ export const SheetView: React.FC<SheetViewProps> = ({
         .filter(t => {
             // Text Search
             const searchLower = searchTerm.toLowerCase();
-            const matchesSearch = 
-                t.description.toLowerCase().includes(searchLower) || 
+            const matchesSearch =
+                t.description.toLowerCase().includes(searchLower) ||
                 t.category.toLowerCase().includes(searchLower) ||
                 (t.paymentMethod && t.paymentMethod.toLowerCase().includes(searchLower));
 
@@ -254,13 +254,13 @@ export const SheetView: React.FC<SheetViewProps> = ({
                     <div className={`w-2.5 h-2.5 rounded-full ${type === 'income' ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
                     {type === 'income' ? 'Planilha de Receitas' : 'Planilha de Despesas'}
                 </h2>
-                
+
                 {/* Quick Search */}
                 <div className="relative hidden md:block">
                     <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={12} />
-                    <input 
-                        type="text" 
-                        placeholder="Buscar registro..." 
+                    <input
+                        type="text"
+                        placeholder="Buscar registro..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="pl-8 pr-3 py-1 text-xs border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-sm focus:outline-none focus:ring-1 focus:ring-blue-500 w-48 transition-all"
@@ -269,11 +269,11 @@ export const SheetView: React.FC<SheetViewProps> = ({
             </div>
 
             <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-                <button 
+                <button
                     onClick={() => setShowFilters(!showFilters)}
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-sm text-xs font-medium transition-colors border relative ${
                         showFilters || activeFiltersCount > 0
-                        ? 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800' 
+                        ? 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800'
                         : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-600 dark:hover:bg-slate-700'
                     }`}
                 >
@@ -286,7 +286,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
                     )}
                 </button>
                 {/* Desktop Button */}
-                <button 
+                <button
                     onClick={() => { setIsAdding(true); setEditingId(null); setInstallments(1); setNewDesc(''); setNewAmount(''); }}
                     className="hidden md:flex items-center gap-2 bg-emerald-600 text-white px-4 py-1.5 rounded-sm text-xs font-medium hover:bg-emerald-700 transition-colors shadow-sm whitespace-nowrap"
                 >
@@ -305,9 +305,9 @@ export const SheetView: React.FC<SheetViewProps> = ({
                         <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Buscar</label>
                         <div className="relative">
                             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
-                            <input 
-                                type="text" 
-                                placeholder="Descrição..." 
+                            <input
+                                type="text"
+                                placeholder="Descrição..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="w-full pl-8 pr-3 py-1.5 text-xs border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-sm focus:outline-none focus:border-blue-500"
@@ -318,15 +318,15 @@ export const SheetView: React.FC<SheetViewProps> = ({
                     <div>
                         <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Período</label>
                         <div className="flex items-center gap-2">
-                            <input 
-                                type="date" 
+                            <input
+                                type="date"
                                 value={startDate}
                                 onChange={(e) => setStartDate(e.target.value)}
                                 className="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-sm focus:outline-none focus:border-blue-500"
                             />
                             <span className="text-slate-400 text-xs">até</span>
-                            <input 
-                                type="date" 
+                            <input
+                                type="date"
                                 value={endDate}
                                 onChange={(e) => setEndDate(e.target.value)}
                                 className="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-sm focus:outline-none focus:border-blue-500"
@@ -336,7 +336,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
 
                     <div>
                         <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Categoria</label>
-                        <select 
+                        <select
                             value={filterCategory}
                             onChange={(e) => setFilterCategory(e.target.value)}
                             className="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-sm focus:outline-none focus:border-blue-500"
@@ -349,16 +349,16 @@ export const SheetView: React.FC<SheetViewProps> = ({
                     <div>
                         <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Valor (R$)</label>
                         <div className="flex items-center gap-2">
-                            <input 
-                                type="number" 
+                            <input
+                                type="number"
                                 placeholder="Mín 0.00"
                                 value={minValue}
                                 onChange={(e) => setMinValue(e.target.value)}
                                 className="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-sm focus:outline-none focus:border-blue-500"
                             />
                             <span className="text-slate-400">-</span>
-                            <input 
-                                type="number" 
+                            <input
+                                type="number"
                                 placeholder="Máx..."
                                 value={maxValue}
                                 onChange={(e) => setMaxValue(e.target.value)}
@@ -368,11 +368,11 @@ export const SheetView: React.FC<SheetViewProps> = ({
                     </div>
 
                     <div className="flex items-end">
-                        <button 
+                        <button
                             onClick={clearFilters}
                             disabled={activeFiltersCount === 0}
                             className={`w-full px-3 py-1.5 text-xs font-medium border rounded-sm transition-colors flex items-center justify-center gap-1 ${
-                                activeFiltersCount > 0 
+                                activeFiltersCount > 0
                                 ? 'text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-900 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 dark:hover:bg-rose-900/40'
                                 : 'text-slate-400 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 cursor-not-allowed'
                             }`}
@@ -387,8 +387,8 @@ export const SheetView: React.FC<SheetViewProps> = ({
         {/* Input Row (Sheet Style) - Only visible when adding */}
         {isAdding && (
             <div className={`p-4 border-b grid grid-cols-12 gap-3 items-start animate-fade-in relative z-20 ${
-                editingId 
-                ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800' 
+                editingId
+                ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800'
                 : 'bg-emerald-50 dark:bg-emerald-900/10 border-emerald-100 dark:border-emerald-800'
             }`}>
                 {editingId && (
@@ -399,9 +399,9 @@ export const SheetView: React.FC<SheetViewProps> = ({
 
                 <div className="col-span-2">
                     <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Data</label>
-                    <input 
-                        type="date" 
-                        value={newDate} 
+                    <input
+                        type="date"
+                        value={newDate}
                         onChange={(e) => { setNewDate(e.target.value); setDateError(''); }}
                         className={`w-full border ${dateError ? 'border-rose-500' : 'border-slate-300 dark:border-slate-600'} dark:bg-slate-800 dark:text-white rounded-sm px-2 py-1.5 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none`}
                     />
@@ -414,32 +414,32 @@ export const SheetView: React.FC<SheetViewProps> = ({
                 </div>
                 <div className="col-span-2">
                     <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Valor {installments > 1 ? '(Mensal)' : ''}</label>
-                    <input 
-                        type="number" 
+                    <input
+                        type="number"
                         step="0.01"
                         placeholder="0.00"
-                        value={newAmount} 
+                        value={newAmount}
                         onChange={(e) => setNewAmount(e.target.value)}
                         className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-sm px-2 py-1.5 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
                     />
                 </div>
                 <div className="col-span-2">
                     <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Categoria</label>
-                    <select 
-                        value={newCategory} 
+                    <select
+                        value={newCategory}
                         onChange={(e) => setNewCategory(e.target.value)}
                         className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-sm px-2 py-1.5 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
                     >
                         {categories.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                 </div>
-                
+
                 {/* Conditional Payment Method - Only Expense */}
                 {type === 'expense' && (
                     <div className="col-span-2">
                             <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Pagamento</label>
-                            <select 
-                            value={newPayment} 
+                            <select
+                            value={newPayment}
                             onChange={(e) => setNewPayment(e.target.value)}
                             className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-sm px-2 py-1.5 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
                         >
@@ -453,15 +453,15 @@ export const SheetView: React.FC<SheetViewProps> = ({
                     <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase" title="Número de meses/parcelas">
                         {type === 'expense' ? 'Parc.' : 'Repetir'}
                     </label>
-                    <input 
+                    <input
                         type="number"
                         min="1"
                         max="60"
                         disabled={!!editingId} // Disable when editing existing
                         value={installments}
-                        onChange={(e) => { 
-                            setInstallments(parseInt(e.target.value) || 1); 
-                            setDateError(''); 
+                        onChange={(e) => {
+                            setInstallments(parseInt(e.target.value) || 1);
+                            setDateError('');
                         }}
                         className={`w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-sm px-2 py-1.5 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none text-center ${editingId ? 'opacity-50 cursor-not-allowed' : ''}`}
                     />
@@ -469,19 +469,19 @@ export const SheetView: React.FC<SheetViewProps> = ({
 
                 <div className={`${type === 'expense' ? 'col-span-2' : 'col-span-4'}`}>
                     <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Descrição</label>
-                    <input 
-                        type="text" 
+                    <input
+                        type="text"
                         placeholder="Descrição opcional"
-                        value={newDesc} 
+                        value={newDesc}
                         onChange={(e) => setNewDesc(e.target.value)}
                         className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-sm px-2 py-1.5 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
                     />
                 </div>
-                
+
                 <div className="col-span-1 flex gap-2 mt-6">
-                    <button 
-                        onClick={handleSave} 
-                        className={`p-2 text-white rounded-sm transition-colors ${editingId ? 'bg-amber-500 hover:bg-amber-600' : 'bg-emerald-500 hover:bg-emerald-600'}`} 
+                    <button
+                        onClick={handleSave}
+                        className={`p-2 text-white rounded-sm transition-colors ${editingId ? 'bg-amber-500 hover:bg-amber-600' : 'bg-emerald-500 hover:bg-emerald-600'}`}
                         title={editingId ? "Atualizar Linha" : "Salvar Linha"}
                     >
                         <Save size={14} />
@@ -498,7 +498,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
              <table className="w-full text-left border-collapse">
                 <thead className="bg-slate-100 dark:bg-slate-900 sticky top-0 z-10 shadow-sm">
                     <tr>
-                        <th 
+                        <th
                             className="py-2 px-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-r border-slate-300 dark:border-slate-600 w-32 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors select-none"
                             onClick={toggleSort}
                             title="Clique para ordenar"
@@ -519,8 +519,8 @@ export const SheetView: React.FC<SheetViewProps> = ({
                     {sheetData.length === 0 ? (
                         <tr>
                             <td colSpan={type === 'expense' ? 6 : 5} className="py-12 text-center text-slate-400 dark:text-slate-500 italic bg-white dark:bg-slate-800">
-                                {transactions.length > 0 
-                                    ? "Nenhuma transação encontrada com os filtros atuais." 
+                                {transactions.length > 0
+                                    ? "Nenhuma transação encontrada com os filtros atuais."
                                     : "Planilha vazia. Adicione uma nova linha acima."}
                             </td>
                         </tr>
@@ -549,14 +549,14 @@ export const SheetView: React.FC<SheetViewProps> = ({
                                 <td className="py-1.5 px-3 border-r border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-400 truncate max-w-[200px]">{t.description}</td>
                                 <td className="py-1.5 px-3 text-center">
                                     <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button 
+                                        <button
                                             onClick={() => handleEdit(t)}
                                             className="text-slate-300 hover:text-blue-500 transition-colors"
                                             title="Editar Linha"
                                         >
                                             <Edit2 size={14} />
                                         </button>
-                                        <button 
+                                        <button
                                             onClick={() => onDelete(t.id)}
                                             className="text-slate-300 hover:text-rose-500 transition-colors"
                                             title="Excluir Linha"
@@ -569,7 +569,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
                         ))
                     )}
                 </tbody>
-                
+
                 {/* TABLE FOOTER SUMMARY */}
                 {sheetData.length > 0 && (
                     <tfoot className="bg-slate-100 dark:bg-slate-900 sticky bottom-0 z-10 font-bold text-slate-700 dark:text-slate-200 shadow-md border-t-2 border-slate-300 dark:border-slate-600">
@@ -589,7 +589,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
 
         {/* Mobile Floating Action Button (FAB) */}
         {!isAdding && (
-            <button 
+            <button
                 onClick={() => { setIsAdding(true); setEditingId(null); setInstallments(1); setNewDesc(''); setNewAmount(''); }}
                 className="md:hidden absolute bottom-20 right-4 w-12 h-12 bg-emerald-600 text-white rounded-full shadow-lg shadow-emerald-900/30 flex items-center justify-center hover:scale-105 transition-transform z-30"
             >
