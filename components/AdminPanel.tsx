@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { PurchaseRequest, AdminMessage, SystemStats, UserProfile } from '../types';
 import { DBService } from '../db';
-import { Check, X, ShieldAlert, User, MessageSquare, Send, FileText, Mail, Eye, EyeOff, LayoutList, RefreshCw, AlertCircle, Key, Copy, Smartphone, Lock, Loader2, Users, BarChart3, TrendingUp, Wallet, Database } from 'lucide-react';
+import { Check, X, ShieldAlert, User, MessageSquare, Send, FileText, Mail, Eye, EyeOff, RefreshCw, Key, Copy, Smartphone, Lock, Loader2, Users, BarChart3, Wallet, Database } from 'lucide-react';
 import { generateId, generateLicenseKey, formatCurrency } from '../utils';
 
 type AdminTab = 'overview' | 'users' | 'requests' | 'messages' | 'generator';

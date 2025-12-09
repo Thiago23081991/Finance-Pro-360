@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { AdminMessage } from '../types';
 import { DBService } from '../db';
-import { X, Mail, MailOpen, Clock, Trash2 } from 'lucide-react';
+import { X, Mail, MailOpen, Clock } from 'lucide-react';
 
 interface InboxProps {
   userId: string;

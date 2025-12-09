@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { Transaction, TransactionType } from '../types';
 import { formatCurrency, generateId, formatDateRaw } from '../utils';
-import { Plus, Trash2, Save, X, CalendarClock, AlertCircle, Search, Filter, XCircle, ArrowRight, Utensils, Car, Home, HeartPulse, PartyPopper, GraduationCap, Banknote, ShoppingBag, Zap, CircleDollarSign, Edit2, ArrowUp, ArrowDown } from 'lucide-react';
+import { Plus, Trash2, Save, X, CalendarClock, AlertCircle, Search, Filter, XCircle, Utensils, Car, Home, HeartPulse, PartyPopper, GraduationCap, Banknote, ShoppingBag, Zap, CircleDollarSign, Edit2, ArrowUp, ArrowDown } from 'lucide-react';
 
 interface SheetViewProps {
   type: TransactionType;

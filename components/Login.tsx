@@ -1,8 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { Lock, Mail, ArrowRight, Wallet, Database, Loader2, Check, X as XIcon, KeyRound, User, AlertCircle, ShieldCheck } from 'lucide-react';
+import { Lock, Mail, ArrowRight, Wallet, Database, Loader2, Check, AlertCircle } from 'lucide-react';
 import { DBService } from '../db';
-import { supabase } from '../supabaseClient';
 import { PrivacyModal } from './PrivacyModal';
 
 interface LoginProps {
