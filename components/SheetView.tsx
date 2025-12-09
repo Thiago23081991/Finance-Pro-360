@@ -52,7 +52,8 @@ export const SheetView: React.FC<SheetViewProps> = ({
   const [maxValue, setMaxValue] = useState('');
   
   // --- Sorting State ---
-  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc'); // Default: Newest first
+  // Default changed to 'asc' (Crescente) so installments appear in chronological order (1/x -> 12/x)
+  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('asc'); 
 
   // --- New Transaction State ---
   const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0]);
@@ -598,4 +599,3 @@ export const SheetView: React.FC<SheetViewProps> = ({
     </div>
   );
 };
-    
