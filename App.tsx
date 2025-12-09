@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Transaction, Goal, AppConfig, FilterState } from './types';
+import { Transaction, Goal, AppConfig, FilterState, Tab } from './types';
 import { DEFAULT_CONFIG, MONTH_NAMES } from './constants';
 import { Dashboard } from './components/Dashboard';
 import { SheetView } from './components/SheetView';
@@ -10,12 +10,10 @@ import { AdminPanel } from './components/AdminPanel';
 import { Login } from './components/Login';
 import { Toast } from './components/Toast';
 import { Inbox } from './components/Inbox';
-import { Tutorial, TutorialStepTarget } from './components/Tutorial';
+import { Tutorial } from './components/Tutorial';
 import { DBService } from './db';
 import { supabase } from './supabaseClient';
 import { LayoutDashboard, CreditCard, TrendingUp, Target, Settings as SettingsIcon, Menu, Filter, LogOut, Loader2, ShieldCheck, Mail, Sun, Moon, X } from 'lucide-react';
-
-type Tab = 'controle' | 'receitas' | 'despesas' | 'metas' | 'config' | 'admin';
 
 // Centralized Metadata for Tabs (Title, Label, Icon)
 // This refactors page title generation for better maintainability and i18n
@@ -291,8 +289,8 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
       await updateConfig(newConfig);
   };
 
-  const handleTutorialStepChange = (target: TutorialStepTarget) => {
-      setActiveTab(target as Tab);
+  const handleTutorialStepChange = (target: Tab) => {
+      setActiveTab(target);
   };
 
   // Helper for page titles using metadata

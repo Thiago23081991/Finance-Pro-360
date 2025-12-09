@@ -5,10 +5,10 @@ import { DBService } from '../db';
 import { Check, X, ShieldAlert, User, MessageSquare, Send, FileText, Mail, Eye, EyeOff, LayoutList, RefreshCw, AlertCircle, Key, Copy, Smartphone, Lock, Loader2, Users, BarChart3, TrendingUp, Wallet, Database } from 'lucide-react';
 import { generateId, generateLicenseKey, formatCurrency } from '../utils';
 
-type AdminTab = 'dashboard' | 'users' | 'requests' | 'messages' | 'generator';
+type AdminTab = 'overview' | 'users' | 'requests' | 'messages' | 'generator';
 
 export const AdminPanel: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
+  const [activeTab, setActiveTab] = useState<AdminTab>('overview');
   
   // Data States
   const [stats, setStats] = useState<SystemStats | null>(null);
@@ -146,13 +146,13 @@ export const AdminPanel: React.FC = () => {
             {/* Navigation Tabs */}
             <div className="flex gap-4 border-b border-slate-200 dark:border-slate-700 overflow-x-auto">
                 <button
-                    onClick={() => setActiveTab('dashboard')}
+                    onClick={() => setActiveTab('overview')}
                     className={`pb-3 px-2 text-sm font-medium flex items-center gap-2 transition-colors relative whitespace-nowrap ${
-                        activeTab === 'dashboard' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                        activeTab === 'overview' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
                     }`}
                 >
                     <BarChart3 size={18} /> Visão Geral
-                    {activeTab === 'dashboard' && <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 dark:bg-blue-400 rounded-t-full"></span>}
+                    {activeTab === 'overview' && <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 dark:bg-blue-400 rounded-t-full"></span>}
                 </button>
 
                 <button
@@ -205,7 +205,7 @@ export const AdminPanel: React.FC = () => {
         {/* --- CONTENT AREA --- */}
 
         {/* 1. DASHBOARD TAB */}
-        {activeTab === 'dashboard' && stats && (
+        {activeTab === 'overview' && stats && (
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in">
                 <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
                     <div className="flex justify-between items-start">

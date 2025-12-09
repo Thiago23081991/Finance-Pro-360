@@ -1,12 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { X, ArrowRight, Check, Sparkles, LayoutDashboard, TrendingUp, Target, Settings } from 'lucide-react';
-
-export type TutorialStepTarget = 'controle' | 'receitas' | 'despesas' | 'metas' | 'config';
+import { Tab } from '../types';
 
 interface TutorialProps {
   onComplete: () => void;
-  onStepChange: (target: TutorialStepTarget) => void;
+  onStepChange: (target: Tab) => void;
 }
 
 export const Tutorial: React.FC<TutorialProps> = ({ onComplete, onStepChange }) => {
@@ -16,37 +15,37 @@ export const Tutorial: React.FC<TutorialProps> = ({ onComplete, onStepChange }) 
     {
       title: "Bem-vindo ao Finance Pro 360!",
       content: "Vamos fazer um tour rápido para te ensinar a gerenciar suas finanças como um profissional. Leva menos de 1 minuto.",
-      target: 'controle' as TutorialStepTarget,
+      target: 'controle' as Tab,
       icon: <Sparkles className="text-yellow-400" size={32} />
     },
     {
       title: "Seu Painel de Controle",
       content: "Aqui você tem uma visão geral da sua saúde financeira. Acompanhe saldo, gráficos de evolução e onde você está gastando mais.",
-      target: 'controle' as TutorialStepTarget,
+      target: 'controle' as Tab,
       icon: <LayoutDashboard className="text-blue-500" size={32} />
     },
     {
       title: "Lançamentos",
       content: "Nas abas 'Receitas' e 'Despesas' você registra suas movimentações. Use o botão '+ Novo Lançamento' para adicionar itens.",
-      target: 'receitas' as TutorialStepTarget,
+      target: 'receitas' as Tab,
       icon: <TrendingUp className="text-emerald-500" size={32} />
     },
     {
       title: "Metas Financeiras",
       content: "Defina objetivos (como 'Comprar Carro' ou 'Viagem') e acompanhe o progresso visualmente. O app te avisa se você esquecer de atualizar!",
-      target: 'metas' as TutorialStepTarget,
+      target: 'metas' as Tab,
       icon: <Target className="text-rose-500" size={32} />
     },
     {
       title: "Personalização",
       content: "Em Configurações, você pode criar suas próprias categorias, métodos de pagamento e exportar seus dados para planilha.",
-      target: 'config' as TutorialStepTarget,
+      target: 'config' as Tab,
       icon: <Settings className="text-slate-500" size={32} />
     },
     {
       title: "Tudo pronto!",
       content: "Você já sabe o básico. Comece adicionando sua primeira receita ou meta agora mesmo.",
-      target: 'controle' as TutorialStepTarget,
+      target: 'controle' as Tab,
       icon: <Check className="text-green-500" size={32} />
     }
   ];

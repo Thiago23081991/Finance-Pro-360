@@ -1,6 +1,9 @@
 
 export type TransactionType = 'income' | 'expense';
 
+// Centralized Tab definition
+export type Tab = 'controle' | 'receitas' | 'despesas' | 'metas' | 'config' | 'admin';
+
 export interface Transaction {
   id: string;
   userId: string; // Link to the user
