@@ -2,7 +2,7 @@
 export type TransactionType = 'income' | 'expense';
 
 // Centralized Tab definition
-export type Tab = 'controle' | 'receitas' | 'despesas' | 'metas' | 'config' | 'admin';
+export type Tab = 'controle' | 'receitas' | 'despesas' | 'metas' | 'investimentos' | 'config' | 'admin';
 
 export interface Transaction {
   id: string;

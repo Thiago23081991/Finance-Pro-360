@@ -7,6 +7,7 @@ import { SheetView } from './components/SheetView';
 import { GoalsSheet } from './components/GoalsSheet';
 import { Settings } from './components/Settings';
 import { AdminPanel } from './components/AdminPanel';
+import { Investments } from './components/Investments';
 import { Login } from './components/Login';
 import { Toast } from './components/Toast';
 import { Inbox } from './components/Inbox';
@@ -15,7 +16,7 @@ import { FilterBar } from './components/FilterBar';
 import { ResetPasswordModal } from './components/ResetPasswordModal';
 import { DBService } from './db';
 import { supabase } from './supabaseClient';
-import { LayoutDashboard, CreditCard, TrendingUp, Target, Settings as SettingsIcon, Menu, Filter, LogOut, Loader2, ShieldCheck, Mail, Sun, Moon, X } from 'lucide-react';
+import { LayoutDashboard, CreditCard, TrendingUp, Target, Settings as SettingsIcon, Menu, Filter, LogOut, Loader2, ShieldCheck, Mail, Sun, Moon, X, BarChart4 } from 'lucide-react';
 
 // Centralized Metadata for Tabs (Title, Label, Icon)
 const TAB_METADATA: Record<Tab, { label: string; pageTitle: string; icon: React.ReactNode }> = {
@@ -38,6 +39,11 @@ const TAB_METADATA: Record<Tab, { label: string; pageTitle: string; icon: React.
         label: 'Metas', 
         pageTitle: 'Metas Financeiras', 
         icon: <Target size={20} /> 
+    },
+    investimentos: { 
+        label: 'Investimentos', 
+        pageTitle: 'Central de Investimentos', 
+        icon: <BarChart4 size={20} /> 
     },
     config: { 
         label: 'Configurações', 
@@ -297,7 +303,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
   const getPageTitle = (tab: Tab) => TAB_METADATA[tab].pageTitle;
 
   // Sidebar Menu Logic
-  const sidebarTabs: Tab[] = ['controle', 'receitas', 'despesas', 'metas', 'config'];
+  const sidebarTabs: Tab[] = ['controle', 'receitas', 'despesas', 'metas', 'investimentos', 'config'];
   if (isAdmin) sidebarTabs.push('admin');
 
   if (loading) {
@@ -510,6 +516,13 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
                     />
                 )}
 
+                {activeTab === 'investimentos' && (
+                    <Investments 
+                        config={config}
+                        onNavigateToSettings={() => handleTabChange('config')}
+                    />
+                )}
+
                 {activeTab === 'config' && (
                     <Settings 
                         config={config} 
@@ -549,11 +562,11 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
                 </button>
             </div>
             <button 
-                onClick={() => handleTabChange('metas')}
-                className={`flex flex-col items-center justify-center p-2 w-full ${activeTab === 'metas' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`}
+                onClick={() => handleTabChange('investimentos')}
+                className={`flex flex-col items-center justify-center p-2 w-full ${activeTab === 'investimentos' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`}
             >
-                <Target size={20} />
-                <span className="text-[10px] mt-1 font-medium">Metas</span>
+                <BarChart4 size={20} />
+                <span className="text-[10px] mt-1 font-medium">Invest.</span>
             </button>
             <button 
                 onClick={() => handleTabChange('config')}

@@ -78,7 +78,14 @@ export const AdminPanel: React.FC = () => {
             setPendingRequestsCount(prev => Math.max(0, prev - 1));
         }
 
-        // 2. Update Profiles State if Approved (Immediate UI update for User tab)
+        // 2. Refresh ALL Data
+        // Isso garante que se o perfil não existia e foi criado pelo 'savePurchaseRequest',
+        // ele agora aparecerá na lista de usuários.
+        setTimeout(() => {
+            fetchData();
+        }, 500);
+
+        // Optimistic update for immediate feedback (if user exists in list)
         if (newStatus === 'approved') {
             setProfiles(prev => prev.map(p => 
                 p.id === req.userId ? { ...p, licenseStatus: 'active' } : p

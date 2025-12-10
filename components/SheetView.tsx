@@ -52,8 +52,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
   const [maxValue, setMaxValue] = useState('');
 
   // --- Sorting State ---
-  // Default changed to 'asc' (Crescente) so installments appear in chronological order (1/x -> 12/x)
-  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('asc');
+  const [sortConfig, setSortConfig] = useState<{ key: 'date' | 'amount'; direction: 'asc' | 'desc' }>({ key: 'date', direction: 'asc' });
 
   // --- New Transaction State ---
   const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0]);
@@ -247,23 +246,37 @@ export const SheetView: React.FC<SheetViewProps> = ({
             return matchesSearch && matchesCategory && matchesStart && matchesEnd && matchesValue;
         })
         .sort((a, b) => {
-            // Use String localeCompare for 'YYYY-MM-DD' which is strictly chronological and safer than Date parsing
-            // This handles future dates correctly as '2025-01-01' > '2024-01-01'
-            if (sortOrder === 'asc') {
-                return a.date.localeCompare(b.date);
-            } else {
-                return b.date.localeCompare(a.date);
+            const { key, direction } = sortConfig;
+            
+            if (key === 'date') {
+                if (direction === 'asc') {
+                    return a.date.localeCompare(b.date);
+                } else {
+                    return b.date.localeCompare(a.date);
+                }
+            } else if (key === 'amount') {
+                if (direction === 'asc') {
+                    return a.amount - b.amount;
+                } else {
+                    return b.amount - a.amount;
+                }
             }
+            return 0;
         });
-  }, [transactions, type, searchTerm, filterCategory, startDate, endDate, minValue, maxValue, sortOrder]);
+  }, [transactions, type, searchTerm, filterCategory, startDate, endDate, minValue, maxValue, sortConfig]);
 
   // Calculate Total Value of filtered items
   const totalValue = useMemo(() => {
       return sheetData.reduce((acc, curr) => acc + curr.amount, 0);
   }, [sheetData]);
 
-  const toggleSort = () => {
-      setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+  const handleSort = (key: 'date' | 'amount') => {
+      setSortConfig(current => {
+          if (current.key === key) {
+              return { key, direction: current.direction === 'asc' ? 'desc' : 'asc' };
+          }
+          return { key, direction: 'asc' };
+      });
   };
 
   return (
@@ -521,15 +534,28 @@ export const SheetView: React.FC<SheetViewProps> = ({
                     <tr>
                         <th
                             className="py-2 px-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-r border-slate-300 dark:border-slate-600 w-32 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors select-none"
-                            onClick={toggleSort}
-                            title="Clique para ordenar"
+                            onClick={() => handleSort('date')}
+                            title="Clique para ordenar por data"
                         >
                             <div className="flex items-center gap-1 justify-between">
                                 DATA
-                                {sortOrder === 'desc' ? <ArrowDown size={10} className="text-blue-500" /> : <ArrowUp size={10} className="text-blue-500" />}
+                                {sortConfig.key === 'date' && (
+                                    sortConfig.direction === 'desc' ? <ArrowDown size={10} className="text-blue-500" /> : <ArrowUp size={10} className="text-blue-500" />
+                                )}
                             </div>
                         </th>
-                        <th className="py-2 px-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-r border-slate-300 dark:border-slate-600 w-32">VALOR</th>
+                        <th 
+                            className="py-2 px-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-r border-slate-300 dark:border-slate-600 w-32 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors select-none"
+                            onClick={() => handleSort('amount')}
+                            title="Clique para ordenar por valor"
+                        >
+                            <div className="flex items-center gap-1 justify-between">
+                                VALOR
+                                {sortConfig.key === 'amount' && (
+                                    sortConfig.direction === 'desc' ? <ArrowDown size={10} className="text-blue-500" /> : <ArrowUp size={10} className="text-blue-500" />
+                                )}
+                            </div>
+                        </th>
                         <th className="py-2 px-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-r border-slate-300 dark:border-slate-600 w-48">CATEGORIA</th>
                         {type === 'expense' && <th className="py-2 px-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-r border-slate-300 dark:border-slate-600 w-40">PAGAMENTO</th>}
                         <th className="py-2 px-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-r border-slate-300 dark:border-slate-600">DESCRIÇÃO</th>

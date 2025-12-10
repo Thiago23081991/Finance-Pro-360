@@ -2,8 +2,8 @@
 import React, { useMemo } from 'react';
 import { Transaction, Goal, FilterState } from '../types';
 import { formatCurrency } from '../utils';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
-import { TrendingUp, TrendingDown, DollarSign, PieChart as PieIcon, AlertCircle, CalendarRange, PiggyBank, History, Utensils, Car, Home, HeartPulse, PartyPopper, GraduationCap, Banknote, ShoppingBag, Zap, CircleDollarSign } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, AreaChart, Area } from 'recharts';
+import { TrendingUp, TrendingDown, DollarSign, PieChart as PieIcon, AlertCircle, CalendarRange, PiggyBank, History, Utensils, Car, Home, HeartPulse, PartyPopper, GraduationCap, Banknote, ShoppingBag, Zap, CircleDollarSign, AlertTriangle, ArrowUpRight } from 'lucide-react';
 
 interface DashboardProps {
   transactions: Transaction[];
@@ -12,6 +12,7 @@ interface DashboardProps {
 }
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658'];
+const LINE_COLORS = ['#ef4444', '#f59e0b', '#3b82f6', '#10b981', '#8b5cf6'];
 
 // Helper to get Icon based on category name
 const getCategoryIcon = (category: string) => {
@@ -107,6 +108,123 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
     }
     return data;
   }, [filteredTransactions, filter]);
+
+  // --- ALERTS SYSTEM LOGIC ---
+  const alertsData = useMemo(() => {
+      const alerts: { type: 'warning' | 'critical', message: string, detail: string }[] = [];
+      
+      // 1. Calculate Average Spending per Category (Historical)
+      const historicalExpenses: Record<string, { total: number, count: number }> = {};
+      const currentMonthExpenses: Record<string, number> = {};
+
+      transactions.filter(t => t.type === 'expense').forEach(t => {
+          const d = new Date(t.date + 'T12:00:00');
+          const isCurrentMonth = d.getMonth() === filter.month && d.getFullYear() === filter.year;
+          
+          if (isCurrentMonth) {
+              currentMonthExpenses[t.category] = (currentMonthExpenses[t.category] || 0) + t.amount;
+          } else {
+              // Create a unique key for Month-Year to count distinct months
+              const monthKey = `${d.getMonth()}-${d.getFullYear()}`;
+              if (!historicalExpenses[t.category]) {
+                  historicalExpenses[t.category] = { total: 0, count: 0 };
+              }
+              // Ideally we would sum per month then average, simplified here by sum total and dividing by occurrence
+              // For better accuracy, we track total spend and assume we divide by number of months active (approx)
+              historicalExpenses[t.category].total += t.amount;
+              historicalExpenses[t.category].count += 1; // This counts transactions, roughly okay for weighted average
+          }
+      });
+
+      // 2. Check for Spikes (> 20% above average)
+      Object.entries(currentMonthExpenses).forEach(([cat, amount]) => {
+          // Calculate historical average (Total / Total Transactions * Avg Transactions per month approx 5?)
+          // Simpler approach: Compare with ALL historical average per transaction * estimated frequency
+          // Better approach: Calculate average spend PER MONTH
+          
+          // Let's create a simpler "Monthly Average" calculation map
+          const monthlyAgg: Record<string, Set<string>> = {}; // Cat -> Set("Jan-2023", "Feb-2023")
+          const monthlySum: Record<string, number> = {};
+
+          transactions.filter(t => t.type === 'expense' && !(new Date(t.date).getMonth() === filter.month && new Date(t.date).getFullYear() === filter.year)).forEach(t => {
+             const d = new Date(t.date);
+             const mKey = `${d.getMonth()}-${d.getFullYear()}`;
+             if(!monthlyAgg[t.category]) monthlyAgg[t.category] = new Set();
+             monthlyAgg[t.category].add(mKey);
+             monthlySum[t.category] = (monthlySum[t.category] || 0) + t.amount;
+          });
+
+          const historicalAvg = (monthlySum[cat] || 0) / (monthlyAgg[cat]?.size || 1);
+
+          if (monthlyAgg[cat]?.size > 0 && amount > historicalAvg * 1.2 && amount > 100) {
+              const percentDiff = ((amount - historicalAvg) / historicalAvg) * 100;
+              alerts.push({
+                  type: 'warning',
+                  message: `Gasto com ${cat} acima da média`,
+                  detail: `Você gastou ${Math.round(percentDiff)}% a mais que sua média mensal (${formatCurrency(historicalAvg)}).`
+              });
+          }
+      });
+
+      // 3. Check for Budget Concentration (> 40% of Income)
+      if (kpiData.income > 0) {
+          Object.entries(currentMonthExpenses).forEach(([cat, amount]) => {
+              if (amount > kpiData.income * 0.4) {
+                  alerts.push({
+                      type: 'critical',
+                      message: `Atenção com ${cat}`,
+                      detail: `Esta categoria consome ${((amount / kpiData.income) * 100).toFixed(0)}% de toda sua receita mensal.`
+                  });
+              }
+          });
+      }
+
+      // 4. Savings Alert
+      if (kpiData.income > 0 && kpiData.savingsRate < 5) {
+           alerts.push({
+              type: 'critical',
+              message: 'Taxa de Poupança Baixa',
+              detail: 'Você está poupando menos de 5% da sua renda este mês.'
+          });
+      }
+
+      return alerts;
+  }, [transactions, filter, kpiData.income, kpiData.savingsRate]);
+
+
+  // --- CATEGORY TREND CHART LOGIC ---
+  const trendData = useMemo(() => {
+      // 1. Find Top 5 Categories (by total spend in current year)
+      const categoryTotals: Record<string, number> = {};
+      transactions.filter(t => t.type === 'expense' && new Date(t.date).getFullYear() === filter.year).forEach(t => {
+          categoryTotals[t.category] = (categoryTotals[t.category] || 0) + t.amount;
+      });
+      
+      const topCategories = Object.entries(categoryTotals)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 5)
+          .map(entry => entry[0]);
+
+      // 2. Build Month-by-Month Data for these categories
+      const monthsData = [];
+      for (let i = 0; i <= 11; i++) {
+          const monthName = new Date(filter.year, i, 1).toLocaleDateString('pt-BR', { month: 'short' });
+          const row: any = { name: monthName };
+          
+          topCategories.forEach(cat => {
+              row[cat] = 0;
+          });
+
+          transactions.filter(t => t.type === 'expense' && new Date(t.date).getFullYear() === filter.year && new Date(t.date + 'T12:00').getMonth() === i).forEach(t => {
+              if (topCategories.includes(t.category)) {
+                  row[t.category] += t.amount;
+              }
+          });
+          monthsData.push(row);
+      }
+      return { data: monthsData, categories: topCategories };
+  }, [transactions, filter.year]);
+
 
   // --- QUARTERLY ANALYSIS LOGIC ---
   const quarterData = useMemo(() => {
@@ -219,6 +337,37 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
         </div>
       </div>
 
+      {/* ALERTAS INTELIGENTES */}
+      {alertsData.length > 0 && (
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden transition-colors">
+              <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex items-center gap-2">
+                  <AlertTriangle className="text-amber-500" size={20} />
+                  <h3 className="font-bold text-slate-800 dark:text-white">Alertas de Consumo</h3>
+              </div>
+              <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {alertsData.map((alert, idx) => (
+                      <div key={idx} className={`p-3 rounded-lg border flex items-start gap-3 ${
+                          alert.type === 'critical' 
+                          ? 'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-800' 
+                          : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
+                      }`}>
+                          <div className={`p-1.5 rounded-full shrink-0 ${
+                              alert.type === 'critical' ? 'bg-rose-200 dark:bg-rose-800 text-rose-700 dark:text-rose-200' : 'bg-amber-200 dark:bg-amber-800 text-amber-700 dark:text-amber-200'
+                          }`}>
+                              {alert.type === 'critical' ? <TrendingUp size={16} /> : <AlertCircle size={16} />}
+                          </div>
+                          <div>
+                              <p className={`text-sm font-bold ${
+                                  alert.type === 'critical' ? 'text-rose-800 dark:text-rose-300' : 'text-amber-800 dark:text-amber-300'
+                              }`}>{alert.message}</p>
+                              <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{alert.detail}</p>
+                          </div>
+                      </div>
+                  ))}
+              </div>
+          </div>
+      )}
+
       {/* Main Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Line Chart */}
@@ -226,7 +375,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
             <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-4">Evolução Mensal (Receita vs Despesa)</h4>
             <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={timelineData}>
+                    <AreaChart data={timelineData}>
+                         <defs>
+                            <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.2}/>
+                            <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                            </linearGradient>
+                            <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.2}/>
+                            <stop offset="95%" stopColor="#f43f5e" stopOpacity={0}/>
+                            </linearGradient>
+                        </defs>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#94a3b8" strokeOpacity={0.2} />
                         <XAxis dataKey="name" tick={{fontSize: 12, fill: '#94a3b8'}} axisLine={false} tickLine={false} minTickGap={30} />
                         <YAxis tick={{fontSize: 12, fill: '#94a3b8'}} axisLine={false} tickLine={false} tickFormatter={(val) => `R$${val}`} />
@@ -235,9 +394,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                             formatter={(value: number) => formatCurrency(value)}
                         />
                         <Legend />
-                        <Line type="monotone" dataKey="Receita" stroke="#10b981" strokeWidth={2} dot={false} />
-                        <Line type="monotone" dataKey="Despesa" stroke="#f43f5e" strokeWidth={2} dot={false} />
-                    </LineChart>
+                        <Area type="monotone" dataKey="Receita" stroke="#10b981" fillOpacity={1} fill="url(#colorIncome)" strokeWidth={2} />
+                        <Area type="monotone" dataKey="Despesa" stroke="#f43f5e" fillOpacity={1} fill="url(#colorExpense)" strokeWidth={2} />
+                    </AreaChart>
                 </ResponsiveContainer>
             </div>
         </div>
@@ -274,6 +433,41 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                 )}
             </div>
         </div>
+      </div>
+
+      {/* CHART: CONSUMPTION TRENDS BY CATEGORY (NEW) */}
+      <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
+          <div className="flex items-center justify-between mb-6">
+              <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                  <ArrowUpRight size={18} className="text-purple-500" />
+                  Tendência de Consumo (Top 5 Categorias - {filter.year})
+              </h4>
+          </div>
+          <div className="h-72">
+              <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={trendData.data}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#94a3b8" strokeOpacity={0.2} />
+                      <XAxis dataKey="name" tick={{fontSize: 12, fill: '#94a3b8'}} axisLine={false} tickLine={false} />
+                      <YAxis tick={{fontSize: 12, fill: '#94a3b8'}} axisLine={false} tickLine={false} tickFormatter={(val) => `R$${val}`}/>
+                      <Tooltip 
+                          contentStyle={{backgroundColor: 'var(--tooltip-bg, #fff)', borderRadius: '8px', border: '1px solid #e2e8f0'}}
+                          formatter={(value: number) => formatCurrency(value)}
+                      />
+                      <Legend />
+                      {trendData.categories.map((cat, index) => (
+                          <Line 
+                              key={cat} 
+                              type="monotone" 
+                              dataKey={cat} 
+                              stroke={LINE_COLORS[index % LINE_COLORS.length]} 
+                              strokeWidth={2} 
+                              dot={{r: 3}}
+                              activeDot={{r: 6}}
+                          />
+                      ))}
+                  </LineChart>
+              </ResponsiveContainer>
+          </div>
       </div>
 
       {/* Analysis Row */}

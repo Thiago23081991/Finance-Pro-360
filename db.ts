@@ -393,13 +393,17 @@ export class DBService {
     const { error } = await supabase.from('purchase_requests').upsert(payload);
     if (error) throw new Error(error.message);
 
-    // FEATURE: Se a solicitação foi aprovada, atualiza automaticamente o perfil do usuário
-    // para 'active' (Premium), garantindo consistência no Admin Panel e UX.
+    // FEATURE: Se a solicitação foi aprovada, garantimos que o perfil exista e tenha status active.
+    // Usamos UPSERT no profile para cobrir casos onde o usuário existe no Auth mas não no Profiles.
     if (req.status === 'approved') {
         const { error: profileError } = await supabase
             .from('profiles')
-            .update({ license_status: 'active' })
-            .eq('id', req.userId);
+            .upsert({ 
+                id: req.userId,
+                license_status: 'active'
+                // Nota: Upsert parcial. Se o registro não existir, ele criará com campos nulos exceto ID e status.
+                // Idealmente o app já criou o perfil no cadastro, mas isso é self-healing.
+            }, { onConflict: 'id' }); // Apenas atualiza se existir, ou cria se não.
             
         if (profileError) console.error("Erro ao ativar licença no perfil:", profileError);
     }
