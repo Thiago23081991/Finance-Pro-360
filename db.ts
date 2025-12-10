@@ -1,3 +1,4 @@
+
 import { Transaction, Goal, AppConfig, UserAccount, PurchaseRequest, AdminMessage, SystemStats, UserProfile } from "./types";
 import { DEFAULT_CONFIG } from "./constants";
 import { supabase } from "./supabaseClient";
@@ -11,12 +12,42 @@ export class DBService {
 
   static async registerUser(user: UserAccount): Promise<any> {
     // 1. Criar usuário no Auth do Supabase
+    // Passamos o nome completo nos metadados para persistência no Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: user.username, // Username tratado como email
       password: user.password,
+      options: {
+        data: {
+          full_name: user.name
+        }
+      }
     });
 
     if (authError) throw new Error(authError.message);
+    
+    // 2. Criar perfil IMEDIATAMENTE na tabela pública 'profiles'
+    // Isso garante que o nome esteja disponível para o AdminPanel e getConfig
+    if (authData.user) {
+        // CORREÇÃO: Usamos a coluna 'username' para armazenar o Nome Completo,
+        // já que a coluna 'name' não existe na tabela profiles atual.
+        const { error: profileError } = await supabase.from('profiles').insert({
+            id: authData.user.id,
+            email: user.username,
+            // name: user.name, // REMOVIDO pois a coluna não existe
+            username: user.name || user.username.split('@')[0], // Salvando o nome na coluna username
+            theme: 'light',
+            categories: DEFAULT_CONFIG.categories,
+            payment_methods: DEFAULT_CONFIG.paymentMethods,
+            enable_reminders: true,
+            has_seen_tutorial: false
+        });
+
+        if (profileError) {
+            console.error("Erro ao criar perfil inicial:", profileError.message);
+            // Não lançamos erro aqui para não travar o fluxo de cadastro, 
+            // pois o getConfig tem um fallback (self-healing).
+        }
+    }
     
     // Retornar dados completos para o frontend decidir se precisa de confirmação de email
     return authData;
@@ -52,6 +83,13 @@ export class DBService {
     // Para este caso específico, vamos permitir que o PRÓPRIO usuário logado mude sua senha.
     
     const { error } = await supabase.auth.updateUser({ password: newPass });
+    if (error) throw new Error(error.message);
+  }
+
+  static async requestPasswordReset(email: string): Promise<void> {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin, // Redireciona de volta para a app
+    });
     if (error) throw new Error(error.message);
   }
 
@@ -179,10 +217,16 @@ export class DBService {
     if (!data) {
       // SELF-HEALING: Se o usuário existe no Auth mas não tem perfil (ex: erro no registro ou DB não criado na hora), cria agora.
       console.log("Perfil não encontrado. Tentando criar perfil padrão...");
+      
+      // Tenta pegar o nome dos metadados do Auth se disponível
+      const fullName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
+
+      // CORREÇÃO: Usar 'username' para armazenar o nome
       const { error: insertError } = await supabase.from('profiles').insert({
         id: user.id,
         email: user.email,
-        username: user.email?.split('@')[0] || 'User',
+        // name: fullName, // REMOVIDO
+        username: fullName,
         theme: 'light',
         categories: DEFAULT_CONFIG.categories,
         payment_methods: DEFAULT_CONFIG.paymentMethods,
@@ -191,15 +235,16 @@ export class DBService {
       });
       
       if (!insertError) {
-          return { ...DEFAULT_CONFIG, userId: user.id };
+          return { ...DEFAULT_CONFIG, userId: user.id, name: fullName };
       }
       
-      console.error("Erro fatal ao criar perfil:", insertError);
+      console.error("Erro fatal ao criar perfil:", insertError.message);
       return { ...DEFAULT_CONFIG, userId: user.id };
     }
 
     return {
       userId: data.id,
+      name: data.username, // Mapeando coluna 'username' (que contém o nome) para o campo 'name' da interface
       theme: data.theme as 'light' | 'dark',
       categories: data.categories || DEFAULT_CONFIG.categories,
       paymentMethods: data.payment_methods || DEFAULT_CONFIG.paymentMethods,
@@ -311,11 +356,13 @@ export class DBService {
   }
 
   static async getAllProfiles(): Promise<UserProfile[]> {
+      // CORREÇÃO: Removemos 'name' do select pois a coluna não existe
       const { data, error } = await supabase.from('profiles').select('id, email, username, license_status, created_at');
       if (error) throw new Error(error.message);
       
       return data.map((p: any) => ({
           id: p.id,
+          name: p.username, // Mapeando 'username' (onde salvamos o nome) para a propriedade 'name' da interface
           email: p.email,
           username: p.username,
           licenseStatus: p.license_status,
@@ -345,6 +392,17 @@ export class DBService {
     };
     const { error } = await supabase.from('purchase_requests').upsert(payload);
     if (error) throw new Error(error.message);
+
+    // FEATURE: Se a solicitação foi aprovada, atualiza automaticamente o perfil do usuário
+    // para 'active' (Premium), garantindo consistência no Admin Panel e UX.
+    if (req.status === 'approved') {
+        const { error: profileError } = await supabase
+            .from('profiles')
+            .update({ license_status: 'active' })
+            .eq('id', req.userId);
+            
+        if (profileError) console.error("Erro ao ativar licença no perfil:", profileError);
+    }
   }
 
   static async getAllPurchaseRequests(): Promise<PurchaseRequest[]> {

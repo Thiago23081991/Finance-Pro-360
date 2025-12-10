@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Lock, Mail, ArrowRight, Wallet, Database, Loader2, Check, AlertCircle } from 'lucide-react';
+import { Lock, Mail, ArrowRight, Wallet, Database, Loader2, Check, AlertCircle, ArrowLeft, User } from 'lucide-react';
 import { DBService } from '../db';
 import { PrivacyModal } from './PrivacyModal';
 
@@ -10,8 +10,11 @@ interface LoginProps {
   messageType?: 'error' | 'success';
 }
 
+type AuthMode = 'login' | 'register' | 'recovery';
+
 export const Login: React.FC<LoginProps> = ({ onLogin, initialMessage, messageType = 'error' }) => {
-  const [isRegistering, setIsRegistering] = useState(false);
+  const [authMode, setAuthMode] = useState<AuthMode>('login');
+  const [name, setName] = useState(''); // Novo campo Nome
   const [username, setUsername] = useState(''); // Agora será tratado como Email
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -57,6 +60,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin, initialMessage, messageTy
     // Limpar espaços em branco acidentais
     const cleanEmail = username.trim();
     const cleanPassword = password.trim();
+    const cleanName = name.trim();
 
     // Validação básica de email
     if (!cleanEmail.includes('@')) {
@@ -65,14 +69,27 @@ export const Login: React.FC<LoginProps> = ({ onLogin, initialMessage, messageTy
         return;
     }
 
-    if (!cleanEmail || !cleanPassword) {
-      setError('Preencha todos os campos.');
+    if (authMode !== 'recovery' && (!cleanEmail || !cleanPassword)) {
+      setError('Preencha os campos de email e senha.');
       setIsLoading(false);
       return;
     }
 
+    if (authMode === 'register' && !cleanName) {
+        setError('Por favor, informe seu nome completo.');
+        setIsLoading(false);
+        return;
+    }
+
     try {
-        if (isRegistering) {
+        if (authMode === 'recovery') {
+            await DBService.requestPasswordReset(cleanEmail);
+            setSuccessMsg('Se o e-mail estiver cadastrado, você receberá um link para redefinir sua senha.');
+            setIsLoading(false);
+            return;
+        }
+
+        if (authMode === 'register') {
             if (!acceptedTerms) {
                 setError('Você precisa aceitar os Termos e Política de Privacidade para criar uma conta.');
                 setIsLoading(false);
@@ -85,8 +102,9 @@ export const Login: React.FC<LoginProps> = ({ onLogin, initialMessage, messageTy
                 return;
             }
 
-            // Registrar usuário
+            // Registrar usuário com NOME
             const { user, session } = await DBService.registerUser({
+                name: cleanName,
                 username: cleanEmail,
                 password: cleanPassword,
                 createdAt: new Date().toISOString()
@@ -101,7 +119,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin, initialMessage, messageTy
                 // Usuário criado, mas sem sessão (Email confirmation ON)
                 setSuccessMsg('Cadastro realizado! Verifique seu e-mail (inclusive SPAM) para confirmar a conta antes de entrar.');
                 setError('');
-                setIsRegistering(false); // Volta para tela de login para forçar o usuário a ver a mensagem
+                setAuthMode('login'); // Volta para tela de login para forçar o usuário a ver a mensagem
             }
 
         } else {
@@ -131,6 +149,12 @@ export const Login: React.FC<LoginProps> = ({ onLogin, initialMessage, messageTy
     }
   };
 
+  const switchMode = (mode: AuthMode) => {
+    setAuthMode(mode);
+    setError('');
+    setSuccessMsg('');
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f3f4f6] dark:bg-slate-950 p-4 transition-colors">
       <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-200 dark:border-slate-700 animate-fade-in relative overflow-hidden transition-colors">
@@ -149,6 +173,25 @@ export const Login: React.FC<LoginProps> = ({ onLogin, initialMessage, messageTy
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 relative z-10">
+          
+          {/* Nome Completo - Apenas no Cadastro */}
+          {authMode === 'register' && (
+            <div>
+                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1 ml-1">Nome Completo</label>
+                <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                <input 
+                    type="text" 
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-lg py-2.5 pl-10 pr-4 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                    placeholder="Seu nome"
+                    disabled={isLoading}
+                />
+                </div>
+            </div>
+          )}
+
           <div>
             <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1 ml-1">E-mail</label>
             <div className="relative">
@@ -164,38 +207,49 @@ export const Login: React.FC<LoginProps> = ({ onLogin, initialMessage, messageTy
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1 ml-1">Senha</label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-              <input 
-                type="password" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-lg py-2.5 pl-10 pr-4 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
-                placeholder="Sua senha segura"
-                disabled={isLoading}
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between ml-1">
-            <div className="flex items-center gap-2">
+          {authMode !== 'recovery' && (
+            <div>
+                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1 ml-1">Senha</label>
+                <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                 <input 
-                    type="checkbox" 
-                    id="rememberMe"
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                    className="w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500 cursor-pointer"
+                    type="password" 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-lg py-2.5 pl-10 pr-4 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                    placeholder="Sua senha segura"
+                    disabled={isLoading}
                 />
-                <label htmlFor="rememberMe" className="text-xs text-slate-600 dark:text-slate-400 cursor-pointer select-none">
-                    Lembrar E-mail
-                </label>
+                </div>
             </div>
-          </div>
+          )}
+
+          {authMode === 'login' && (
+              <div className="flex items-center justify-between ml-1">
+                <div className="flex items-center gap-2">
+                    <input 
+                        type="checkbox" 
+                        id="rememberMe"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                        className="w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500 cursor-pointer"
+                    />
+                    <label htmlFor="rememberMe" className="text-xs text-slate-600 dark:text-slate-400 cursor-pointer select-none">
+                        Lembrar E-mail
+                    </label>
+                </div>
+                <button 
+                    type="button" 
+                    onClick={() => switchMode('recovery')} 
+                    className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+                >
+                    Esqueceu a senha?
+                </button>
+              </div>
+          )}
           
           {/* LGPD Consent Checkbox - Only on Register */}
-          {isRegistering && (
+          {authMode === 'register' && (
              <div className="bg-slate-50 dark:bg-slate-700/50 p-3 rounded-lg border border-slate-100 dark:border-slate-600">
                 <div className="flex items-start gap-3">
                     <input 
@@ -235,21 +289,31 @@ export const Login: React.FC<LoginProps> = ({ onLogin, initialMessage, messageTy
                 <Loader2 className="animate-spin" size={20} />
             ) : (
                 <>
-                    {isRegistering ? 'Criar Conta' : 'Entrar'}
-                    <ArrowRight size={18} />
+                    {authMode === 'login' ? 'Entrar' : authMode === 'register' ? 'Criar Conta' : 'Enviar Link'}
+                    {authMode === 'login' && <ArrowRight size={18} />}
+                    {authMode === 'recovery' && <Mail size={18} />}
                 </>
             )}
           </button>
         </form>
 
-        <div className="mt-6 text-center relative z-10">
-          <button 
-            onClick={() => { setIsRegistering(!isRegistering); setError(''); setSuccessMsg(''); }}
-            className="text-sm text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 font-medium transition-colors"
-            disabled={isLoading}
-          >
-            {isRegistering ? 'Já possui conta? Fazer Login' : 'Não tem conta? Criar nova'}
-          </button>
+        <div className="mt-6 text-center relative z-10 flex flex-col gap-3">
+          {authMode === 'recovery' ? (
+             <button 
+                onClick={() => switchMode('login')}
+                className="text-sm text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 font-medium transition-colors flex items-center justify-center gap-2"
+             >
+                <ArrowLeft size={16} /> Voltar para o Login
+             </button>
+          ) : (
+              <button 
+                onClick={() => switchMode(authMode === 'login' ? 'register' : 'login')}
+                className="text-sm text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 font-medium transition-colors"
+                disabled={isLoading}
+              >
+                {authMode === 'login' ? 'Não tem conta? Criar nova' : 'Já possui conta? Fazer Login'}
+              </button>
+          )}
         </div>
       </div>
       

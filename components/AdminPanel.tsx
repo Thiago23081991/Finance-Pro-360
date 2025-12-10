@@ -71,10 +71,20 @@ export const AdminPanel: React.FC = () => {
     try {
         const updated: PurchaseRequest = { ...req, status: newStatus };
         await DBService.savePurchaseRequest(updated);
+        
+        // 1. Update Requests State
         setRequests(prev => prev.map(r => r.userId === req.userId ? updated : r));
         if (req.status === 'pending') {
             setPendingRequestsCount(prev => Math.max(0, prev - 1));
         }
+
+        // 2. Update Profiles State if Approved (Immediate UI update for User tab)
+        if (newStatus === 'approved') {
+            setProfiles(prev => prev.map(p => 
+                p.id === req.userId ? { ...p, licenseStatus: 'active' } : p
+            ));
+        }
+
     } catch (error: any) {
         alert("Erro ao atualizar status: " + error.message);
     }
@@ -264,7 +274,7 @@ export const AdminPanel: React.FC = () => {
                     <table className="w-full text-left border-collapse">
                         <thead className="bg-slate-50 dark:bg-slate-900">
                             <tr>
-                                <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Email / ID</th>
+                                <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Nome / Email</th>
                                 <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Status Licença</th>
                                 <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 text-center">Ações</th>
                             </tr>
@@ -281,8 +291,8 @@ export const AdminPanel: React.FC = () => {
                                     <tr key={profile.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
                                         <td className="py-4 px-6">
                                             <div className="flex flex-col">
-                                                <span className="font-bold text-slate-700 dark:text-slate-200">{profile.email}</span>
-                                                <span className="text-xs font-mono text-slate-400">{profile.id}</span>
+                                                <span className="font-bold text-slate-700 dark:text-slate-200">{profile.name || 'Sem nome'}</span>
+                                                <span className="text-xs text-slate-500 dark:text-slate-400">{profile.email}</span>
                                             </div>
                                         </td>
                                         <td className="py-4 px-6">

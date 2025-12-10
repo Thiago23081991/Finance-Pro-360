@@ -12,6 +12,7 @@ import { Toast } from './components/Toast';
 import { Inbox } from './components/Inbox';
 import { Tutorial } from './components/Tutorial';
 import { FilterBar } from './components/FilterBar';
+import { ResetPasswordModal } from './components/ResetPasswordModal';
 import { DBService } from './db';
 import { supabase } from './supabaseClient';
 import { LayoutDashboard, CreditCard, TrendingUp, Target, Settings as SettingsIcon, Menu, Filter, LogOut, Loader2, ShieldCheck, Mail, Sun, Moon, X } from 'lucide-react';
@@ -596,6 +597,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
   const [emailConfirmed, setEmailConfirmed] = useState(false);
+  const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
 
   useEffect(() => {
     // Check URL Hash for errors or confirmation signals before Supabase clears them
@@ -630,6 +632,10 @@ function App() {
       } else if (event === 'SIGNED_OUT') {
           setSession(null);
           setEmailConfirmed(false);
+          setShowResetPasswordModal(false);
+      } else if (event === 'PASSWORD_RECOVERY') {
+          // Detect recovery event to show reset modal
+          setShowResetPasswordModal(true);
       }
     });
 
@@ -665,12 +671,17 @@ function App() {
   }
 
   return (
-    <FinanceApp 
-        key={session.user.id} 
-        user={session.user.id} 
-        onLogout={handleLogout} 
-        isEmailConfirmed={emailConfirmed}
-    />
+    <>
+        <FinanceApp 
+            key={session.user.id} 
+            user={session.user.id} 
+            onLogout={handleLogout} 
+            isEmailConfirmed={emailConfirmed}
+        />
+        {showResetPasswordModal && (
+            <ResetPasswordModal onClose={() => setShowResetPasswordModal(false)} />
+        )}
+    </>
   );
 }
 

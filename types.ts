@@ -1,3 +1,4 @@
+
 export type TransactionType = 'income' | 'expense';
 
 // Centralized Tab definition
@@ -25,6 +26,7 @@ export interface Goal {
 
 export interface AppConfig {
   userId?: string;
+  name?: string; // Nome do usuário para exibição
   theme?: 'light' | 'dark'; // New Theme Field
   categories: string[];
   paymentMethods: string[];
@@ -47,7 +49,8 @@ export interface FilterState {
 }
 
 export interface UserAccount {
-  username: string;
+  name?: string; // Nome completo para registro
+  username: string; // Email
   password: string; // In a real app, this should be hashed. For client-side demo, plain text is stored locally.
   createdAt: string;
 }
@@ -86,6 +89,7 @@ export interface SystemStats {
 
 export interface UserProfile {
   id: string;
+  name?: string; // Nome completo
   email: string;
   username: string;
   licenseStatus?: string;
