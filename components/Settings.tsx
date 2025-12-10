@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { AppConfig, Transaction, PurchaseRequest } from '../types';
-import { Trash2, Plus, FileSpreadsheet, Download, Bell, CreditCard, CheckCircle, Clock, Upload, Shield, Key, Smartphone, Copy, Lock, Moon, Sun, AlertTriangle, FileText } from 'lucide-react';
+import { Trash2, Plus, FileSpreadsheet, Download, Bell, CreditCard, CheckCircle, Clock, Upload, Shield, Key, Smartphone, Copy, Lock, Moon, Sun, AlertTriangle, FileText, QrCode } from 'lucide-react';
 import { exportToCSV, generateId, validateLicenseKey } from '../utils';
 import { DBService } from '../db';
 import { PrivacyModal } from './PrivacyModal';
@@ -11,6 +11,11 @@ interface SettingsProps {
     onUpdateConfig: (c: AppConfig) => void;
     transactions: Transaction[]; 
 }
+
+// --- CONFIGURAÇÃO DO PIX ---
+// Substitua esta chave pela sua Chave Pix real (CPF, CNPJ, Email, Telefone ou Aleatória)
+const PIX_KEY = "12.345.678/0001-90"; 
+const PIX_NAME = "Finance Pro 360 Ltda";
 
 export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, transactions }) => {
     const [newCat, setNewCat] = useState('');
@@ -89,7 +94,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
     };
 
     const handleWhatsAppRequest = () => {
-        const text = `Olá! Gostaria de solicitar a licença do Finance Pro 360.\n\nMeu ID de Usuário: *${config.userId}*\n\nAguardo a chave de ativação.`;
+        const text = `Olá! Realizei o pagamento via Pix e gostaria de solicitar a licença do Finance Pro 360.\n\nMeu ID de Usuário: *${config.userId}*\n\n(Anexe o comprovante aqui)`;
         const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
         window.open(url, '_blank');
         setShowManualActivation(true);
@@ -100,6 +105,11 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
             navigator.clipboard.writeText(config.userId);
             alert('ID copiado para a área de transferência!');
         }
+    };
+
+    const copyPixKey = () => {
+        navigator.clipboard.writeText(PIX_KEY);
+        alert('Chave Pix copiada com sucesso!');
     };
 
     const addCat = () => {
@@ -228,7 +238,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                                     <><CheckCircle size={20} className="text-emerald-300" /> Ativo</>
                                 ) : (
                                     purchaseRequest?.status === 'pending' ? (
-                                        <><Clock size={20} className="text-amber-300" /> Análise</>
+                                        <><Clock size={20} className="text-amber-300" /> Pendente</>
                                     ) : (
                                         <><Lock size={20} className="text-slate-300" /> Gratuito</>
                                     )
@@ -240,46 +250,96 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                     {!isLicensed && (
                         <div className="bg-white/95 text-slate-800 rounded-lg p-4 shadow-sm">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* Left: Request Methods */}
-                                <div className="space-y-3">
-                                    <h4 className="text-sm font-bold text-indigo-700 uppercase">1. Solicitar Licença</h4>
-                                    <p className="text-xs text-slate-500">
-                                        Para ativar em <strong>qualquer dispositivo (Celular/PC)</strong>, envie seu ID para o administrador via WhatsApp.
-                                    </p>
+                                {/* Left: Request Methods & PIX */}
+                                <div className="space-y-4">
+                                    <h4 className="text-sm font-bold text-indigo-700 uppercase">1. Solicitar & Pagar</h4>
                                     
-                                    <div className="flex items-center gap-2 bg-slate-100 p-2 rounded border border-slate-200">
-                                        <span className="text-xs text-slate-500 font-mono">ID:</span>
-                                        <span className="text-sm font-bold font-mono select-all text-slate-800">{config.userId}</span>
-                                        <button onClick={copyUserId} className="ml-auto text-slate-400 hover:text-blue-600" title="Copiar ID">
-                                            <Copy size={16} />
-                                        </button>
-                                    </div>
+                                    {!purchaseRequest ? (
+                                        <>
+                                            <p className="text-xs text-slate-500">
+                                                Para ativar em <strong>qualquer dispositivo</strong>, solicite abaixo para gerar os dados de pagamento.
+                                            </p>
+                                            <div className="flex items-center gap-2 bg-slate-100 p-2 rounded border border-slate-200">
+                                                <span className="text-xs text-slate-500 font-mono">ID:</span>
+                                                <span className="text-sm font-bold font-mono select-all text-slate-800">{config.userId}</span>
+                                                <button onClick={copyUserId} className="ml-auto text-slate-400 hover:text-blue-600" title="Copiar ID">
+                                                    <Copy size={16} />
+                                                </button>
+                                            </div>
 
-                                    <div className="flex gap-2">
-                                        <button 
-                                            onClick={handleWhatsAppRequest}
-                                            className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white py-2 rounded text-sm font-bold transition-colors flex items-center justify-center gap-2"
-                                        >
-                                            <Smartphone size={16} />
-                                            Pedir no WhatsApp
-                                        </button>
-                                        {!purchaseRequest && (
                                             <button 
                                                 onClick={handleRequestPurchase}
                                                 disabled={loadingReq}
-                                                className="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white py-2 rounded text-sm font-bold transition-colors"
+                                                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg text-sm font-bold transition-colors flex items-center justify-center gap-2 shadow-md"
                                             >
-                                                {loadingReq ? '...' : 'Pedir no App (Local)'}
+                                                {loadingReq ? (
+                                                    'Gerando solicitação...'
+                                                ) : (
+                                                    <>
+                                                        <QrCode size={18} />
+                                                        Solicitar e Pagar com Pix
+                                                    </>
+                                                )}
                                             </button>
-                                        )}
-                                    </div>
+                                        </>
+                                    ) : (
+                                        // ÁREA DE PAGAMENTO PIX (Visível após solicitar)
+                                        <div className="bg-slate-50 border-2 border-emerald-500 rounded-lg p-4 animate-fade-in relative overflow-hidden">
+                                            <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl">
+                                                AGUARDANDO PAGAMENTO
+                                            </div>
+                                            
+                                            <div className="flex gap-4">
+                                                {/* QR Code Placeholder (Gerado via API simples para demo visual) */}
+                                                <div className="bg-white p-1 rounded border border-slate-200 shrink-0">
+                                                    <img 
+                                                        src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(PIX_KEY)}`} 
+                                                        alt="QR Code Pix" 
+                                                        className="w-24 h-24"
+                                                    />
+                                                </div>
+                                                
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-xs font-bold text-slate-700 mb-1">Pagamento via Pix</p>
+                                                    <p className="text-[10px] text-slate-500 mb-2 truncate">Beneficiário: {PIX_NAME}</p>
+                                                    
+                                                    <div className="flex items-center gap-1 mb-2">
+                                                        <input 
+                                                            type="text" 
+                                                            value={PIX_KEY}
+                                                            readOnly
+                                                            className="w-full bg-white border border-slate-300 rounded px-2 py-1 text-xs font-mono text-slate-600 outline-none"
+                                                        />
+                                                        <button 
+                                                            onClick={copyPixKey}
+                                                            className="bg-emerald-100 text-emerald-700 p-1.5 rounded hover:bg-emerald-200 transition-colors"
+                                                            title="Copiar Chave"
+                                                        >
+                                                            <Copy size={14} />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <button 
+                                                onClick={handleWhatsAppRequest}
+                                                className="w-full mt-3 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded text-xs font-bold flex items-center justify-center gap-2 transition-colors"
+                                            >
+                                                <Smartphone size={14} />
+                                                Enviar Comprovante no WhatsApp
+                                            </button>
+                                            <p className="text-[10px] text-center text-slate-400 mt-2">
+                                                O acesso será liberado após o envio do comprovante.
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Right: Activation */}
                                 <div className="space-y-3 border-t md:border-t-0 md:border-l border-slate-200 md:pl-6 pt-4 md:pt-0">
                                     <h4 className="text-sm font-bold text-indigo-700 uppercase">2. Ativar Licença</h4>
                                     <p className="text-xs text-slate-500">
-                                        Já recebeu sua chave? Insira abaixo para liberar o acesso imediatamente.
+                                        Já recebeu sua chave de ativação? Insira abaixo para liberar o acesso imediatamente.
                                     </p>
                                     
                                     <div className="flex gap-2">
