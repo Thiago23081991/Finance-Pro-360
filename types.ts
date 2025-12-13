@@ -1,8 +1,8 @@
 
 export type TransactionType = 'income' | 'expense';
 
-// Centralized Tab definition
-export type Tab = 'controle' | 'receitas' | 'despesas' | 'metas' | 'investimentos' | 'config' | 'admin';
+// Centralized Tab definition - Adicionado 'dividas'
+export type Tab = 'controle' | 'receitas' | 'despesas' | 'dividas' | 'metas' | 'investimentos' | 'cursos' | 'config' | 'admin';
 
 export interface Transaction {
   id: string;
@@ -22,6 +22,16 @@ export interface Goal {
   targetValue: number;
   currentValue: number;
   status: 'Concluída' | 'Em andamento';
+}
+
+export interface Debt {
+  id: string;
+  userId: string;
+  name: string; // Nome do Credor ou Serasa
+  totalAmount: number; // Valor Total Devido
+  interestRate: number; // Taxa de juros mensal (%)
+  dueDate?: string; // Vencimento opcional
+  category: 'banco' | 'cartao' | 'servico' | 'emprestimo' | 'outro';
 }
 
 export interface AppConfig {
@@ -75,6 +85,7 @@ export interface BackupData {
   users: UserAccount[];
   transactions: Transaction[];
   goals: Goal[];
+  debts?: Debt[];
   configs: AppConfig[];
   purchase_requests?: PurchaseRequest[];
   messages?: AdminMessage[];

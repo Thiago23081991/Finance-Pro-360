@@ -638,9 +638,10 @@ export const SheetView: React.FC<SheetViewProps> = ({
         {!isAdding && (
             <button
                 onClick={() => { setIsAdding(true); setEditingId(null); setInstallments(1); setNewDesc(''); setNewAmount(''); }}
-                className="md:hidden absolute bottom-20 right-4 w-12 h-12 bg-emerald-600 text-white rounded-full shadow-lg shadow-emerald-900/30 flex items-center justify-center hover:scale-105 transition-transform z-30"
+                className="md:hidden fixed bottom-24 right-6 w-14 h-14 bg-emerald-600 text-white rounded-full shadow-xl shadow-emerald-900/40 flex items-center justify-center hover:scale-105 transition-transform z-50 border-2 border-white dark:border-slate-800"
+                title="Adicionar Linha"
             >
-                <Plus size={24} />
+                <Plus size={28} />
             </button>
         )}
     </div>

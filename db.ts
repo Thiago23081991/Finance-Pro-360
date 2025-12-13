@@ -1,5 +1,5 @@
 
-import { Transaction, Goal, AppConfig, UserAccount, PurchaseRequest, AdminMessage, SystemStats, UserProfile } from "./types";
+import { Transaction, Goal, Debt, AppConfig, UserAccount, PurchaseRequest, AdminMessage, SystemStats, UserProfile } from "./types";
 import { DEFAULT_CONFIG } from "./constants";
 import { supabase } from "./supabaseClient";
 
@@ -26,8 +26,10 @@ export class DBService {
     if (authError) throw new Error(authError.message);
     
     // 2. Criar perfil IMEDIATAMENTE na tabela pública 'profiles'
-    // Isso garante que o nome esteja disponível para o AdminPanel e getConfig
-    if (authData.user) {
+    // Apenas tentamos criar se houver uma sessão ativa (Email confirmation OFF).
+    // Se não houver sessão (Email confirmation ON), o insert falharia por RLS (Row Level Security).
+    // Nesses casos, o perfil será criado automaticamente no primeiro login via getConfig (self-healing).
+    if (authData.user && authData.session) {
         // CORREÇÃO: Usamos a coluna 'username' para armazenar o Nome Completo,
         // já que a coluna 'name' não existe na tabela profiles atual.
         const { error: profileError } = await supabase.from('profiles').insert({
@@ -100,7 +102,7 @@ export class DBService {
       // Para cumprir a LGPD no frontend, vamos deletar TODOS os dados das tabelas públicas.
       // O registro de Auth ficará órfão (sem dados) e inativo.
       
-      const tablesToDelete = ['transactions', 'goals', 'profiles', 'purchase_requests', 'messages'];
+      const tablesToDelete = ['transactions', 'goals', 'debts', 'profiles', 'purchase_requests', 'messages'];
       
       try {
           // Deleta dados em paralelo
@@ -110,7 +112,9 @@ export class DBService {
               if (table === 'profiles') column = 'id';
               if (table === 'messages') column = 'receiver'; 
               
-              return supabase.from(table).delete().eq(column, userId);
+              // Verifica se a tabela debts existe antes de tentar deletar (caso a migração não tenha ocorrido)
+              // Em um app real, o Supabase ignoraria tabelas inexistentes no client, mas é bom previnir erros JS
+              return supabase.from(table).delete().eq(column, userId).catch(() => {}); 
           }));
 
           // Deslogar após limpar os dados
@@ -207,6 +211,92 @@ export class DBService {
     if (error) throw new Error(error.message);
   }
 
+  // --- DEBTS OPERATIONS ---
+
+  static async getDebts(userId: string): Promise<Debt[]> {
+    // Supabase RLS handles user scoping
+    const { data, error } = await supabase.from('debts').select('*').order('interest_rate', { ascending: false });
+    
+    if (error) {
+        // Fallback for when table doesn't exist yet (Development mode or Schema Cache issues)
+        // Try to load from LocalStorage to keep the app working
+        console.warn("Could not fetch debts from DB, checking local storage.", error.message);
+        const localData = localStorage.getItem(`fp360_debts_${userId}`);
+        if (localData) {
+            return JSON.parse(localData);
+        }
+        return [];
+    }
+
+    return data.map((d: any) => ({
+      id: d.id,
+      userId: d.user_id,
+      name: d.name,
+      totalAmount: parseFloat(d.total_amount),
+      interestRate: parseFloat(d.interest_rate),
+      dueDate: d.due_date,
+      category: d.category
+    }));
+  }
+
+  static async saveDebt(d: Debt): Promise<void> {
+    const user = await this.getCurrentUser();
+    if (!user) throw new Error("Usuário não autenticado");
+
+    const payload = {
+      id: d.id,
+      user_id: user.id,
+      name: d.name,
+      total_amount: d.totalAmount,
+      interest_rate: d.interestRate,
+      due_date: d.dueDate,
+      category: d.category
+    };
+
+    const { error } = await supabase.from('debts').upsert(payload);
+    
+    if (error) {
+        // ERROR HANDLING: Check for missing table error
+        if (error.message.includes("Could not find the table") || error.code === '42P01') {
+            console.warn("Debts table missing in DB. Saving to LocalStorage.");
+            
+            // Get current local debts
+            const currentDebts = await this.getDebts(user.id);
+            
+            // Check if we are updating or adding
+            const index = currentDebts.findIndex(x => x.id === d.id);
+            if (index >= 0) {
+                currentDebts[index] = d;
+            } else {
+                currentDebts.push(d);
+            }
+            
+            localStorage.setItem(`fp360_debts_${user.id}`, JSON.stringify(currentDebts));
+            return; // Exit successfully using fallback
+        }
+        
+        throw new Error(error.message);
+    }
+  }
+
+  static async deleteDebt(id: string): Promise<void> {
+    const { error } = await supabase.from('debts').delete().eq('id', id);
+    
+    if (error) {
+         // ERROR HANDLING: Fallback for missing table
+         if (error.message.includes("Could not find the table") || error.code === '42P01') {
+             const user = await this.getCurrentUser();
+             if (user) {
+                 const currentDebts = await this.getDebts(user.id);
+                 const filtered = currentDebts.filter(d => d.id !== id);
+                 localStorage.setItem(`fp360_debts_${user.id}`, JSON.stringify(filtered));
+                 return; // Exit successfully
+             }
+         }
+         throw new Error(error.message);
+    }
+  }
+
   static async getConfig(userId: string): Promise<AppConfig> {
     // Busca perfil. userId parametro é legacy, usamos auth.
     const user = await this.getCurrentUser();
@@ -284,9 +374,10 @@ export class DBService {
     const user = await this.getCurrentUser();
     if (!user) throw new Error("Não logado");
 
-    const [txs, goals, profile, reqs, msgs] = await Promise.all([
+    const [txs, goals, debts, profile, reqs, msgs] = await Promise.all([
       supabase.from('transactions').select('*'),
       supabase.from('goals').select('*'),
+      supabase.from('debts').select('*').catch(() => ({ data: [] })),
       supabase.from('profiles').select('*').eq('id', user.id).single(),
       supabase.from('purchase_requests').select('*'),
       supabase.from('messages').select('*').or(`receiver.eq.${user.id},sender.eq.Admin`) 
@@ -295,6 +386,7 @@ export class DBService {
     const backup = {
       transactions: txs.data,
       goals: goals.data,
+      debts: debts.data,
       configs: [profile.data],
       purchase_requests: reqs.data,
       messages: msgs.data
@@ -322,6 +414,14 @@ export class DBService {
          ...g, user_id: user.id
        }));
        await supabase.from('goals').upsert(cleanGoals);
+    }
+
+    // Restaurar Dívidas
+    if (data.debts && data.debts.length > 0) {
+        const cleanDebts = data.debts.map((d: any) => ({
+            ...d, user_id: user.id
+        }));
+        await supabase.from('debts').upsert(cleanDebts).catch(console.error);
     }
 
     // Configs - Apenas update

@@ -1,0 +1,319 @@
+
+import React, { useState } from 'react';
+import { AppConfig, Debt } from '../types';
+import { Lock, Crown, CheckCircle, Plus, Trash2, TrendingUp, AlertOctagon, Info, ArrowRight, Scale, Calculator, Loader2 } from 'lucide-react';
+import { formatCurrency, generateId } from '../utils';
+
+interface DebtsProps {
+    config: AppConfig;
+    debts: Debt[];
+    onAddDebt: (d: Debt) => Promise<void>;
+    onDeleteDebt: (id: string) => void;
+    onNavigateToSettings: () => void;
+}
+
+export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDeleteDebt, onNavigateToSettings }) => {
+    const isPremium = config.licenseStatus === 'active';
+    
+    const [isAdding, setIsAdding] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    
+    // Form States
+    const [name, setName] = useState('');
+    const [amount, setAmount] = useState('');
+    const [rate, setRate] = useState('');
+    const [dueDate, setDueDate] = useState('');
+    const [category, setCategory] = useState<Debt['category']>('outro');
+
+    // --- PRIORITIZATION LOGIC (AVALANCHE METHOD) ---
+    // Mathematically, paying off the debt with the highest interest rate first saves the most money.
+    const priorityList = [...debts].sort((a, b) => {
+        // Primary sort: Interest Rate (Desc)
+        if (b.interestRate !== a.interestRate) return b.interestRate - a.interestRate;
+        // Secondary sort: Total Amount (Asc) - if rates equal, clear smaller one (Snowball hybrid)
+        return a.totalAmount - b.totalAmount;
+    });
+
+    const topPriority = priorityList.length > 0 ? priorityList[0] : null;
+
+    const handleSave = async () => {
+        if (!name || !amount || !rate) {
+            alert("Por favor, preencha todos os campos obrigatórios (Nome, Valor e Juros).");
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            // Fix comma vs dot for decimals
+            const cleanAmount = parseFloat(amount.replace(',', '.'));
+            const cleanRate = parseFloat(rate.replace(',', '.'));
+
+            if (isNaN(cleanAmount) || isNaN(cleanRate)) {
+                alert("Valores inválidos. Use apenas números.");
+                return;
+            }
+
+            const newDebt: Debt = {
+                id: generateId(),
+                userId: config.userId || '',
+                name,
+                totalAmount: cleanAmount,
+                interestRate: cleanRate,
+                dueDate,
+                category
+            };
+            
+            await onAddDebt(newDebt);
+            
+            setIsAdding(false);
+            setName('');
+            setAmount('');
+            setRate('');
+            setDueDate('');
+            setCategory('outro');
+        } catch (error: any) {
+            console.error("Erro ao salvar dívida:", error);
+            alert("Erro ao salvar: " + (error.message || "Tente novamente."));
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    // --- PREMIUM LOCK SCREEN ---
+    if (!isPremium) {
+        return (
+            <div className="h-full flex items-center justify-center p-6 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-rose-500 via-red-500 to-rose-600"></div>
+                <div className="text-center max-w-lg z-10 bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700">
+                    <div className="w-20 h-20 bg-rose-100 dark:bg-rose-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <Lock className="text-rose-600 dark:text-rose-400" size={40} />
+                    </div>
+                    <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-4 flex items-center justify-center gap-2">
+                        Gestão de Dívidas <Crown size={24} className="text-amber-500" />
+                    </h2>
+                    <p className="text-slate-600 dark:text-slate-300 mb-6">
+                        Recurso exclusivo Premium para ajudar você a sair do vermelho e limpar seu nome no Serasa.
+                    </p>
+                    <ul className="text-left text-sm text-slate-600 dark:text-slate-400 space-y-3 mb-8 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg">
+                        <li className="flex items-start gap-2">
+                            <CheckCircle size={16} className="text-emerald-500 mt-0.5" />
+                            <span><strong>Calculadora de Prioridade:</strong> A IA analisa suas dívidas e diz qual pagar primeiro para economizar juros.</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                            <CheckCircle size={16} className="text-emerald-500 mt-0.5" />
+                            <span><strong>Controle de Negativação:</strong> Organize pendências do Serasa, Bancos e Cartões.</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                            <CheckCircle size={16} className="text-emerald-500 mt-0.5" />
+                            <span><strong>Plano de Quitação:</strong> Estratégia matemática para liberdade financeira.</span>
+                        </li>
+                    </ul>
+                    <button 
+                        onClick={onNavigateToSettings}
+                        className="w-full bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-rose-500/30 transition-all transform hover:scale-105"
+                    >
+                        Quero Organizar Minhas Dívidas
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-6 animate-fade-in pb-20">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                        <Scale className="text-rose-600" /> Gestão de Passivos
+                    </h2>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm">
+                        Cadastre suas pendências (Serasa, Bancos, etc) e receba um plano de ação.
+                    </p>
+                </div>
+                {!isAdding && (
+                    <button 
+                        onClick={() => setIsAdding(true)}
+                        className="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-lg font-bold shadow-sm flex items-center gap-2 transition-colors"
+                    >
+                        <Plus size={18} /> Nova Dívida
+                    </button>
+                )}
+            </div>
+
+            {/* THE "NORTH" - AI RECOMMENDATION */}
+            {debts.length > 0 && topPriority && (
+                <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-xl p-6 text-white shadow-xl border border-slate-700 relative overflow-hidden">
+                    <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center gap-6">
+                        <div className="p-4 bg-white/10 rounded-full shrink-0 animate-pulse">
+                            <Calculator size={32} className="text-amber-400" />
+                        </div>
+                        <div className="flex-1">
+                            <h3 className="text-amber-400 font-bold text-sm uppercase tracking-wider mb-1 flex items-center gap-2">
+                                <TrendingUp size={14} /> Recomendação Inteligente (O Norte)
+                            </h3>
+                            <h4 className="text-xl font-bold mb-2">
+                                Foque em quitar: <span className="text-white border-b-2 border-rose-500">{topPriority.name}</span>
+                            </h4>
+                            <p className="text-slate-300 text-sm leading-relaxed">
+                                Esta dívida possui a maior taxa de juros (<strong>{topPriority.interestRate}% a.m.</strong>). 
+                                Matematicamente, eliminá-la primeiro fará você economizar mais dinheiro a longo prazo (Método Avalanche).
+                            </p>
+                        </div>
+                        <div className="bg-white/10 p-4 rounded-lg text-center min-w-[120px]">
+                            <p className="text-xs text-slate-400 uppercase">Valor Atual</p>
+                            <p className="text-lg font-mono font-bold">{formatCurrency(topPriority.totalAmount)}</p>
+                        </div>
+                    </div>
+                    {/* Decorative */}
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/20 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
+                </div>
+            )}
+
+            {/* Add Form */}
+            {isAdding && (
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-rose-200 dark:border-rose-900/50 shadow-sm animate-fade-in">
+                    <h3 className="font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+                        <AlertOctagon className="text-rose-500" size={18} /> Cadastrar Nova Dívida
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Credor / Descrição *</label>
+                            <input 
+                                type="text" 
+                                value={name}
+                                onChange={e => setName(e.target.value)}
+                                placeholder="Ex: Negativação Serasa - Banco X"
+                                className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded px-3 py-2 text-sm focus:border-rose-500 outline-none"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Valor Total (R$) *</label>
+                            <input 
+                                type="number" 
+                                value={amount}
+                                onChange={e => setAmount(e.target.value)}
+                                placeholder="0.00"
+                                className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded px-3 py-2 text-sm focus:border-rose-500 outline-none"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Juros Mensal (%) *</label>
+                            <div className="relative">
+                                <input 
+                                    type="number" 
+                                    value={rate}
+                                    onChange={e => setRate(e.target.value)}
+                                    placeholder="Ex: 12.5"
+                                    className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded px-3 py-2 text-sm focus:border-rose-500 outline-none"
+                                />
+                                <span className="absolute right-3 top-2 text-xs text-slate-400">%</span>
+                            </div>
+                        </div>
+                        <div>
+                             <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Categoria</label>
+                             <select 
+                                value={category}
+                                onChange={(e) => setCategory(e.target.value as any)}
+                                className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded px-3 py-2 text-sm focus:border-rose-500 outline-none"
+                             >
+                                <option value="banco">Empréstimo Bancário</option>
+                                <option value="cartao">Cartão de Crédito</option>
+                                <option value="servico">Contas (Luz/Água/Tel)</option>
+                                <option value="emprestimo">Agiota / Pessoal</option>
+                                <option value="outro">Outros (Serasa)</option>
+                             </select>
+                        </div>
+                    </div>
+                    <div className="flex justify-end gap-3">
+                        <button 
+                            onClick={() => setIsAdding(false)}
+                            className="px-4 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-sm font-bold transition-colors"
+                            disabled={isSaving}
+                        >
+                            Cancelar
+                        </button>
+                        <button 
+                            onClick={handleSave}
+                            disabled={isSaving}
+                            className="bg-rose-600 hover:bg-rose-700 text-white px-6 py-2 rounded text-sm font-bold shadow-md transition-colors flex items-center gap-2 disabled:opacity-50"
+                        >
+                            {isSaving ? <Loader2 className="animate-spin" size={16} /> : null}
+                            {isSaving ? 'Salvando...' : 'Salvar Dívida'}
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* List */}
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+                <div className="p-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex justify-between items-center">
+                    <h3 className="font-bold text-slate-700 dark:text-slate-200">Suas Pendências</h3>
+                    <span className="text-xs bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 px-2 py-1 rounded font-bold">
+                        Total: {formatCurrency(debts.reduce((acc, curr) => acc + curr.totalAmount, 0))}
+                    </span>
+                </div>
+                
+                {debts.length === 0 ? (
+                    <div className="p-10 text-center text-slate-400 dark:text-slate-500">
+                        <CheckCircle size={48} className="mx-auto mb-2 opacity-20" />
+                        <p>Nenhuma dívida cadastrada. Parabéns!</p>
+                    </div>
+                ) : (
+                    <div className="divide-y divide-slate-100 dark:divide-slate-700">
+                        {priorityList.map((debt, index) => (
+                            <div key={debt.id} className="p-4 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors flex items-center justify-between group relative">
+                                {index === 0 && (
+                                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-amber-400"></div>
+                                )}
+                                <div className="flex items-center gap-4">
+                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${
+                                        index === 0 ? 'bg-amber-100 text-amber-700 ring-2 ring-amber-400' : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-300'
+                                    }`}>
+                                        {index + 1}º
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                                            {debt.name}
+                                            {index === 0 && <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded border border-amber-200">Prioridade Máxima</span>}
+                                        </h4>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-3 mt-1">
+                                            <span className="flex items-center gap-1 text-rose-600 dark:text-rose-400 font-medium">
+                                                <TrendingUp size={12} /> Juros: {debt.interestRate}% a.m.
+                                            </span>
+                                            <span>•</span>
+                                            <span className="capitalize">{debt.category}</span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-6">
+                                    <span className="font-mono font-bold text-slate-700 dark:text-slate-200">
+                                        {formatCurrency(debt.totalAmount)}
+                                    </span>
+                                    <button 
+                                        onClick={() => onDeleteDebt(debt.id)}
+                                        className="text-slate-300 hover:text-rose-500 transition-colors p-2"
+                                        title="Excluir (Pago)"
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {debts.length > 0 && (
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/10 rounded-lg border border-blue-100 dark:border-blue-800 text-sm text-blue-700 dark:text-blue-300 flex items-start gap-3">
+                    <Info className="shrink-0 mt-0.5" size={18} />
+                    <p>
+                        <strong>Dica Pro:</strong> A ordem acima segue a matemática financeira. 
+                        Entretanto, se você tiver uma dívida muito pequena que te incomoda psicologicamente, 
+                        pode ser válido quitá-la primeiro (Método Bola de Neve) para sentir progresso rápido.
+                    </p>
+                </div>
+            )}
+        </div>
+    );
+};

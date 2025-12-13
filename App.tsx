@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Transaction, Goal, AppConfig, FilterState, Tab } from './types';
+import { Transaction, Goal, AppConfig, FilterState, Tab, Debt } from './types';
 import { DEFAULT_CONFIG, MONTH_NAMES } from './constants';
 import { Dashboard } from './components/Dashboard';
 import { SheetView } from './components/SheetView';
@@ -8,15 +8,18 @@ import { GoalsSheet } from './components/GoalsSheet';
 import { Settings } from './components/Settings';
 import { AdminPanel } from './components/AdminPanel';
 import { Investments } from './components/Investments';
+import { Courses } from './components/Courses';
+import { Debts } from './components/Debts';
 import { Login } from './components/Login';
 import { Toast } from './components/Toast';
 import { Inbox } from './components/Inbox';
 import { Tutorial } from './components/Tutorial';
 import { FilterBar } from './components/FilterBar';
 import { ResetPasswordModal } from './components/ResetPasswordModal';
+import { CalculatorModal } from './components/CalculatorModal'; // IMPORTADO
 import { DBService } from './db';
 import { supabase } from './supabaseClient';
-import { LayoutDashboard, CreditCard, TrendingUp, Target, Settings as SettingsIcon, Menu, Filter, LogOut, Loader2, ShieldCheck, Mail, Sun, Moon, X, BarChart4 } from 'lucide-react';
+import { LayoutDashboard, CreditCard, TrendingUp, Target, Settings as SettingsIcon, Menu, Filter, LogOut, Loader2, ShieldCheck, Mail, Sun, Moon, X, BarChart4, GraduationCap, Scale, Calculator } from 'lucide-react'; // Calculator Icon
 
 // Centralized Metadata for Tabs (Title, Label, Icon)
 const TAB_METADATA: Record<Tab, { label: string; pageTitle: string; icon: React.ReactNode }> = {
@@ -35,6 +38,11 @@ const TAB_METADATA: Record<Tab, { label: string; pageTitle: string; icon: React.
         pageTitle: 'Gerenciar Despesas', 
         icon: <CreditCard size={20} /> 
     },
+    dividas: {
+        label: 'Dívidas',
+        pageTitle: 'Gestão de Passivos',
+        icon: <Scale size={20} />
+    },
     metas: { 
         label: 'Metas', 
         pageTitle: 'Metas Financeiras', 
@@ -44,6 +52,11 @@ const TAB_METADATA: Record<Tab, { label: string; pageTitle: string; icon: React.
         label: 'Investimentos', 
         pageTitle: 'Central de Investimentos', 
         icon: <BarChart4 size={20} /> 
+    },
+    cursos: { 
+        label: 'Cursos (Em Construção)', 
+        pageTitle: 'Educação Financeira', 
+        icon: <GraduationCap size={20} /> 
     },
     config: { 
         label: 'Configurações', 
@@ -79,6 +92,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
   
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
+  const [debts, setDebts] = useState<Debt[]>([]);
   const [config, setConfig] = useState<AppConfig>(DEFAULT_CONFIG);
 
   // Toast Notification State
@@ -88,6 +102,9 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
   // Inbox State
   const [showInbox, setShowInbox] = useState(false);
   const [unreadMessages, setUnreadMessages] = useState(0);
+
+  // Calculator State
+  const [showCalculator, setShowCalculator] = useState(false);
 
   // Tutorial State
   const [showTutorial, setShowTutorial] = useState(false);
@@ -222,6 +239,8 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
              dataPromises.push(DBService.getTransactions(user).then(setTransactions));
         } else if (tab === 'metas') {
              dataPromises.push(DBService.getGoals(user).then(setGoals));
+        } else if (tab === 'dividas') {
+             dataPromises.push(DBService.getDebts(user).then(setDebts));
         } else if (tab === 'config') {
              dataPromises.push(DBService.getConfig(user).then((cfg) => setConfig({ ...DEFAULT_CONFIG, ...cfg, userId: user })));
         }
@@ -282,6 +301,17 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
       }
   };
 
+  const addDebt = async (d: Debt) => {
+      const dWithUser = { ...d, userId: user };
+      await DBService.saveDebt(dWithUser);
+      setDebts(prev => [...prev, dWithUser]);
+  };
+
+  const deleteDebt = async (id: string) => {
+      await DBService.deleteDebt(id);
+      setDebts(prev => prev.filter(d => d.id !== id));
+  };
+
   const updateConfig = async (newConfig: AppConfig) => {
       const configWithUser = { ...newConfig, userId: user };
       await DBService.saveConfig(configWithUser);
@@ -302,8 +332,8 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
   // Helper for page titles using metadata
   const getPageTitle = (tab: Tab) => TAB_METADATA[tab].pageTitle;
 
-  // Sidebar Menu Logic
-  const sidebarTabs: Tab[] = ['controle', 'receitas', 'despesas', 'metas', 'investimentos', 'config'];
+  // Sidebar Menu Logic - Adicionado 'dividas'
+  const sidebarTabs: Tab[] = ['controle', 'receitas', 'despesas', 'dividas', 'metas', 'investimentos', 'cursos', 'config'];
   if (isAdmin) sidebarTabs.push('admin');
 
   if (loading) {
@@ -330,7 +360,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
         <div className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
             Menu Principal
         </div>
-        <nav className="flex-1 px-4 space-y-1">
+        <nav className="flex-1 px-4 space-y-1 overflow-y-auto custom-scrollbar">
             {sidebarTabs.map(tabId => {
                 const meta = TAB_METADATA[tabId];
                 return (
@@ -387,7 +417,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
                         <X size={20} />
                     </button>
                 </div>
-                <nav className="flex-1 px-4 space-y-1 mt-4">
+                <nav className="flex-1 px-4 space-y-1 mt-4 overflow-y-auto">
                     {/* Show all items in burger menu too */}
                     {sidebarTabs.map(tabId => {
                         const meta = TAB_METADATA[tabId];
@@ -444,8 +474,18 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
                 <button
                     onClick={() => updateConfig({...config, theme: config.theme === 'dark' ? 'light' : 'dark'})}
                     className="p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
+                    title="Alternar Tema"
                 >
                     {config.theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+                </button>
+
+                {/* CALCULATOR BUTTON */}
+                <button
+                    onClick={() => setShowCalculator(true)}
+                    className="p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
+                    title="Calculadora"
+                >
+                    <Calculator size={20} />
                 </button>
 
                 <button 
@@ -507,6 +547,16 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
                     />
                 )}
 
+                {activeTab === 'dividas' && (
+                    <Debts 
+                        config={config}
+                        debts={debts}
+                        onAddDebt={addDebt}
+                        onDeleteDebt={deleteDebt}
+                        onNavigateToSettings={() => handleTabChange('config')}
+                    />
+                )}
+
                 {activeTab === 'metas' && (
                     <GoalsSheet 
                         goals={goals}
@@ -518,6 +568,13 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
 
                 {activeTab === 'investimentos' && (
                     <Investments 
+                        config={config}
+                        onNavigateToSettings={() => handleTabChange('config')}
+                    />
+                )}
+
+                {activeTab === 'cursos' && (
+                    <Courses
                         config={config}
                         onNavigateToSettings={() => handleTabChange('config')}
                     />
@@ -562,11 +619,11 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
                 </button>
             </div>
             <button 
-                onClick={() => handleTabChange('investimentos')}
-                className={`flex flex-col items-center justify-center p-2 w-full ${activeTab === 'investimentos' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`}
+                onClick={() => handleTabChange('dividas')}
+                className={`flex flex-col items-center justify-center p-2 w-full ${activeTab === 'dividas' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`}
             >
-                <BarChart4 size={20} />
-                <span className="text-[10px] mt-1 font-medium">Invest.</span>
+                <Scale size={20} />
+                <span className="text-[10px] mt-1 font-medium">Dívidas</span>
             </button>
             <button 
                 onClick={() => handleTabChange('config')}
@@ -593,11 +650,17 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
             />
         )}
 
+        {/* GLOBALS */}
         <Inbox 
             userId={user}
             isOpen={showInbox}
             onClose={() => setShowInbox(false)}
             onUpdateUnread={checkUnreadMessages}
+        />
+
+        <CalculatorModal 
+            isOpen={showCalculator} 
+            onClose={() => setShowCalculator(false)} 
         />
       </main>
     </div>

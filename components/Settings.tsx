@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { AppConfig, Transaction, PurchaseRequest } from '../types';
-import { Trash2, Plus, FileSpreadsheet, Download, Bell, CreditCard, CheckCircle, Clock, Upload, Shield, Key, Smartphone, Copy, Lock, Moon, Sun, AlertTriangle, FileText, QrCode } from 'lucide-react';
+import { Trash2, Plus, FileSpreadsheet, Download, Bell, CreditCard, CheckCircle, Clock, Upload, Shield, Key, Smartphone, Copy, Lock, Moon, Sun, AlertTriangle, FileText, QrCode, ArrowRight } from 'lucide-react';
 import { exportToCSV, generateId, validateLicenseKey } from '../utils';
 import { DBService } from '../db';
 import { PrivacyModal } from './PrivacyModal';
@@ -13,8 +13,8 @@ interface SettingsProps {
 }
 
 // --- CONFIGURAÇÃO DO PIX ---
-// Substitua esta chave pela sua Chave Pix real (CPF, CNPJ, Email, Telefone ou Aleatória)
-const PIX_KEY = "12.345.678/0001-90"; 
+// Substitua esta chave pela sua Chave Pix real
+const PIX_KEY = "71ee2472-12a1-4edf-b0e0-ad0bc4c2a984"; 
 const PIX_NAME = "Finance Pro 360 Ltda";
 
 export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, transactions }) => {
@@ -27,7 +27,6 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
     // Remote License State
     const [inputLicenseKey, setInputLicenseKey] = useState('');
     const [licenseError, setLicenseError] = useState('');
-    const [showManualActivation, setShowManualActivation] = useState(false);
 
     // Change Password State
     const [newPassword, setNewPassword] = useState('');
@@ -61,7 +60,6 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
             };
             await DBService.savePurchaseRequest(req);
             setPurchaseRequest(req);
-            setShowManualActivation(true); // Show manual options immediately after request
         } catch (error) {
             console.error(error);
             alert("Não foi possível salvar a solicitação local. Tente usar o método via WhatsApp.");
@@ -97,7 +95,6 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
         const text = `Olá! Realizei o pagamento via Pix e gostaria de solicitar a licença do Finance Pro 360.\n\nMeu ID de Usuário: *${config.userId}*\n\n(Anexe o comprovante aqui)`;
         const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
         window.open(url, '_blank');
-        setShowManualActivation(true);
     };
 
     const copyUserId = () => {
@@ -212,154 +209,150 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
         <div className="max-w-5xl mx-auto animate-fade-in space-y-6 pb-10">
             
             {/* Purchase / License Section */}
-            <div className="bg-gradient-to-r from-indigo-500 to-blue-600 p-6 rounded-xl shadow-lg text-white border border-blue-400 relative overflow-hidden">
-                {/* Texture */}
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-20 -mt-20 pointer-events-none"></div>
-                
-                <div className="relative z-10">
-                    <div className="flex justify-between items-start mb-4">
+            <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-1 rounded-xl shadow-lg text-white border border-slate-700 relative overflow-hidden">
+                <div className="bg-white dark:bg-slate-900 rounded-lg p-6">
+                    
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
                         <div>
-                            <h3 className="text-xl font-bold flex items-center gap-2 mb-2">
-                                <CreditCard className="text-white" size={24} />
-                                Assinatura Finance Pro 360
+                            <h3 className="text-xl font-bold flex items-center gap-2 text-slate-800 dark:text-white">
+                                <CreditCard className="text-blue-600" size={24} />
+                                Status da Assinatura
                             </h3>
-                            <p className="text-blue-100 text-sm max-w-lg">
-                                {isLicensed 
-                                    ? "Parabéns! Você possui uma licença vitalícia ativa. Aproveite todos os recursos sem limites."
-                                    : "Adquira a licença vitalícia para desbloquear recursos exclusivos e suporte prioritário."
-                                }
+                            <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
+                                Gerencie sua licença e libere recursos exclusivos.
                             </p>
                         </div>
                         
-                        <div className="bg-white/10 p-3 rounded-lg backdrop-blur-sm min-w-[140px] text-center border border-white/20">
-                            <span className="text-xs uppercase tracking-widest text-blue-200 mb-1 block">Status</span>
-                            <div className="flex items-center justify-center gap-2 font-bold text-lg">
-                                {isLicensed ? (
-                                    <><CheckCircle size={20} className="text-emerald-300" /> Ativo</>
+                        <div className={`px-4 py-2 rounded-full border flex items-center gap-2 font-bold text-sm ${
+                            isLicensed 
+                            ? 'bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-400' 
+                            : 'bg-amber-50 border-amber-200 text-amber-700 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-400'
+                        }`}>
+                            {isLicensed ? (
+                                <><CheckCircle size={16} /> PREMIUM ATIVO</>
+                            ) : (
+                                purchaseRequest?.status === 'pending' ? (
+                                    <><Clock size={16} /> AGUARDANDO PAGAMENTO</>
                                 ) : (
-                                    purchaseRequest?.status === 'pending' ? (
-                                        <><Clock size={20} className="text-amber-300" /> Pendente</>
-                                    ) : (
-                                        <><Lock size={20} className="text-slate-300" /> Gratuito</>
-                                    )
-                                )}
-                            </div>
+                                    <><Lock size={16} /> VERSÃO GRATUITA</>
+                                )
+                            )}
                         </div>
                     </div>
 
                     {!isLicensed && (
-                        <div className="bg-white/95 text-slate-800 rounded-lg p-4 shadow-sm">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* Left: Request Methods & PIX */}
-                                <div className="space-y-4">
-                                    <h4 className="text-sm font-bold text-indigo-700 uppercase">1. Solicitar & Pagar</h4>
-                                    
-                                    {!purchaseRequest ? (
-                                        <>
-                                            <p className="text-xs text-slate-500">
-                                                Para ativar em <strong>qualquer dispositivo</strong>, solicite abaixo para gerar os dados de pagamento.
-                                            </p>
-                                            <div className="flex items-center gap-2 bg-slate-100 p-2 rounded border border-slate-200">
-                                                <span className="text-xs text-slate-500 font-mono">ID:</span>
-                                                <span className="text-sm font-bold font-mono select-all text-slate-800">{config.userId}</span>
-                                                <button onClick={copyUserId} className="ml-auto text-slate-400 hover:text-blue-600" title="Copiar ID">
-                                                    <Copy size={16} />
+                        <div className="space-y-8">
+                            
+                            {/* PASSO 1: Solicitar e Pagar */}
+                            <div>
+                                {!purchaseRequest ? (
+                                    <div className="bg-blue-50 dark:bg-blue-900/10 p-6 rounded-xl border border-blue-100 dark:border-blue-800 text-center">
+                                        <h4 className="text-lg font-bold text-blue-800 dark:text-blue-300 mb-2">Libere seu acesso agora</h4>
+                                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 max-w-lg mx-auto">
+                                            Adquira a licença vitalícia para desbloquear gráficos avançados, aba de investimentos, cursos exclusivos e muito mais.
+                                        </p>
+                                        
+                                        <div className="flex flex-col items-center gap-4">
+                                            <div className="flex items-center gap-2 bg-white dark:bg-slate-800 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
+                                                <span className="text-xs text-slate-500 font-mono uppercase">Seu ID:</span>
+                                                <code className="text-sm font-bold text-slate-800 dark:text-slate-200 select-all">{config.userId}</code>
+                                                <button onClick={copyUserId} className="text-blue-500 hover:text-blue-700 ml-2" title="Copiar ID">
+                                                    <Copy size={14} />
                                                 </button>
                                             </div>
 
                                             <button 
                                                 onClick={handleRequestPurchase}
                                                 disabled={loadingReq}
-                                                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg text-sm font-bold transition-colors flex items-center justify-center gap-2 shadow-md"
+                                                className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white py-3 px-8 rounded-full font-bold shadow-lg shadow-emerald-500/20 transition-all transform hover:-translate-y-1 flex items-center gap-2"
                                             >
-                                                {loadingReq ? (
-                                                    'Gerando solicitação...'
-                                                ) : (
-                                                    <>
-                                                        <QrCode size={18} />
-                                                        Solicitar e Pagar com Pix
-                                                    </>
-                                                )}
+                                                {loadingReq ? 'Processando...' : <><QrCode size={18} /> Solicitar e Pagar com Pix</>}
                                             </button>
-                                        </>
-                                    ) : (
-                                        // ÁREA DE PAGAMENTO PIX (Visível após solicitar)
-                                        <div className="bg-slate-50 border-2 border-emerald-500 rounded-lg p-4 animate-fade-in relative overflow-hidden">
-                                            <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl">
-                                                AGUARDANDO PAGAMENTO
-                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    // ÁREA DE PAGAMENTO PIX
+                                    <div className="bg-emerald-50/50 dark:bg-emerald-900/10 border-2 border-emerald-500 border-dashed rounded-xl p-6 animate-fade-in relative text-center">
+                                        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-emerald-500 text-white px-4 py-1 rounded-full text-xs font-bold shadow-sm uppercase tracking-wider flex items-center gap-1">
+                                            <QrCode size={12} /> Pagamento Pix
+                                        </div>
+                                        
+                                        <div className="mt-4 flex flex-col items-center gap-4">
+                                            <p className="text-sm text-slate-600 dark:text-slate-300 font-medium">
+                                                Escaneie o QR Code abaixo com o app do seu banco:
+                                            </p>
                                             
-                                            <div className="flex gap-4">
-                                                {/* QR Code Placeholder (Gerado via API simples para demo visual) */}
-                                                <div className="bg-white p-1 rounded border border-slate-200 shrink-0">
-                                                    <img 
-                                                        src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(PIX_KEY)}`} 
-                                                        alt="QR Code Pix" 
-                                                        className="w-24 h-24"
-                                                    />
-                                                </div>
-                                                
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-xs font-bold text-slate-700 mb-1">Pagamento via Pix</p>
-                                                    <p className="text-[10px] text-slate-500 mb-2 truncate">Beneficiário: {PIX_NAME}</p>
-                                                    
-                                                    <div className="flex items-center gap-1 mb-2">
-                                                        <input 
-                                                            type="text" 
-                                                            value={PIX_KEY}
-                                                            readOnly
-                                                            className="w-full bg-white border border-slate-300 rounded px-2 py-1 text-xs font-mono text-slate-600 outline-none"
-                                                        />
-                                                        <button 
-                                                            onClick={copyPixKey}
-                                                            className="bg-emerald-100 text-emerald-700 p-1.5 rounded hover:bg-emerald-200 transition-colors"
-                                                            title="Copiar Chave"
-                                                        >
-                                                            <Copy size={14} />
-                                                        </button>
+                                            <div className="bg-white p-3 rounded-xl shadow-sm border border-slate-200">
+                                                <img 
+                                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(PIX_KEY)}`} 
+                                                    alt="QR Code Pix" 
+                                                    className="w-32 h-32 md:w-40 md:h-40"
+                                                />
+                                            </div>
+
+                                            <div className="w-full max-w-sm space-y-2">
+                                                <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Ou copie e cole a chave:</p>
+                                                <div className="flex gap-2">
+                                                    <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm font-mono text-slate-700 dark:text-slate-200 flex items-center justify-center truncate select-all">
+                                                        {PIX_KEY}
                                                     </div>
+                                                    <button 
+                                                        onClick={copyPixKey}
+                                                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 rounded-lg transition-colors shadow-sm flex items-center justify-center"
+                                                        title="Copiar Chave"
+                                                    >
+                                                        <Copy size={18} />
+                                                    </button>
                                                 </div>
+                                                <p className="text-xs text-slate-400 dark:text-slate-500">
+                                                    Beneficiário: {PIX_NAME}
+                                                </p>
                                             </div>
-                                            
+                                        </div>
+                                        
+                                        <div className="mt-6 pt-6 border-t border-emerald-200 dark:border-emerald-800/30">
+                                            <p className="text-sm text-slate-600 dark:text-slate-300 mb-3">
+                                                Após realizar o pagamento, envie o comprovante:
+                                            </p>
                                             <button 
                                                 onClick={handleWhatsAppRequest}
-                                                className="w-full mt-3 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded text-xs font-bold flex items-center justify-center gap-2 transition-colors"
+                                                className="inline-flex items-center gap-2 bg-[#25D366] hover:bg-[#128C7E] text-white font-bold py-2.5 px-6 rounded-full transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                                             >
-                                                <Smartphone size={14} />
-                                                Enviar Comprovante no WhatsApp
+                                                <Smartphone size={18} />
+                                                Enviar Comprovante via WhatsApp
                                             </button>
-                                            <p className="text-[10px] text-center text-slate-400 mt-2">
-                                                O acesso será liberado após o envio do comprovante.
-                                            </p>
                                         </div>
-                                    )}
-                                </div>
-
-                                {/* Right: Activation */}
-                                <div className="space-y-3 border-t md:border-t-0 md:border-l border-slate-200 md:pl-6 pt-4 md:pt-0">
-                                    <h4 className="text-sm font-bold text-indigo-700 uppercase">2. Ativar Licença</h4>
-                                    <p className="text-xs text-slate-500">
-                                        Já recebeu sua chave de ativação? Insira abaixo para liberar o acesso imediatamente.
-                                    </p>
-                                    
-                                    <div className="flex gap-2">
-                                        <input 
-                                            type="text" 
-                                            value={inputLicenseKey}
-                                            onChange={e => setInputLicenseKey(e.target.value.toUpperCase())}
-                                            placeholder="XXXX-XXXX"
-                                            className="flex-1 border-2 border-slate-200 rounded px-3 py-2 text-sm font-mono uppercase focus:border-indigo-500 outline-none"
-                                        />
-                                        <button 
-                                            onClick={handleActivateLicense}
-                                            className="bg-slate-800 text-white px-4 rounded font-bold hover:bg-slate-900"
-                                        >
-                                            Ativar
-                                        </button>
                                     </div>
-                                    {licenseError && <p className="text-xs text-rose-500 font-bold">{licenseError}</p>}
-                                </div>
+                                )}
                             </div>
+
+                            {/* PASSO 2: Inserir Chave */}
+                            <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
+                                <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase mb-3 flex items-center gap-2">
+                                    <Key size={16} /> Já possui sua chave?
+                                </h4>
+                                <div className="flex flex-col sm:flex-row gap-2 max-w-xl">
+                                    <input 
+                                        type="text" 
+                                        value={inputLicenseKey}
+                                        onChange={e => setInputLicenseKey(e.target.value.toUpperCase())}
+                                        placeholder="Cole sua chave de licença aqui (XXXX-XXXX)"
+                                        className="flex-1 border-2 border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-lg px-4 py-2 text-sm font-mono uppercase focus:border-blue-500 outline-none transition-colors"
+                                    />
+                                    <button 
+                                        onClick={handleActivateLicense}
+                                        className="bg-slate-800 dark:bg-slate-700 text-white px-6 py-2 rounded-lg font-bold hover:bg-slate-900 dark:hover:bg-slate-600 transition-colors shadow-sm flex items-center justify-center gap-2"
+                                    >
+                                        Ativar Agora <ArrowRight size={16} />
+                                    </button>
+                                </div>
+                                {licenseError && (
+                                    <p className="text-xs text-rose-500 font-bold mt-2 flex items-center gap-1 animate-fade-in">
+                                        <AlertTriangle size={12} /> {licenseError}
+                                    </p>
+                                )}
+                            </div>
+
                         </div>
                     )}
                 </div>
