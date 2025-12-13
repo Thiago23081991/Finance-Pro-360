@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { PurchaseRequest, AdminMessage, SystemStats, UserProfile } from '../types';
 import { DBService } from '../db';
-import { Check, X, ShieldAlert, User, MessageSquare, Send, FileText, Mail, Eye, EyeOff, RefreshCw, Key, Copy, Smartphone, Lock, Loader2, Users, BarChart3, Wallet, Database } from 'lucide-react';
+import { Check, X, ShieldAlert, User, MessageSquare, Send, FileText, Mail, Eye, EyeOff, RefreshCw, Key, Copy, Smartphone, Lock, Loader2, Users, BarChart3, Wallet, Database, ShieldOff, ShieldCheck, Wrench, UserPlus, AlertTriangle } from 'lucide-react';
 import { generateId, generateLicenseKey, formatCurrency } from '../utils';
 
 type AdminTab = 'overview' | 'users' | 'requests' | 'messages' | 'generator';
@@ -25,15 +25,21 @@ export const AdminPanel: React.FC = () => {
   const [msgContent, setMsgContent] = useState('');
   const [sending, setSending] = useState(false);
 
-  // Generator State
+  // Tools/Generator State
   const [genUserId, setGenUserId] = useState('');
   const [generatedKey, setGeneratedKey] = useState('');
+  
+  // Manual Create Profile State
+  const [manualId, setManualId] = useState('');
+  const [manualEmail, setManualEmail] = useState('');
+  const [manualName, setManualName] = useState('');
+  const [manualLoading, setManualLoading] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
     try {
         // Parallel fetching for performance
-        const [sysStats, allUsers, reqs, msgs] = await Promise.all([
+        const [sysStats, dbProfiles, dbRequests, msgs] = await Promise.all([
             DBService.getSystemStats(),
             DBService.getAllProfiles(),
             DBService.getAllPurchaseRequests(),
@@ -41,10 +47,46 @@ export const AdminPanel: React.FC = () => {
         ]);
 
         setStats(sysStats);
-        setProfiles(allUsers);
+
+        // --- LÓGICA DE MESCLAGEM AUTOMÁTICA (RESOLVE USUÁRIOS FANTASMAS) ---
+        // 1. Cria um mapa dos perfis existentes para acesso rápido
+        const profileMap = new Map(dbProfiles.map(p => [p.id, p]));
         
-        // Requests Logic
-        const sortedReqs = reqs.sort((a, b) => {
+        // 2. Identifica usuários que estão nos PEDIDOS mas NÃO estão nos PERFIS
+        const ghostUsers: UserProfile[] = [];
+        const uniqueRequestUserIds = new Set(dbRequests.map(r => r.userId));
+
+        uniqueRequestUserIds.forEach(reqUserId => {
+            if (!profileMap.has(reqUserId)) {
+                // Usuário Fantasma detectado! Vamos criar um perfil virtual para exibição
+                ghostUsers.push({
+                    id: reqUserId,
+                    name: 'Usuário (Perfil Pendente)',
+                    email: 'Email não registrado',
+                    username: 'user_ghost',
+                    licenseStatus: 'inactive', // Default
+                    isGhost: true,
+                    createdAt: new Date().toISOString()
+                });
+            }
+        });
+
+        // 3. Combina perfis reais com fantasmas para a lista completa
+        const allProfiles = [...dbProfiles, ...ghostUsers];
+        setProfiles(allProfiles);
+
+        // --- ENRIQUECIMENTO DAS SOLICITAÇÕES (EXIBIR NOME NA ABA LICENÇAS) ---
+        const enrichedRequests = dbRequests.map(req => {
+            const userProfile = profileMap.get(req.userId) || ghostUsers.find(g => g.id === req.userId);
+            return {
+                ...req,
+                userName: userProfile?.name || 'Desconhecido',
+                userEmail: userProfile?.email
+            };
+        });
+
+        // Ordenação dos pedidos
+        const sortedReqs = enrichedRequests.sort((a, b) => {
             if (a.status === 'pending' && b.status !== 'pending') return -1;
             if (a.status !== 'pending' && b.status === 'pending') return 1;
             return new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime();
@@ -72,29 +114,40 @@ export const AdminPanel: React.FC = () => {
         const updated: PurchaseRequest = { ...req, status: newStatus };
         await DBService.savePurchaseRequest(updated);
         
-        // 1. Update Requests State
-        setRequests(prev => prev.map(r => r.userId === req.userId ? updated : r));
-        if (req.status === 'pending') {
-            setPendingRequestsCount(prev => Math.max(0, prev - 1));
-        }
-
-        // 2. Refresh ALL Data
-        // Isso garante que se o perfil não existia e foi criado pelo 'savePurchaseRequest',
-        // ele agora aparecerá na lista de usuários.
-        setTimeout(() => {
-            fetchData();
-        }, 500);
-
-        // Optimistic update for immediate feedback (if user exists in list)
-        if (newStatus === 'approved') {
-            setProfiles(prev => prev.map(p => 
-                p.id === req.userId ? { ...p, licenseStatus: 'active' } : p
-            ));
-        }
+        // Refresh para garantir sincronia
+        fetchData();
 
     } catch (error: any) {
         alert("Erro ao atualizar status: " + error.message);
     }
+  };
+
+  const handleToggleLicense = async (profile: UserProfile) => {
+      // Se for usuário fantasma, avisar que precisa criar o perfil primeiro
+      if (profile.isGhost) {
+          if (confirm("Este usuário não possui perfil completo no banco de dados. Deseja criar um perfil básico para ele agora para poder ativar o Premium?")) {
+              setManualId(profile.id);
+              setManualEmail(profile.email !== 'Email não registrado' ? profile.email : '');
+              setActiveTab('generator'); // Leva para a aba de ferramentas
+              alert("Por favor, preencha o e-mail do usuário na aba Ferramentas para finalizar o cadastro.");
+          }
+          return;
+      }
+
+      const newStatus = profile.licenseStatus === 'active' ? 'inactive' : 'active';
+      const action = newStatus === 'active' ? 'ativar' : 'remover';
+      
+      if (!window.confirm(`Deseja realmente ${action} a licença Premium para ${profile.name || profile.email}?`)) return;
+
+      try {
+          await DBService.updateUserLicense(profile.id, newStatus);
+          // Update local state
+          setProfiles(prev => prev.map(p => 
+              p.id === profile.id ? { ...p, licenseStatus: newStatus } : p
+          ));
+      } catch (error: any) {
+          alert("Erro ao atualizar licença: " + error.message);
+      }
   };
 
   const openMessageModal = (userId: string) => {
@@ -106,7 +159,7 @@ export const AdminPanel: React.FC = () => {
   const handleSendMessage = async () => {
       if (!msgContent.trim()) return;
 
-      if (!window.confirm(`Tem certeza que deseja enviar esta mensagem para o usuário ${msgTargetUser}?`)) {
+      if (!window.confirm(`Tem certeza que deseja enviar esta mensagem para o usuário?`)) {
         return;
       }
 
@@ -123,7 +176,7 @@ export const AdminPanel: React.FC = () => {
           await DBService.sendMessage(msg);
           setMsgModalOpen(false);
           alert('Mensagem enviada com sucesso!');
-          fetchData(); // Refresh message list
+          fetchData(); 
       } catch (error: any) {
           alert('Erro ao enviar mensagem: ' + error.message);
       } finally {
@@ -135,6 +188,26 @@ export const AdminPanel: React.FC = () => {
       if (!genUserId) return;
       const key = generateLicenseKey(genUserId);
       setGeneratedKey(key);
+  };
+
+  const handleManualProfileCreate = async () => {
+      if (!manualId || !manualEmail) {
+          alert("ID e Email são obrigatórios.");
+          return;
+      }
+      setManualLoading(true);
+      try {
+          await DBService.createProfileManually(manualId, manualEmail, manualName || 'Usuário Recuperado');
+          alert("Perfil criado com sucesso! Agora você pode gerenciar este usuário na aba 'Usuários'.");
+          setManualId('');
+          setManualEmail('');
+          setManualName('');
+          fetchData(); // Refresh list
+      } catch (error: any) {
+          alert("Erro ao criar perfil: " + error.message);
+      } finally {
+          setManualLoading(false);
+      }
   };
 
   return (
@@ -213,7 +286,7 @@ export const AdminPanel: React.FC = () => {
                         activeTab === 'generator' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
                     }`}
                 >
-                    <Key size={18} /> Gerador
+                    <Wrench size={18} /> Ferramentas
                     {activeTab === 'generator' && <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 dark:bg-blue-400 rounded-t-full"></span>}
                 </button>
             </div>
@@ -281,8 +354,8 @@ export const AdminPanel: React.FC = () => {
                     <table className="w-full text-left border-collapse">
                         <thead className="bg-slate-50 dark:bg-slate-900">
                             <tr>
-                                <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Nome / Email</th>
-                                <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Status Licença</th>
+                                <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Usuário</th>
+                                <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Licença</th>
                                 <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 text-center">Ações</th>
                             </tr>
                         </thead>
@@ -298,8 +371,13 @@ export const AdminPanel: React.FC = () => {
                                     <tr key={profile.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
                                         <td className="py-4 px-6">
                                             <div className="flex flex-col">
-                                                <span className="font-bold text-slate-700 dark:text-slate-200">{profile.name || 'Sem nome'}</span>
+                                                <span className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                                                    {profile.name || 'Sem nome'}
+                                                    {profile.isGhost && <span className="text-[9px] bg-amber-100 text-amber-700 px-1 rounded uppercase">Pendente</span>}
+                                                </span>
                                                 <span className="text-xs text-slate-500 dark:text-slate-400">{profile.email}</span>
+                                                {/* ID escondido em tooltip ou muito discreto */}
+                                                <span className="text-[9px] text-slate-300 dark:text-slate-600 font-mono mt-0.5 truncate max-w-[150px]" title={profile.id}>ID: {profile.id.substring(0,8)}...</span>
                                             </div>
                                         </td>
                                         <td className="py-4 px-6">
@@ -312,13 +390,26 @@ export const AdminPanel: React.FC = () => {
                                             </span>
                                         </td>
                                         <td className="py-4 px-6 text-center">
-                                            <button 
-                                                onClick={() => openMessageModal(profile.id)}
-                                                className="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
-                                                title="Enviar Mensagem"
-                                            >
-                                                <Mail size={16} />
-                                            </button>
+                                            <div className="flex items-center justify-center">
+                                                <button
+                                                    onClick={() => handleToggleLicense(profile)}
+                                                    className={`p-2 rounded transition-colors mr-2 ${
+                                                        profile.licenseStatus === 'active' 
+                                                        ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 hover:bg-rose-200 dark:hover:bg-rose-800'
+                                                        : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-800'
+                                                    }`}
+                                                    title={profile.licenseStatus === 'active' ? "Remover Premium" : "Ativar Premium"}
+                                                >
+                                                    {profile.licenseStatus === 'active' ? <ShieldOff size={16} /> : <ShieldCheck size={16} />}
+                                                </button>
+                                                <button 
+                                                    onClick={() => openMessageModal(profile.id)}
+                                                    className="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
+                                                    title="Enviar Mensagem"
+                                                >
+                                                    <Mail size={16} />
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))
@@ -336,7 +427,7 @@ export const AdminPanel: React.FC = () => {
                     <table className="w-full text-left border-collapse">
                         <thead className="bg-slate-50 dark:bg-slate-900">
                             <tr>
-                                <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Usuário (ID)</th>
+                                <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Solicitante</th>
                                 <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Data</th>
                                 <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Status</th>
                                 <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 text-center">Ações</th>
@@ -357,7 +448,15 @@ export const AdminPanel: React.FC = () => {
                                                 <div className="w-8 h-8 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center text-slate-600 dark:text-slate-300 font-bold text-xs">
                                                     <User size={14} />
                                                 </div>
-                                                <span className="font-mono text-sm text-slate-700 dark:text-slate-300">{req.userId}</span>
+                                                <div className="flex flex-col">
+                                                    <span className="font-bold text-slate-800 dark:text-white text-sm">
+                                                        {req.userName || 'Desconhecido'}
+                                                    </span>
+                                                    {req.userEmail && <span className="text-xs text-slate-500">{req.userEmail}</span>}
+                                                    <span className="font-mono text-[9px] text-slate-400 dark:text-slate-500 mt-0.5" title={req.userId}>
+                                                        ID: {req.userId.substring(0,8)}...
+                                                    </span>
+                                                </div>
                                             </div>
                                         </td>
                                         <td className="py-4 px-6 text-sm text-slate-600 dark:text-slate-400">
@@ -417,7 +516,7 @@ export const AdminPanel: React.FC = () => {
                      <table className="w-full text-left border-collapse">
                         <thead className="bg-slate-50 dark:bg-slate-900">
                             <tr>
-                                <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Para (ID)</th>
+                                <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Para</th>
                                 <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Mensagem</th>
                                 <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Data</th>
                                 <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 text-center">Status</th>
@@ -431,9 +530,16 @@ export const AdminPanel: React.FC = () => {
                                     </td>
                                 </tr>
                             ) : (
-                                messages.map(msg => (
+                                messages.map(msg => {
+                                    // Tentar encontrar nome do destinatário para exibição bonita
+                                    const receiverProfile = profiles.find(p => p.id === msg.receiver);
+                                    const receiverName = receiverProfile?.name || 'ID: ' + msg.receiver.substring(0,8)+'...';
+
+                                    return (
                                     <tr key={msg.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
-                                        <td className="py-3 px-6 text-xs font-mono text-slate-600 dark:text-slate-300">{msg.receiver}</td>
+                                        <td className="py-3 px-6 text-xs font-medium text-slate-700 dark:text-slate-300">
+                                            {receiverName}
+                                        </td>
                                         <td className="py-3 px-6 text-sm text-slate-700 dark:text-slate-300 max-w-xs truncate">{msg.content}</td>
                                         <td className="py-3 px-6 text-xs text-slate-500 dark:text-slate-400">
                                             {new Date(msg.timestamp).toLocaleDateString('pt-BR')} {new Date(msg.timestamp).toLocaleTimeString('pt-BR')}
@@ -450,7 +556,7 @@ export const AdminPanel: React.FC = () => {
                                             )}
                                         </td>
                                     </tr>
-                                ))
+                                )})
                             )}
                         </tbody>
                     </table>
@@ -458,66 +564,122 @@ export const AdminPanel: React.FC = () => {
             </div>
         )}
 
-        {/* 5. GENERATOR TAB */}
+        {/* 5. TOOLS / GENERATOR TAB */}
         {activeTab === 'generator' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
+                
+                {/* Manual Profile Creator (FIX GHOST USERS) */}
                 <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
                     <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-                        <Smartphone size={20} className="text-slate-500 dark:text-slate-400" />
-                        Gerar Chave de Licença
+                        <UserPlus size={20} className="text-amber-500" />
+                        Reparar Usuário Fantasma
                     </h3>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-                        Utilize esta ferramenta para gerar chaves manuais para usuários que enviaram seus IDs via WhatsApp ou Email.
+                        Use isto se o usuário criou conta mas não aparece na lista (falha de registro no banco).
                     </p>
 
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">ID do Usuário (Recebido)</label>
+                            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">ID do Usuário (UUID) *</label>
                             <input 
                                 type="text" 
-                                value={genUserId}
-                                onChange={(e) => setGenUserId(e.target.value)}
-                                className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded px-3 py-2 font-mono text-sm focus:outline-none focus:border-blue-500"
-                                placeholder="Cole o ID aqui..."
+                                value={manualId}
+                                onChange={(e) => setManualId(e.target.value)}
+                                className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded px-3 py-2 font-mono text-sm focus:outline-none focus:border-amber-500"
+                                placeholder="Ex: 8257b1c5-..."
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Email *</label>
+                            <input 
+                                type="email" 
+                                value={manualEmail}
+                                onChange={(e) => setManualEmail(e.target.value)}
+                                className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-amber-500"
+                                placeholder="email@exemplo.com"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Nome (Opcional)</label>
+                            <input 
+                                type="text" 
+                                value={manualName}
+                                onChange={(e) => setManualName(e.target.value)}
+                                className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-amber-500"
+                                placeholder="Nome do usuário"
                             />
                         </div>
 
                         <button 
-                            onClick={handleGenerateKey}
-                            disabled={!genUserId}
-                            className="w-full bg-blue-600 text-white py-2 rounded font-bold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            onClick={handleManualProfileCreate}
+                            disabled={manualLoading || !manualId || !manualEmail}
+                            className="w-full bg-amber-600 text-white py-2 rounded font-bold hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                         >
-                            Gerar Chave Única
+                            {manualLoading ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+                            Criar Perfil na Base
                         </button>
                     </div>
                 </div>
 
-                <div className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center text-center transition-colors">
-                    {generatedKey ? (
-                        <div className="animate-fade-in w-full">
-                            <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <Key size={32} className="text-emerald-600 dark:text-emerald-400" />
-                            </div>
-                            <h4 className="text-emerald-700 dark:text-emerald-400 font-bold mb-2">Chave Gerada com Sucesso!</h4>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Envie este código para o usuário ativar no app.</p>
-                            
-                            <div className="bg-white dark:bg-slate-800 border-2 border-emerald-200 dark:border-emerald-800 rounded-lg p-4 mb-4 relative">
-                                <p className="text-2xl font-mono font-bold text-slate-800 dark:text-white tracking-widest">{generatedKey}</p>
+                {/* Key Generator */}
+                <div className="space-y-6">
+                    <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
+                        <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+                            <Smartphone size={20} className="text-blue-500" />
+                            Gerar Chave de Licença
+                        </h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+                            Gera uma chave manual para ativação offline ou via WhatsApp.
+                        </p>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">ID do Usuário</label>
+                                <input 
+                                    type="text" 
+                                    value={genUserId}
+                                    onChange={(e) => setGenUserId(e.target.value)}
+                                    className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded px-3 py-2 font-mono text-sm focus:outline-none focus:border-blue-500"
+                                    placeholder="Cole o ID aqui..."
+                                />
                             </div>
 
                             <button 
-                                onClick={() => { navigator.clipboard.writeText(generatedKey); alert('Chave copiada!'); }}
-                                className="text-blue-600 dark:text-blue-400 text-sm font-bold hover:underline flex items-center justify-center gap-2"
+                                onClick={handleGenerateKey}
+                                disabled={!genUserId}
+                                className="w-full bg-blue-600 text-white py-2 rounded font-bold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
-                                <Copy size={16} /> Copiar Chave
+                                Gerar Chave Única
                             </button>
                         </div>
-                    ) : (
-                        <div className="text-slate-400 dark:text-slate-600">
-                            <Lock size={48} className="mx-auto mb-2 opacity-20" />
-                            <p className="text-sm">A chave aparecerá aqui após ser gerada.</p>
-                        </div>
-                    )}
+                    </div>
+
+                    <div className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center text-center transition-colors">
+                        {generatedKey ? (
+                            <div className="animate-fade-in w-full">
+                                <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mx-auto mb-3">
+                                    <Key size={24} className="text-emerald-600 dark:text-emerald-400" />
+                                </div>
+                                <h4 className="text-emerald-700 dark:text-emerald-400 font-bold mb-1">Chave Gerada!</h4>
+                                
+                                <div className="bg-white dark:bg-slate-800 border-2 border-emerald-200 dark:border-emerald-800 rounded-lg p-3 mb-3 relative">
+                                    <p className="text-xl font-mono font-bold text-slate-800 dark:text-white tracking-widest">{generatedKey}</p>
+                                </div>
+
+                                <button 
+                                    onClick={() => { navigator.clipboard.writeText(generatedKey); alert('Chave copiada!'); }}
+                                    className="text-blue-600 dark:text-blue-400 text-sm font-bold hover:underline flex items-center justify-center gap-2"
+                                >
+                                    <Copy size={16} /> Copiar
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="text-slate-400 dark:text-slate-600">
+                                <Lock size={32} className="mx-auto mb-2 opacity-20" />
+                                <p className="text-xs">A chave aparecerá aqui.</p>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         )}

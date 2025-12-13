@@ -13,7 +13,7 @@ interface SettingsProps {
 }
 
 // --- CONFIGURAÇÃO DO PIX ---
-// Substitua esta chave pela sua Chave Pix real
+// Substitua esta chave pela sua Chave Pix real se necessário
 const PIX_KEY = "71ee2472-12a1-4edf-b0e0-ad0bc4c2a984"; 
 const PIX_NAME = "Finance Pro 360 Ltda";
 
@@ -209,13 +209,13 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
         <div className="max-w-5xl mx-auto animate-fade-in space-y-6 pb-10">
             
             {/* Purchase / License Section */}
-            <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-1 rounded-xl shadow-lg text-white border border-slate-700 relative overflow-hidden">
+            <div className="bg-gradient-to-r from-brand-blue to-[#0a192f] p-1 rounded-xl shadow-lg text-white border border-slate-700 relative overflow-hidden">
                 <div className="bg-white dark:bg-slate-900 rounded-lg p-6">
                     
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
                         <div>
                             <h3 className="text-xl font-bold flex items-center gap-2 text-slate-800 dark:text-white">
-                                <CreditCard className="text-blue-600" size={24} />
+                                <CreditCard className="text-brand-gold" size={24} />
                                 Status da Assinatura
                             </h3>
                             <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
@@ -225,8 +225,8 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                         
                         <div className={`px-4 py-2 rounded-full border flex items-center gap-2 font-bold text-sm ${
                             isLicensed 
-                            ? 'bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-400' 
-                            : 'bg-amber-50 border-amber-200 text-amber-700 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-400'
+                            ? 'bg-brand-gold/10 border-brand-gold text-brand-gold dark:bg-brand-gold/20' 
+                            : 'bg-slate-100 border-slate-200 text-slate-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400'
                         }`}>
                             {isLicensed ? (
                                 <><CheckCircle size={16} /> PREMIUM ATIVO</>
@@ -256,7 +256,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                                             <div className="flex items-center gap-2 bg-white dark:bg-slate-800 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
                                                 <span className="text-xs text-slate-500 font-mono uppercase">Seu ID:</span>
                                                 <code className="text-sm font-bold text-slate-800 dark:text-slate-200 select-all">{config.userId}</code>
-                                                <button onClick={copyUserId} className="text-blue-500 hover:text-blue-700 ml-2" title="Copiar ID">
+                                                <button onClick={copyUserId} className="text-brand-blue hover:text-brand-gold ml-2" title="Copiar ID">
                                                     <Copy size={14} />
                                                 </button>
                                             </div>
@@ -264,7 +264,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                                             <button 
                                                 onClick={handleRequestPurchase}
                                                 disabled={loadingReq}
-                                                className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white py-3 px-8 rounded-full font-bold shadow-lg shadow-emerald-500/20 transition-all transform hover:-translate-y-1 flex items-center gap-2"
+                                                className="bg-gradient-to-r from-brand-gold to-yellow-600 hover:from-yellow-500 hover:to-yellow-700 text-white py-3 px-8 rounded-full font-bold shadow-lg shadow-brand-gold/20 transition-all transform hover:-translate-y-1 flex items-center gap-2"
                                             >
                                                 {loadingReq ? 'Processando...' : <><QrCode size={18} /> Solicitar e Pagar com Pix</>}
                                             </button>
@@ -282,11 +282,16 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                                                 Escaneie o QR Code abaixo com o app do seu banco:
                                             </p>
                                             
-                                            <div className="bg-white p-3 rounded-xl shadow-sm border border-slate-200">
+                                            <div className="bg-white p-2 rounded-lg shadow-md border border-slate-200 inline-block">
+                                                {/* IMAGEM DO QR CODE - Certifique-se que o arquivo pix-qrcode.png existe em public/ */}
                                                 <img 
-                                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(PIX_KEY)}`} 
+                                                    src="/pix-qrcode.png" 
                                                     alt="QR Code Pix" 
-                                                    className="w-32 h-32 md:w-40 md:h-40"
+                                                    className="w-48 h-48 object-contain"
+                                                    onError={(e) => {
+                                                        // Fallback automático caso a imagem não exista
+                                                        e.currentTarget.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(PIX_KEY)}`;
+                                                    }}
                                                 />
                                             </div>
 
@@ -337,7 +342,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                                         value={inputLicenseKey}
                                         onChange={e => setInputLicenseKey(e.target.value.toUpperCase())}
                                         placeholder="Cole sua chave de licença aqui (XXXX-XXXX)"
-                                        className="flex-1 border-2 border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-lg px-4 py-2 text-sm font-mono uppercase focus:border-blue-500 outline-none transition-colors"
+                                        className="flex-1 border-2 border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-lg px-4 py-2 text-sm font-mono uppercase focus:border-brand-gold outline-none transition-colors"
                                     />
                                     <button 
                                         onClick={handleActivateLicense}
@@ -399,7 +404,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
             {/* Security & Data Section */}
             <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
                 <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2 mb-6">
-                    <Shield className="text-indigo-600 dark:text-indigo-400" size={20} />
+                    <Shield className="text-brand-blue dark:text-brand-gold" size={20} />
                     Segurança e Privacidade
                 </h3>
                 
@@ -415,7 +420,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                                 placeholder="Nova senha..." 
                                 value={newPassword}
                                 onChange={(e) => setNewPassword(e.target.value)}
-                                className="flex-1 border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                                className="flex-1 border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-brand-gold"
                             />
                             <button 
                                 onClick={handleChangePassword}

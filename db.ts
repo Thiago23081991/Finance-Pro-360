@@ -369,6 +369,29 @@ export class DBService {
     if (error) console.error("Erro ao salvar config", error);
   }
 
+  static async updateUserLicense(userId: string, status: 'active' | 'inactive'): Promise<void> {
+    // Permite que o Admin (ou o sistema) atualize diretamente o status da licença
+    const { error } = await supabase.from('profiles').update({ license_status: status }).eq('id', userId);
+    if (error) throw new Error(error.message);
+  }
+
+  static async createProfileManually(userId: string, email: string, name: string): Promise<void> {
+    // Ferramenta de Admin para criar perfil se o registro automatico falhar
+    const payload = {
+        id: userId,
+        email: email,
+        username: name,
+        theme: 'light',
+        categories: DEFAULT_CONFIG.categories,
+        payment_methods: DEFAULT_CONFIG.paymentMethods,
+        enable_reminders: true,
+        has_seen_tutorial: false,
+        license_status: 'inactive'
+    };
+    const { error } = await supabase.from('profiles').insert(payload);
+    if (error) throw new Error(error.message);
+  }
+
   // --- BACKUP OPERATIONS ---
 
   static async createBackup(): Promise<string> {

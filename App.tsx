@@ -341,7 +341,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
       return (
           <div className="h-screen w-full flex items-center justify-center bg-[#f3f4f6] dark:bg-slate-950 transition-colors">
               <div className="flex flex-col items-center gap-4">
-                  <Loader2 className="animate-spin text-emerald-600" size={48} />
+                  <Loader2 className="animate-spin text-brand-blue" size={48} />
                   <p className="text-slate-500 dark:text-slate-400 font-medium animate-pulse">Sincronizando dados...</p>
               </div>
           </div>
@@ -350,13 +350,13 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
 
   return (
     <div className="flex h-screen bg-[#f3f4f6] dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans overflow-hidden transition-colors">
-      {/* Sidebar - Desktop */}
-      <aside className="w-64 bg-slate-900 text-white flex flex-col shadow-xl z-20 hidden md:flex border-r border-slate-800 dark:border-slate-800">
-        <div className="p-6 border-b border-slate-800">
+      {/* Sidebar - Desktop - BRAND BLUE BACKGROUND */}
+      <aside className="w-64 bg-brand-blue text-white flex flex-col shadow-xl z-20 hidden md:flex border-r border-slate-800/50">
+        <div className="p-6 border-b border-white/10">
             {/* LOGO COMPONENT HERE */}
             <Logo className="w-9 h-9" textClassName="text-white" />
         </div>
-        <div className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+        <div className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">
             Menu Principal
         </div>
         <nav className="flex-1 px-4 space-y-1 overflow-y-auto custom-scrollbar">
@@ -368,8 +368,8 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
                         onClick={() => handleTabChange(tabId)}
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
                             activeTab === tabId 
-                            ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/50 translate-x-1' 
-                            : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                            ? 'bg-brand-gold text-white shadow-lg shadow-brand-gold/20 translate-x-1 font-bold' 
+                            : 'text-slate-300 hover:bg-white/10 hover:text-white'
                         }`}
                     >
                         {meta.icon}
@@ -378,22 +378,22 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
                 );
             })}
         </nav>
-        <div className="p-4 border-t border-slate-800">
+        <div className="p-4 border-t border-white/10 bg-black/20">
             <div className="flex items-center justify-between px-2 mb-3">
                 <div className="flex items-center gap-2">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white ${isAdmin ? 'bg-indigo-600 ring-2 ring-indigo-400' : 'bg-slate-700'}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white ${isAdmin ? 'bg-brand-gold ring-2 ring-yellow-500' : 'bg-slate-700'}`}>
                         {(userEmail || 'U').substring(0, 2).toUpperCase()}
                     </div>
                     <div>
                         <div className="text-xs font-medium text-slate-200 truncate max-w-[100px]" title={userEmail}>
                             {userEmail}
                         </div>
-                        {isAdmin && <span className="text-[10px] text-indigo-400 font-semibold uppercase">Administrador</span>}
+                        {isAdmin && <span className="text-[10px] text-brand-gold font-semibold uppercase">Administrador</span>}
                     </div>
                 </div>
                 <button 
                     onClick={onLogout}
-                    className="text-slate-500 hover:text-rose-500 transition-colors" 
+                    className="text-slate-400 hover:text-rose-400 transition-colors" 
                     title="Sair"
                 >
                     <LogOut size={18} />
@@ -406,8 +406,8 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
       {isMobileMenuOpen && (
           <div className="fixed inset-0 z-50 md:hidden flex">
               <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)}></div>
-              <aside className="relative w-64 bg-slate-900 text-white flex flex-col shadow-2xl h-full animate-fade-in">
-                <div className="p-6 border-b border-slate-800 flex justify-between items-center">
+              <aside className="relative w-64 bg-brand-blue text-white flex flex-col shadow-2xl h-full animate-fade-in border-r border-white/10">
+                <div className="p-6 border-b border-white/10 flex justify-between items-center">
                     <Logo className="w-8 h-8" textClassName="text-white" />
                     <button onClick={() => setIsMobileMenuOpen(false)} className="text-slate-400 hover:text-white">
                         <X size={20} />
@@ -423,8 +423,8 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
                                 onClick={() => handleTabChange(tabId)}
                                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
                                     activeTab === tabId 
-                                    ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/50' 
-                                    : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                                    ? 'bg-brand-gold text-white shadow-lg shadow-brand-gold/20' 
+                                    : 'text-slate-300 hover:bg-white/10 hover:text-white'
                                 }`}
                             >
                                 {meta.icon}
@@ -433,7 +433,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
                         );
                     })}
                 </nav>
-                <div className="p-4 border-t border-slate-800">
+                <div className="p-4 border-t border-white/10">
                     <button 
                         onClick={onLogout}
                         className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-rose-400 hover:bg-rose-900/20 hover:text-rose-300 transition-colors"
@@ -491,7 +491,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
                 >
                     <Mail size={20} />
                     {unreadMessages > 0 && (
-                        <span className="absolute top-1 right-1 w-3 h-3 bg-rose-500 rounded-full border-2 border-white dark:border-slate-900"></span>
+                        <span className="absolute top-1 right-1 w-3 h-3 bg-brand-gold rounded-full border-2 border-white dark:border-slate-900 animate-pulse"></span>
                     )}
                 </button>
             </div>
@@ -502,7 +502,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
             
             {contentLoading ? (
                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm z-20">
-                    <Loader2 size={40} className="animate-spin text-blue-600 dark:text-blue-400 mb-3" />
+                    <Loader2 size={40} className="animate-spin text-brand-gold mb-3" />
                     <p className="text-sm font-medium text-slate-600 dark:text-slate-300 animate-pulse">
                         Carregando {TAB_METADATA[activeTab].label}...
                     </p>
@@ -594,14 +594,14 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
         <nav className="md:hidden fixed bottom-0 w-full bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 z-40 flex justify-around items-center pb-safe pt-1 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
             <button 
                 onClick={() => handleTabChange('controle')}
-                className={`flex flex-col items-center justify-center p-2 w-full ${activeTab === 'controle' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`}
+                className={`flex flex-col items-center justify-center p-2 w-full ${activeTab === 'controle' ? 'text-brand-blue dark:text-brand-gold' : 'text-slate-400'}`}
             >
                 <LayoutDashboard size={20} className={activeTab === 'controle' ? 'fill-current opacity-20' : ''} />
                 <span className="text-[10px] mt-1 font-medium">Controle</span>
             </button>
             <button 
                 onClick={() => handleTabChange('receitas')}
-                className={`flex flex-col items-center justify-center p-2 w-full ${activeTab === 'receitas' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`}
+                className={`flex flex-col items-center justify-center p-2 w-full ${activeTab === 'receitas' ? 'text-brand-blue dark:text-brand-gold' : 'text-slate-400'}`}
             >
                 <TrendingUp size={20} />
                 <span className="text-[10px] mt-1 font-medium">Receitas</span>
@@ -609,21 +609,21 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
             <div className="relative -top-5">
                 <button 
                     onClick={() => handleTabChange('despesas')}
-                    className="flex items-center justify-center w-14 h-14 bg-blue-600 rounded-full shadow-lg shadow-blue-900/30 text-white hover:scale-105 transition-transform border-4 border-[#f3f4f6] dark:border-slate-950"
+                    className="flex items-center justify-center w-14 h-14 bg-brand-blue rounded-full shadow-lg shadow-blue-900/30 text-white hover:scale-105 transition-transform border-4 border-[#f3f4f6] dark:border-slate-950"
                 >
                     <CreditCard size={24} />
                 </button>
             </div>
             <button 
                 onClick={() => handleTabChange('dividas')}
-                className={`flex flex-col items-center justify-center p-2 w-full ${activeTab === 'dividas' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`}
+                className={`flex flex-col items-center justify-center p-2 w-full ${activeTab === 'dividas' ? 'text-brand-blue dark:text-brand-gold' : 'text-slate-400'}`}
             >
                 <Scale size={20} />
                 <span className="text-[10px] mt-1 font-medium">Dívidas</span>
             </button>
             <button 
                 onClick={() => handleTabChange('config')}
-                className={`flex flex-col items-center justify-center p-2 w-full ${activeTab === 'config' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`}
+                className={`flex flex-col items-center justify-center p-2 w-full ${activeTab === 'config' ? 'text-brand-blue dark:text-brand-gold' : 'text-slate-400'}`}
             >
                 <SettingsIcon size={20} />
                 <span className="text-[10px] mt-1 font-medium">Ajustes</span>
@@ -663,98 +663,59 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
   );
 };
 
-// --- Root App Component ---
-function App() {
-  const [session, setSession] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [authError, setAuthError] = useState<string | null>(null);
-  const [emailConfirmed, setEmailConfirmed] = useState(false);
-  const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
+const App: React.FC = () => {
+    const [user, setUser] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [isEmailConfirmed, setIsEmailConfirmed] = useState(false);
 
-  useEffect(() => {
-    // Check URL Hash for errors or confirmation signals before Supabase clears them
-    const hash = window.location.hash;
-    
-    // Check for error description in URL (Supabase redirect)
-    if (hash && hash.includes('error_description')) {
-        const params = new URLSearchParams(hash.substring(1)); // remove #
-        const errorDesc = params.get('error_description');
-        if (errorDesc) {
-            setAuthError(decodeURIComponent(errorDesc).replace(/\+/g, ' '));
-        }
+    useEffect(() => {
+        // Initial session check
+        const checkSession = async () => {
+            try {
+                const u = await DBService.getCurrentUser();
+                if (u) {
+                    setUser(u.id);
+                    setIsEmailConfirmed(!!u.email_confirmed_at);
+                }
+            } catch (e) {
+                console.error("Session check failed", e);
+            } finally {
+                setLoading(false);
+            }
+        };
+        checkSession();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            if (session?.user) {
+                setUser(session.user.id);
+                setIsEmailConfirmed(!!session.user.email_confirmed_at);
+            } else {
+                setUser(null);
+            }
+            setLoading(false);
+        });
+
+        return () => subscription.unsubscribe();
+    }, []);
+
+    const handleLogout = async () => {
+        await DBService.logout();
+        setUser(null);
+    };
+
+    if (loading) {
+         return (
+             <div className="h-screen w-full flex items-center justify-center bg-[#f3f4f6] dark:bg-slate-950 transition-colors">
+                 <Loader2 className="animate-spin text-blue-600" size={48} />
+             </div>
+         );
     }
 
-    // Check for email confirmation (type=signup or type=invite)
-    // Note: Supabase puts these in the hash for implicit flow
-    if (hash && (hash.includes('type=signup') || hash.includes('type=invite') || hash.includes('type=recovery'))) {
-        setEmailConfirmed(true);
+    if (!user) {
+        return <Login onLogin={(userId) => setUser(userId)} />;
     }
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setLoading(false);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          setSession(session);
-          // If we detected a signup flow in the hash earlier, it persists here
-      } else if (event === 'SIGNED_OUT') {
-          setSession(null);
-          setEmailConfirmed(false);
-          setShowResetPasswordModal(false);
-      } else if (event === 'PASSWORD_RECOVERY') {
-          // Detect recovery event to show reset modal
-          setShowResetPasswordModal(true);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const handleLogin = (user: string) => {
-    // Legacy support or fallback
-  };
-
-  const handleLogout = async () => {
-      await supabase.auth.signOut();
-      window.location.hash = ''; // Clear hash on logout
-      setAuthError(null);
-  };
-
-  if (loading) {
-      return (
-          <div className="h-screen w-full flex items-center justify-center bg-slate-950">
-               <Loader2 className="animate-spin text-white" size={32} />
-          </div>
-      )
-  }
-
-  if (!session) {
-      return (
-        <Login 
-            onLogin={handleLogin} 
-            initialMessage={authError} 
-            messageType="error" 
-        />
-      );
-  }
-
-  return (
-    <>
-        <FinanceApp 
-            key={session.user.id} 
-            user={session.user.id} 
-            onLogout={handleLogout} 
-            isEmailConfirmed={emailConfirmed}
-        />
-        {showResetPasswordModal && (
-            <ResetPasswordModal onClose={() => setShowResetPasswordModal(false)} />
-        )}
-    </>
-  );
-}
+    return <FinanceApp user={user} onLogout={handleLogout} isEmailConfirmed={isEmailConfirmed} />;
+};
 
 export default App;

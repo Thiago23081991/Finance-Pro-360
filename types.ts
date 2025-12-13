@@ -68,6 +68,9 @@ export interface UserAccount {
 export interface PurchaseRequest {
   id: string;
   userId: string;
+  // Campos virtuais para exibição na UI
+  userName?: string; 
+  userEmail?: string;
   requestDate: string;
   status: 'pending' | 'approved' | 'rejected';
 }
@@ -105,4 +108,5 @@ export interface UserProfile {
   username: string;
   licenseStatus?: string;
   createdAt?: string; // If available
+  isGhost?: boolean; // Flag para usuários detectados via pedidos mas sem perfil
 }
