@@ -1,8 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { Lock, Mail, ArrowRight, Wallet, Database, Loader2, Check, AlertCircle, ArrowLeft, User } from 'lucide-react';
+import { Lock, Mail, ArrowRight, Database, Loader2, Check, AlertCircle, ArrowLeft, User } from 'lucide-react';
 import { DBService } from '../db';
 import { PrivacyModal } from './PrivacyModal';
+import { Logo } from './Logo'; // IMPORTADO
 
 interface LoginProps {
   onLogin: (username: string) => void;
@@ -161,11 +162,9 @@ export const Login: React.FC<LoginProps> = ({ onLogin, initialMessage, messageTy
         {/* Background decorative element */}
         <div className="absolute top-0 right-0 -mt-10 -mr-10 w-32 h-32 bg-emerald-50 dark:bg-emerald-900/20 rounded-full z-0 opacity-50"></div>
 
-        <div className="text-center mb-8 relative z-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-600 rounded-xl mb-4 shadow-lg shadow-emerald-200 dark:shadow-emerald-900/50">
-             <Wallet className="text-white" size={32} />
-          </div>
-          <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Finance Pro 360</h1>
+        <div className="text-center mb-8 relative z-10 flex flex-col items-center">
+          <Logo className="w-16 h-16" showText={false} />
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-white mt-4">Finance Pro 360</h1>
           <p className="text-slate-500 dark:text-slate-400 mt-2 flex items-center justify-center gap-2">
             <Database size={14} className="text-blue-500"/>
             Cloud Database

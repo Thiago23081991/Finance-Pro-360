@@ -16,10 +16,11 @@ import { Inbox } from './components/Inbox';
 import { Tutorial } from './components/Tutorial';
 import { FilterBar } from './components/FilterBar';
 import { ResetPasswordModal } from './components/ResetPasswordModal';
-import { CalculatorModal } from './components/CalculatorModal'; // IMPORTADO
+import { CalculatorModal } from './components/CalculatorModal';
+import { Logo } from './components/Logo'; // IMPORTADO
 import { DBService } from './db';
 import { supabase } from './supabaseClient';
-import { LayoutDashboard, CreditCard, TrendingUp, Target, Settings as SettingsIcon, Menu, Filter, LogOut, Loader2, ShieldCheck, Mail, Sun, Moon, X, BarChart4, GraduationCap, Scale, Calculator } from 'lucide-react'; // Calculator Icon
+import { LayoutDashboard, CreditCard, TrendingUp, Target, Settings as SettingsIcon, Menu, Filter, LogOut, Loader2, ShieldCheck, Mail, Sun, Moon, X, BarChart4, GraduationCap, Scale, Calculator } from 'lucide-react';
 
 // Centralized Metadata for Tabs (Title, Label, Icon)
 const TAB_METADATA: Record<Tab, { label: string; pageTitle: string; icon: React.ReactNode }> = {
@@ -352,10 +353,8 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
       {/* Sidebar - Desktop */}
       <aside className="w-64 bg-slate-900 text-white flex flex-col shadow-xl z-20 hidden md:flex border-r border-slate-800 dark:border-slate-800">
         <div className="p-6 border-b border-slate-800">
-            <h1 className="text-lg font-bold tracking-tight flex items-center gap-2">
-                <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-white font-black">F</div>
-                Finance Pro 360
-            </h1>
+            {/* LOGO COMPONENT HERE */}
+            <Logo className="w-9 h-9" textClassName="text-white" />
         </div>
         <div className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
             Menu Principal
@@ -409,10 +408,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
               <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)}></div>
               <aside className="relative w-64 bg-slate-900 text-white flex flex-col shadow-2xl h-full animate-fade-in">
                 <div className="p-6 border-b border-slate-800 flex justify-between items-center">
-                    <h1 className="text-lg font-bold tracking-tight flex items-center gap-2">
-                        <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-white font-black">F</div>
-                        Finance Pro
-                    </h1>
+                    <Logo className="w-8 h-8" textClassName="text-white" />
                     <button onClick={() => setIsMobileMenuOpen(false)} className="text-slate-400 hover:text-white">
                         <X size={20} />
                     </button>
