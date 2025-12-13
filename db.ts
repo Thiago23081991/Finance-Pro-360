@@ -114,7 +114,8 @@ export class DBService {
               
               // Verifica se a tabela debts existe antes de tentar deletar (caso a migração não tenha ocorrido)
               // Em um app real, o Supabase ignoraria tabelas inexistentes no client, mas é bom previnir erros JS
-              return supabase.from(table).delete().eq(column, userId).catch(() => {}); 
+              // CORREÇÃO: Usar .then ao invés de .catch para compatibilidade de tipos
+              return supabase.from(table).delete().eq(column, userId).then(() => {}); 
           }));
 
           // Deslogar após limpar os dados
@@ -377,7 +378,8 @@ export class DBService {
     const [txs, goals, debts, profile, reqs, msgs] = await Promise.all([
       supabase.from('transactions').select('*'),
       supabase.from('goals').select('*'),
-      supabase.from('debts').select('*').catch(() => ({ data: [] })),
+      // CORREÇÃO: Usar .then ao invés de .catch para compatibilidade de tipos
+      supabase.from('debts').select('*').then(res => res.error ? { data: [] } : res),
       supabase.from('profiles').select('*').eq('id', user.id).single(),
       supabase.from('purchase_requests').select('*'),
       supabase.from('messages').select('*').or(`receiver.eq.${user.id},sender.eq.Admin`) 
@@ -421,7 +423,8 @@ export class DBService {
         const cleanDebts = data.debts.map((d: any) => ({
             ...d, user_id: user.id
         }));
-        await supabase.from('debts').upsert(cleanDebts).catch(console.error);
+        // CORREÇÃO: Usar .then ao invés de .catch para compatibilidade de tipos
+        await supabase.from('debts').upsert(cleanDebts).then(res => { if(res.error) console.error(res.error) });
     }
 
     // Configs - Apenas update
