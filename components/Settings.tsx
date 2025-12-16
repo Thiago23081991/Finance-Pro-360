@@ -13,8 +13,8 @@ interface SettingsProps {
 }
 
 // --- CONFIGURAÇÃO DO PIX ---
-// Substitua esta chave pela sua Chave Pix real se necessário
-const PIX_KEY = "71ee2472-12a1-4edf-b0e0-ad0bc4c2a984"; 
+// Código Pix Copia e Cola Completo
+const PIX_PAYLOAD = "00020126580014br.gov.bcb.pix013671ee2472-12a1-4edf-b0e0-ad0bc4c2a98427600016BR.COM.PAGSEGURO0136D1917A9C-D209-49F6-BFBF-80644AC0D5A4520489995303986540549.905802BR5925THIAGO DA SILVA NASCIMENT6007Aracaju62290525PAGS0000049902512161508466304D5A4";
 const PIX_NAME = "THIAGO DA SILVA NASCIMENTO";
 const PIX_VALUE = "49.90";
 
@@ -105,9 +105,9 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
         }
     };
 
-    const copyPixKey = () => {
-        navigator.clipboard.writeText(PIX_KEY);
-        alert('Chave Pix copiada com sucesso!');
+    const copyPixCode = () => {
+        navigator.clipboard.writeText(PIX_PAYLOAD);
+        alert('Código Pix Copia e Cola copiado com sucesso!');
     };
 
     const addCat = () => {
@@ -284,14 +284,13 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                                             </p>
                                             
                                             <div className="bg-white p-2 rounded-lg shadow-md border border-slate-200 inline-block relative">
-                                                {/* IMAGEM DO QR CODE - Certifique-se que o arquivo pix-qrcode.png existe em public/ */}
+                                                {/* Fallback automático usando o Payload Completo para gerar QR Code correto se a imagem falhar */}
                                                 <img 
                                                     src="/pix-qrcode.png" 
                                                     alt="QR Code Pix" 
                                                     className="w-48 h-48 object-contain"
                                                     onError={(e) => {
-                                                        // Fallback automático caso a imagem não exista
-                                                        e.currentTarget.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(PIX_KEY)}`;
+                                                        e.currentTarget.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(PIX_PAYLOAD)}`;
                                                     }}
                                                 />
                                                 <div className="text-center mt-2 pb-1 border-t border-slate-100">
@@ -300,15 +299,15 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                                             </div>
 
                                             <div className="w-full max-w-sm space-y-2">
-                                                <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Ou copie e cole a chave:</p>
+                                                <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Pix Copia e Cola:</p>
                                                 <div className="flex gap-2">
-                                                    <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm font-mono text-slate-700 dark:text-slate-200 flex items-center justify-center truncate select-all">
-                                                        {PIX_KEY}
+                                                    <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-[10px] font-mono text-slate-700 dark:text-slate-200 flex items-center truncate">
+                                                        {PIX_PAYLOAD.substring(0, 30)}...
                                                     </div>
                                                     <button 
-                                                        onClick={copyPixKey}
-                                                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 rounded-lg transition-colors shadow-sm flex items-center justify-center"
-                                                        title="Copiar Chave"
+                                                        onClick={copyPixCode}
+                                                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 rounded-lg transition-colors shadow-sm flex items-center justify-center shrink-0"
+                                                        title="Copiar Código Pix Completo"
                                                     >
                                                         <Copy size={18} />
                                                     </button>
