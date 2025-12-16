@@ -14,6 +14,7 @@ interface DebtsProps {
 
 export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDeleteDebt, onNavigateToSettings }) => {
     const isPremium = config.licenseStatus === 'active';
+    const currency = config.currency || 'BRL';
     
     const [isAdding, setIsAdding] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
@@ -162,7 +163,7 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
                         </div>
                         <div className="bg-white/10 p-4 rounded-lg text-center min-w-[120px]">
                             <p className="text-xs text-slate-400 uppercase">Valor Atual</p>
-                            <p className="text-lg font-mono font-bold">{formatCurrency(topPriority.totalAmount)}</p>
+                            <p className="text-lg font-mono font-bold">{formatCurrency(topPriority.totalAmount, currency)}</p>
                         </div>
                     </div>
                     {/* Decorative */}
@@ -188,7 +189,7 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Valor Total (R$) *</label>
+                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Valor Total ({currency}) *</label>
                             <input 
                                 type="number" 
                                 value={amount}
@@ -250,7 +251,7 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
                 <div className="p-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex justify-between items-center">
                     <h3 className="font-bold text-slate-700 dark:text-slate-200">Suas Pendências</h3>
                     <span className="text-xs bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 px-2 py-1 rounded font-bold">
-                        Total: {formatCurrency(debts.reduce((acc, curr) => acc + curr.totalAmount, 0))}
+                        Total: {formatCurrency(debts.reduce((acc, curr) => acc + curr.totalAmount, 0), currency)}
                     </span>
                 </div>
                 
@@ -288,7 +289,7 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
                                 </div>
                                 <div className="flex items-center gap-6">
                                     <span className="font-mono font-bold text-slate-700 dark:text-slate-200">
-                                        {formatCurrency(debt.totalAmount)}
+                                        {formatCurrency(debt.totalAmount, currency)}
                                     </span>
                                     <button 
                                         onClick={() => onDeleteDebt(debt.id)}

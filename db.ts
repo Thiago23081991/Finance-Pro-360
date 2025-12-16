@@ -38,6 +38,7 @@ export class DBService {
             // name: user.name, // REMOVIDO pois a coluna não existe
             username: user.name || user.username.split('@')[0], // Salvando o nome na coluna username
             theme: 'light',
+            currency: 'BRL',
             categories: DEFAULT_CONFIG.categories,
             payment_methods: DEFAULT_CONFIG.paymentMethods,
             enable_reminders: true,
@@ -319,6 +320,7 @@ export class DBService {
         // name: fullName, // REMOVIDO
         username: fullName,
         theme: 'light',
+        currency: 'BRL',
         categories: DEFAULT_CONFIG.categories,
         payment_methods: DEFAULT_CONFIG.paymentMethods,
         enable_reminders: true,
@@ -337,6 +339,7 @@ export class DBService {
       userId: data.id,
       name: data.username, // Mapeando coluna 'username' (que contém o nome) para o campo 'name' da interface
       theme: data.theme as 'light' | 'dark',
+      currency: data.currency || 'BRL',
       categories: data.categories || DEFAULT_CONFIG.categories,
       paymentMethods: data.payment_methods || DEFAULT_CONFIG.paymentMethods,
       enableReminders: data.enable_reminders,
@@ -355,6 +358,7 @@ export class DBService {
     const payload = {
       id: user.id,
       theme: config.theme,
+      currency: config.currency,
       categories: config.categories,
       payment_methods: config.paymentMethods,
       enable_reminders: config.enableReminders,
@@ -382,6 +386,7 @@ export class DBService {
         email: email,
         username: name,
         theme: 'light',
+        currency: 'BRL',
         categories: DEFAULT_CONFIG.categories,
         payment_methods: DEFAULT_CONFIG.paymentMethods,
         enable_reminders: true,

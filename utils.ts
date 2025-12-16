@@ -1,9 +1,16 @@
+
 import { Transaction } from "./types";
 
-export const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat('pt-BR', {
+export const formatCurrency = (value: number, currency: string = 'BRL') => {
+  let locale = 'pt-BR';
+  if (currency === 'USD') locale = 'en-US';
+  if (currency === 'EUR') locale = 'de-DE';
+  if (currency === 'GBP') locale = 'en-GB';
+  if (currency === 'JPY') locale = 'ja-JP';
+
+  return new Intl.NumberFormat(locale, {
     style: 'currency',
-    currency: 'BRL',
+    currency: currency,
   }).format(value);
 };
 

@@ -12,6 +12,7 @@ interface SheetViewProps {
   onAdd: (t: Transaction) => void;
   onUpdate: (t: Transaction) => void;
   onDelete: (id: string) => void;
+  currency?: string;
 }
 
 // Helper to get Icon based on category name
@@ -37,7 +38,8 @@ export const SheetView: React.FC<SheetViewProps> = ({
   paymentMethods,
   onAdd,
   onUpdate,
-  onDelete
+  onDelete,
+  currency = 'BRL'
 }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -381,7 +383,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
                     </div>
 
                     <div>
-                        <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Valor (R$)</label>
+                        <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Valor ({currency})</label>
                         <div className="flex items-center gap-2">
                             <input
                                 type="number"
@@ -584,7 +586,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
                                     )}
                                 </td>
                                 <td className={`py-1.5 px-3 border-r border-slate-200 dark:border-slate-700 text-xs font-medium font-mono ${type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                                    {formatCurrency(t.amount)}
+                                    {formatCurrency(t.amount, currency)}
                                 </td>
                                 <td className="py-1.5 px-3 border-r border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300">
                                     <div className="flex items-center gap-1.5">
@@ -623,7 +625,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
                         <tr>
                             <td className="py-2 px-3 text-[10px] uppercase tracking-wider text-right border-r border-slate-300 dark:border-slate-600">Total:</td>
                             <td className={`py-2 px-3 text-xs font-mono border-r border-slate-300 dark:border-slate-600 ${type === 'income' ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
-                                {formatCurrency(totalValue)}
+                                {formatCurrency(totalValue, currency)}
                             </td>
                             <td colSpan={type === 'expense' ? 4 : 3} className="py-2 px-3 text-[10px] text-slate-500 dark:text-slate-400 text-right italic font-normal">
                                 {sheetData.length} registros

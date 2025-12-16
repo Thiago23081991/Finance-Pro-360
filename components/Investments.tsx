@@ -37,6 +37,7 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
     }, [config.userId]);
 
     const isPremium = config.licenseStatus === 'active';
+    const currency = config.currency || 'BRL';
 
     // --- LOGIC: SUITABILITY ---
     const questions = [
@@ -286,7 +287,7 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                                  <h3 className="text-lg font-bold text-slate-800 dark:text-white mt-2">{item.title}</h3>
                                  <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 my-2">{item.rate}</div>
                                  <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 mt-4">
-                                     <span>Mínimo: {formatCurrency(item.min)}</span>
+                                     <span>Mínimo: {formatCurrency(item.min, currency)}</span>
                                      <span>Risco: {item.risk}</span>
                                  </div>
                              </div>
@@ -364,15 +365,15 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                                 <div className="grid grid-cols-3 gap-4 mb-6">
                                     <div className="bg-slate-50 dark:bg-slate-900 p-3 rounded-lg border border-slate-100 dark:border-slate-700">
                                         <p className="text-xs text-slate-500 dark:text-slate-400">Total Investido</p>
-                                        <p className="text-sm md:text-lg font-bold text-slate-800 dark:text-white">{formatCurrency(projResult.totalInvested)}</p>
+                                        <p className="text-sm md:text-lg font-bold text-slate-800 dark:text-white">{formatCurrency(projResult.totalInvested, currency)}</p>
                                     </div>
                                     <div className="bg-emerald-50 dark:bg-emerald-900/20 p-3 rounded-lg border border-emerald-100 dark:border-emerald-800">
                                         <p className="text-xs text-emerald-600 dark:text-emerald-400">Juros Ganhos</p>
-                                        <p className="text-sm md:text-lg font-bold text-emerald-700 dark:text-emerald-400">+{formatCurrency(projResult.totalInterest)}</p>
+                                        <p className="text-sm md:text-lg font-bold text-emerald-700 dark:text-emerald-400">+{formatCurrency(projResult.totalInterest, currency)}</p>
                                     </div>
                                     <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-blue-800">
                                         <p className="text-xs text-blue-600 dark:text-blue-400">Patrimônio Final</p>
-                                        <p className="text-sm md:text-lg font-bold text-blue-700 dark:text-blue-400">{formatCurrency(projResult.totalAmount)}</p>
+                                        <p className="text-sm md:text-lg font-bold text-blue-700 dark:text-blue-400">{formatCurrency(projResult.totalAmount, currency)}</p>
                                     </div>
                                 </div>
                                 
@@ -390,9 +391,9 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                                                 </linearGradient>
                                             </defs>
                                             <XAxis dataKey="name" tick={{fontSize: 10}} />
-                                            <YAxis tickFormatter={(val) => `R$${val/1000}k`} tick={{fontSize: 10}} />
+                                            <YAxis tickFormatter={(val) => currency === 'BRL' ? `R$${val/1000}k` : `${val/1000}k`} tick={{fontSize: 10}} />
                                             <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                                            <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                                            <Tooltip formatter={(value: number) => formatCurrency(value, currency)} />
                                             <Area type="monotone" dataKey="Total" stroke="#3b82f6" fillOpacity={1} fill="url(#colorTotal)" />
                                             <Area type="monotone" dataKey="Investido" stroke="#94a3b8" fillOpacity={1} fill="url(#colorInv)" />
                                         </AreaChart>

@@ -38,6 +38,7 @@ export interface AppConfig {
   userId?: string;
   name?: string; // Nome do usuário para exibição
   theme?: 'light' | 'dark'; // New Theme Field
+  currency?: 'BRL' | 'USD' | 'EUR' | 'GBP' | 'JPY'; // Currency Field
   categories: string[];
   paymentMethods: string[];
   // New fields for Reminders

@@ -3,12 +3,13 @@ import React, { useMemo } from 'react';
 import { Transaction, Goal, FilterState } from '../types';
 import { formatCurrency } from '../utils';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, AreaChart, Area } from 'recharts';
-import { TrendingUp, TrendingDown, DollarSign, PieChart as PieIcon, AlertCircle, CalendarRange, PiggyBank, History, Utensils, Car, Home, HeartPulse, PartyPopper, GraduationCap, Banknote, ShoppingBag, Zap, CircleDollarSign, AlertTriangle, ArrowUpRight } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, PieChart as PieIcon, AlertCircle, CalendarRange, PiggyBank, History, Utensils, Car, Home, HeartPulse, PartyPopper, GraduationCap, Banknote, ShoppingBag, Zap, CircleDollarSign, AlertTriangle, ArrowUpRight, Lightbulb, Siren } from 'lucide-react';
 
 interface DashboardProps {
   transactions: Transaction[];
   goals: Goal[];
   filter: FilterState;
+  currency?: string;
 }
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658'];
@@ -30,7 +31,7 @@ const getCategoryIcon = (category: string) => {
     return <CircleDollarSign size={16} />;
 };
 
-export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filter }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filter, currency = 'BRL' }) => {
   
   // Filter Logic
   const filteredTransactions = useMemo(() => {
@@ -75,7 +76,47 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
         }
     });
 
-    return { income, expense, balance, savingsRate, mostExpensiveCategory: maxCat, mostExpensiveValue: maxVal };
+    // --- HEALTH SCORE CALCULATION (1-5) ---
+    // 1: Critical (Expense > Income)
+    // 2: Risk (Expense > 85% of Income)
+    // 3: Attention (Expense > 70% of Income)
+    // 4: Balanced (Expense > 50% of Income)
+    // 5: Elite (Expense <= 50% of Income)
+    let healthScore = 0;
+    let healthLabel = "";
+    let healthColor = "";
+
+    if (income === 0) {
+        healthScore = 1;
+        healthLabel = "Sem Renda";
+        healthColor = "text-slate-400";
+    } else {
+        const expenseRatio = (expense / income) * 100;
+        
+        if (expenseRatio > 100) {
+            healthScore = 1;
+            healthLabel = "Crítico";
+            healthColor = "text-rose-600";
+        } else if (expenseRatio > 85) {
+            healthScore = 2;
+            healthLabel = "Risco";
+            healthColor = "text-orange-500";
+        } else if (expenseRatio > 70) {
+            healthScore = 3;
+            healthLabel = "Atenção";
+            healthColor = "text-yellow-500";
+        } else if (expenseRatio > 50) {
+            healthScore = 4;
+            healthLabel = "Equilibrado";
+            healthColor = "text-blue-500";
+        } else {
+            healthScore = 5;
+            healthLabel = "Elite";
+            healthColor = "text-emerald-500";
+        }
+    }
+
+    return { income, expense, balance, savingsRate, mostExpensiveCategory: maxCat, mostExpensiveValue: maxVal, healthScore, healthLabel, healthColor };
   }, [filteredTransactions]);
 
   // Chart Data Preparation
@@ -114,55 +155,45 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
       const alerts: { type: 'warning' | 'critical', message: string, detail: string }[] = [];
       
       // 1. Calculate Average Spending per Category (Historical)
-      const historicalExpenses: Record<string, { total: number, count: number }> = {};
-      const currentMonthExpenses: Record<string, number> = {};
+      // We look at all transactions NOT in the current month/year filter to build history
+      const monthlyAgg: Record<string, Set<string>> = {}; // Cat -> Set("0-2023", "1-2023") - Track months with activity
+      const monthlySum: Record<string, number> = {};
 
       transactions.filter(t => t.type === 'expense').forEach(t => {
           const d = new Date(t.date + 'T12:00:00');
-          const isCurrentMonth = d.getMonth() === filter.month && d.getFullYear() === filter.year;
+          const isCurrentView = d.getMonth() === filter.month && d.getFullYear() === filter.year;
           
-          if (isCurrentMonth) {
-              currentMonthExpenses[t.category] = (currentMonthExpenses[t.category] || 0) + t.amount;
-          } else {
-              // Create a unique key for Month-Year to count distinct months
-              const monthKey = `${d.getMonth()}-${d.getFullYear()}`;
-              if (!historicalExpenses[t.category]) {
-                  historicalExpenses[t.category] = { total: 0, count: 0 };
-              }
-              // Ideally we would sum per month then average, simplified here by sum total and dividing by occurrence
-              // For better accuracy, we track total spend and assume we divide by number of months active (approx)
-              historicalExpenses[t.category].total += t.amount;
-              historicalExpenses[t.category].count += 1; // This counts transactions, roughly okay for weighted average
-          }
-      });
-
-      // 2. Check for Spikes (> 20% above average)
-      Object.entries(currentMonthExpenses).forEach(([cat, amount]) => {
-          // Calculate historical average (Total / Total Transactions * Avg Transactions per month approx 5?)
-          // Simpler approach: Compare with ALL historical average per transaction * estimated frequency
-          // Better approach: Calculate average spend PER MONTH
-          
-          // Let's create a simpler "Monthly Average" calculation map
-          const monthlyAgg: Record<string, Set<string>> = {}; // Cat -> Set("Jan-2023", "Feb-2023")
-          const monthlySum: Record<string, number> = {};
-
-          transactions.filter(t => t.type === 'expense' && !(new Date(t.date).getMonth() === filter.month && new Date(t.date).getFullYear() === filter.year)).forEach(t => {
-             const d = new Date(t.date);
+          if (!isCurrentView) {
              const mKey = `${d.getMonth()}-${d.getFullYear()}`;
              if(!monthlyAgg[t.category]) monthlyAgg[t.category] = new Set();
              monthlyAgg[t.category].add(mKey);
              monthlySum[t.category] = (monthlySum[t.category] || 0) + t.amount;
-          });
+          }
+      });
 
-          const historicalAvg = (monthlySum[cat] || 0) / (monthlyAgg[cat]?.size || 1);
+      // Calculate Current Month Totals
+      const currentMonthExpenses: Record<string, number> = {};
+      filteredTransactions.filter(t => t.type === 'expense').forEach(t => {
+          currentMonthExpenses[t.category] = (currentMonthExpenses[t.category] || 0) + t.amount;
+      });
 
-          if (monthlyAgg[cat]?.size > 0 && amount > historicalAvg * 1.2 && amount > 100) {
-              const percentDiff = ((amount - historicalAvg) / historicalAvg) * 100;
-              alerts.push({
-                  type: 'warning',
-                  message: `Gasto com ${cat} acima da média`,
-                  detail: `Você gastou ${Math.round(percentDiff)}% a mais que sua média mensal (${formatCurrency(historicalAvg)}).`
-              });
+      // 2. Check for Spikes (> 20% above average)
+      Object.entries(currentMonthExpenses).forEach(([cat, amount]) => {
+          const monthsActive = monthlyAgg[cat]?.size || 0;
+          
+          if (monthsActive > 0) {
+              const historicalTotal = monthlySum[cat] || 0;
+              const historicalAvg = historicalTotal / monthsActive;
+
+              // Only trigger if amount is significant (> 100) and avg is established
+              if (amount > 100 && amount > historicalAvg * 1.2) {
+                  const percentDiff = ((amount - historicalAvg) / historicalAvg) * 100;
+                  alerts.push({
+                      type: 'warning',
+                      message: `Gasto acima da média: ${cat}`,
+                      detail: `Você gastou ${Math.round(percentDiff)}% a mais que sua média histórica (${formatCurrency(historicalAvg, currency)}).`
+                  });
+              }
           }
       });
 
@@ -172,8 +203,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
               if (amount > kpiData.income * 0.4) {
                   alerts.push({
                       type: 'critical',
-                      message: `Atenção com ${cat}`,
-                      detail: `Esta categoria consome ${((amount / kpiData.income) * 100).toFixed(0)}% de toda sua receita mensal.`
+                      message: `Alto Impacto: ${cat}`,
+                      detail: `Atenção! ${cat} está consumindo ${((amount / kpiData.income) * 100).toFixed(0)}% de toda sua receita mensal.`
                   });
               }
           });
@@ -184,12 +215,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
            alerts.push({
               type: 'critical',
               message: 'Taxa de Poupança Baixa',
-              detail: 'Você está poupando menos de 5% da sua renda este mês.'
+              detail: 'Cuidado, você está poupando menos de 5% da sua renda este mês.'
           });
       }
 
       return alerts;
-  }, [transactions, filter, kpiData.income, kpiData.savingsRate]);
+  }, [transactions, filteredTransactions, filter, kpiData.income, kpiData.savingsRate, currency]);
 
 
   // --- CATEGORY TREND CHART LOGIC ---
@@ -266,12 +297,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
     <div className="space-y-6 animate-fade-in pb-20 md:pb-10">
       
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
+        
+        {/* Row 1, Col 1: Receitas */}
         <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between transition-colors">
             <div className="flex justify-between items-start">
                 <div>
                     <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Receitas</p>
-                    <h3 className="text-xl lg:text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{formatCurrency(kpiData.income)}</h3>
+                    <h3 className="text-xl lg:text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{formatCurrency(kpiData.income, currency)}</h3>
                 </div>
                 <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg text-emerald-600 dark:text-emerald-400">
                     <TrendingUp size={20} />
@@ -279,11 +312,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
             </div>
         </div>
 
+        {/* Row 1, Col 2: Despesas */}
         <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between transition-colors">
             <div className="flex justify-between items-start">
                 <div>
                     <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Despesas</p>
-                    <h3 className="text-xl lg:text-2xl font-bold text-rose-600 dark:text-rose-400 mt-1">{formatCurrency(kpiData.expense)}</h3>
+                    <h3 className="text-xl lg:text-2xl font-bold text-rose-600 dark:text-rose-400 mt-1">{formatCurrency(kpiData.expense, currency)}</h3>
                 </div>
                 <div className="p-2 bg-rose-100 dark:bg-rose-900/30 rounded-lg text-rose-600 dark:text-rose-400">
                     <TrendingDown size={20} />
@@ -291,12 +325,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
             </div>
         </div>
 
+        {/* Row 1, Col 3: Saldo Final */}
         <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between transition-colors">
             <div className="flex justify-between items-start">
                 <div>
                     <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Saldo Final</p>
                     <h3 className={`text-xl lg:text-2xl font-bold mt-1 ${kpiData.balance >= 0 ? 'text-slate-800 dark:text-slate-100' : 'text-rose-600 dark:text-rose-400'}`}>
-                        {formatCurrency(kpiData.balance)}
+                        {formatCurrency(kpiData.balance, currency)}
                     </h3>
                 </div>
                 <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400">
@@ -305,7 +340,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
             </div>
         </div>
 
-        {/* Savings Rate Card */}
+        {/* Row 2, Col 1: Taxa de Poupança */}
         <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between transition-colors">
              <div className="flex justify-between items-start">
                 <div>
@@ -321,46 +356,89 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
             </div>
         </div>
 
-         <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between transition-colors sm:col-span-2 lg:col-span-1">
+        {/* Row 2, Col 2: Maior Gasto */}
+         <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between transition-colors">
             <div className="flex justify-between items-start">
                 <div className="overflow-hidden">
                     <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Maior Gasto</p>
                     <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mt-1 truncate" title={kpiData.mostExpensiveCategory}>
                         {kpiData.mostExpensiveCategory}
                     </h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">{formatCurrency(kpiData.mostExpensiveValue)}</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">{formatCurrency(kpiData.mostExpensiveValue, currency)}</p>
                 </div>
                 <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg text-orange-600 dark:text-orange-400 shrink-0">
                     <AlertCircle size={20} />
                 </div>
             </div>
         </div>
+
+        {/* Row 2, Col 3: HEALTH SCORE (NEW) */}
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between transition-colors">
+            <div className="flex justify-between items-start">
+                <div className="w-full">
+                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Saúde Financeira</p>
+                    <div className="flex items-end justify-between mt-1">
+                        <h3 className={`text-2xl font-black ${kpiData.healthColor}`}>
+                            {kpiData.healthScore}<span className="text-sm text-slate-400 font-normal">/5</span>
+                        </h3>
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full bg-opacity-10 border ${
+                            kpiData.healthScore === 5 ? 'bg-emerald-500 border-emerald-500 text-emerald-600' :
+                            kpiData.healthScore === 4 ? 'bg-blue-500 border-blue-500 text-blue-600' :
+                            kpiData.healthScore === 3 ? 'bg-yellow-500 border-yellow-500 text-yellow-600' :
+                            kpiData.healthScore === 2 ? 'bg-orange-500 border-orange-500 text-orange-600' :
+                            'bg-rose-500 border-rose-500 text-rose-600'
+                        } dark:bg-opacity-20`}>
+                            {kpiData.healthLabel}
+                        </span>
+                    </div>
+                    {/* Progress Bar for Score */}
+                    <div className="flex gap-1 mt-3 h-2">
+                        {[1, 2, 3, 4, 5].map((step) => (
+                            <div 
+                                key={step} 
+                                className={`flex-1 rounded-sm transition-all duration-500 ${
+                                    step <= kpiData.healthScore 
+                                    ? (kpiData.healthScore === 5 ? 'bg-emerald-500' : 
+                                       kpiData.healthScore === 4 ? 'bg-blue-500' :
+                                       kpiData.healthScore === 3 ? 'bg-yellow-400' :
+                                       kpiData.healthScore === 2 ? 'bg-orange-500' : 'bg-rose-500') 
+                                    : 'bg-slate-100 dark:bg-slate-700'
+                                }`}
+                            />
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </div>
+
       </div>
 
       {/* ALERTAS INTELIGENTES */}
       {alertsData.length > 0 && (
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden transition-colors">
-              <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex items-center gap-2">
-                  <AlertTriangle className="text-amber-500" size={20} />
-                  <h3 className="font-bold text-slate-800 dark:text-white">Alertas de Consumo</h3>
+          <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/10 dark:to-orange-900/10 rounded-xl shadow-sm border border-amber-200 dark:border-amber-800/50 overflow-hidden transition-colors">
+              <div className="p-4 border-b border-amber-100 dark:border-amber-800/50 flex items-center gap-2">
+                  <div className="p-1.5 bg-amber-100 dark:bg-amber-900/50 rounded-full text-amber-600 dark:text-amber-400">
+                    <Lightbulb size={18} />
+                  </div>
+                  <h3 className="font-bold text-slate-800 dark:text-white">Alertas Inteligentes</h3>
               </div>
               <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {alertsData.map((alert, idx) => (
-                      <div key={idx} className={`p-3 rounded-lg border flex items-start gap-3 ${
+                      <div key={idx} className={`p-3 rounded-lg border flex items-start gap-3 shadow-sm ${
                           alert.type === 'critical' 
                           ? 'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-800' 
-                          : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
+                          : 'bg-white dark:bg-slate-800 border-amber-100 dark:border-amber-900/50'
                       }`}>
-                          <div className={`p-1.5 rounded-full shrink-0 ${
-                              alert.type === 'critical' ? 'bg-rose-200 dark:bg-rose-800 text-rose-700 dark:text-rose-200' : 'bg-amber-200 dark:bg-amber-800 text-amber-700 dark:text-amber-200'
+                          <div className={`p-2 rounded-full shrink-0 ${
+                              alert.type === 'critical' ? 'bg-rose-100 text-rose-600 dark:bg-rose-900/50 dark:text-rose-400' : 'bg-amber-100 text-amber-600 dark:bg-amber-900/50 dark:text-amber-400'
                           }`}>
-                              {alert.type === 'critical' ? <TrendingUp size={16} /> : <AlertCircle size={16} />}
+                              {alert.type === 'critical' ? <Siren size={18} /> : <TrendingUp size={18} />}
                           </div>
                           <div>
                               <p className={`text-sm font-bold ${
-                                  alert.type === 'critical' ? 'text-rose-800 dark:text-rose-300' : 'text-amber-800 dark:text-amber-300'
+                                  alert.type === 'critical' ? 'text-rose-800 dark:text-rose-300' : 'text-slate-800 dark:text-slate-200'
                               }`}>{alert.message}</p>
-                              <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{alert.detail}</p>
+                              <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">{alert.detail}</p>
                           </div>
                       </div>
                   ))}
@@ -388,10 +466,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#94a3b8" strokeOpacity={0.2} />
                         <XAxis dataKey="name" tick={{fontSize: 12, fill: '#94a3b8'}} axisLine={false} tickLine={false} minTickGap={30} />
-                        <YAxis tick={{fontSize: 12, fill: '#94a3b8'}} axisLine={false} tickLine={false} tickFormatter={(val) => `R$${val}`} />
+                        <YAxis tick={{fontSize: 12, fill: '#94a3b8'}} axisLine={false} tickLine={false} tickFormatter={(val) => currency === 'BRL' ? `R$${val}` : `${val}`} />
                         <Tooltip 
                             contentStyle={{backgroundColor: 'var(--tooltip-bg, #fff)', borderRadius: '8px', border: '1px solid #e2e8f0'}}
-                            formatter={(value: number) => formatCurrency(value)}
+                            formatter={(value: number) => formatCurrency(value, currency)}
                         />
                         <Legend />
                         <Area type="monotone" dataKey="Receita" stroke="#10b981" fillOpacity={1} fill="url(#colorIncome)" strokeWidth={2} />
@@ -426,7 +504,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                                 </div>
                             </div>
                             <span className={`text-sm font-bold ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                                {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
+                                {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount, currency)}
                             </span>
                         </div>
                     ))
@@ -448,10 +526,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                   <LineChart data={trendData.data}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#94a3b8" strokeOpacity={0.2} />
                       <XAxis dataKey="name" tick={{fontSize: 12, fill: '#94a3b8'}} axisLine={false} tickLine={false} />
-                      <YAxis tick={{fontSize: 12, fill: '#94a3b8'}} axisLine={false} tickLine={false} tickFormatter={(val) => `R$${val}`}/>
+                      <YAxis tick={{fontSize: 12, fill: '#94a3b8'}} axisLine={false} tickLine={false} tickFormatter={(val) => currency === 'BRL' ? `R$${val}` : `${val}`}/>
                       <Tooltip 
                           contentStyle={{backgroundColor: 'var(--tooltip-bg, #fff)', borderRadius: '8px', border: '1px solid #e2e8f0'}}
-                          formatter={(value: number) => formatCurrency(value)}
+                          formatter={(value: number) => formatCurrency(value, currency)}
                       />
                       <Legend />
                       {trendData.categories.map((cat, index) => (
@@ -479,9 +557,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                 <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={barData} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#94a3b8" strokeOpacity={0.2}/>
-                        <XAxis type="number" tick={{fontSize: 12, fill: '#94a3b8'}} axisLine={false} tickLine={false} tickFormatter={(val) => `R$${val}`}/>
+                        <XAxis type="number" tick={{fontSize: 12, fill: '#94a3b8'}} axisLine={false} tickLine={false} tickFormatter={(val) => currency === 'BRL' ? `R$${val}` : `${val}`}/>
                         <YAxis dataKey="name" type="category" width={100} tick={{fontSize: 12, fill: '#94a3b8'}} axisLine={false} tickLine={false}/>
-                        <Tooltip formatter={(value: number) => formatCurrency(value)} cursor={{fill: 'transparent'}} contentStyle={{color: '#333'}} />
+                        <Tooltip formatter={(value: number) => formatCurrency(value, currency)} cursor={{fill: 'transparent'}} contentStyle={{color: '#333'}} />
                         <Bar dataKey="value" fill="#3b82f6" radius={[0, 4, 4, 0]} barSize={20} />
                     </BarChart>
                 </ResponsiveContainer>
@@ -511,8 +589,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                                 ></div>
                             </div>
                             <div className="flex justify-between mt-1 text-xs text-slate-400">
-                                <span>{formatCurrency(goal.currentValue)}</span>
-                                <span>{formatCurrency(goal.targetValue)}</span>
+                                <span>{formatCurrency(goal.currentValue, currency)}</span>
+                                <span>{formatCurrency(goal.targetValue, currency)}</span>
                             </div>
                         </div>
                     )
@@ -529,7 +607,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                 Resumo do {quarterData.quarterName}
             </h4>
             <span className="text-xs font-bold bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 px-3 py-1 rounded-full border border-indigo-100 dark:border-indigo-800">
-                Total: {formatCurrency(quarterData.total)}
+                Total: {formatCurrency(quarterData.total, currency)}
             </span>
         </div>
 
@@ -553,7 +631,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                             </div>
                             <div className="text-right">
                                 <span className="text-xs font-semibold inline-block text-slate-600 dark:text-slate-300">
-                                    {formatCurrency(cat.value)}
+                                    {formatCurrency(cat.value, currency)}
                                 </span>
                             </div>
                         </div>

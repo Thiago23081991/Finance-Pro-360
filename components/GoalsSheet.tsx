@@ -9,9 +9,10 @@ interface GoalsSheetProps {
   onAdd: (g: Goal) => void;
   onDelete: (id: string) => void;
   onUpdate: (id: string, val: number) => void; // Simplified update for current val
+  currency?: string;
 }
 
-export const GoalsSheet: React.FC<GoalsSheetProps> = ({ goals, onAdd, onDelete, onUpdate }) => {
+export const GoalsSheet: React.FC<GoalsSheetProps> = ({ goals, onAdd, onDelete, onUpdate, currency = 'BRL' }) => {
     const [isAdding, setIsAdding] = useState(false);
     const [name, setName] = useState('');
     const [target, setTarget] = useState('');
@@ -93,7 +94,7 @@ export const GoalsSheet: React.FC<GoalsSheetProps> = ({ goals, onAdd, onDelete, 
                              return (
                                  <tr key={g.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group">
                                      <td className="py-3 px-6 text-sm font-medium text-slate-700 dark:text-slate-300">{g.name}</td>
-                                     <td className="py-3 px-6 text-sm text-slate-600 dark:text-slate-400 font-mono">{formatCurrency(g.targetValue)}</td>
+                                     <td className="py-3 px-6 text-sm text-slate-600 dark:text-slate-400 font-mono">{formatCurrency(g.targetValue, currency)}</td>
                                      <td className="py-3 px-6 text-sm text-slate-600 dark:text-slate-400 font-mono">
                                          {/* Editable cell simplified */}
                                          <input 

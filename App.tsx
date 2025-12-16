@@ -516,7 +516,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
 
             <div className={`transition-opacity duration-300 ${contentLoading ? 'opacity-40' : 'opacity-100'}`}>
                 {activeTab === 'controle' && (
-                    <Dashboard transactions={transactions} goals={goals} filter={filter} />
+                    <Dashboard transactions={transactions} goals={goals} filter={filter} currency={config.currency} />
                 )}
                 
                 {activeTab === 'receitas' && (
@@ -528,6 +528,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
                         onAdd={addTransaction}
                         onUpdate={updateTransaction}
                         onDelete={deleteTransaction}
+                        currency={config.currency}
                     />
                 )}
 
@@ -540,6 +541,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
                         onAdd={addTransaction}
                         onUpdate={updateTransaction}
                         onDelete={deleteTransaction}
+                        currency={config.currency}
                     />
                 )}
 
@@ -559,6 +561,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
                         onAdd={addGoal}
                         onDelete={deleteGoal}
                         onUpdate={updateGoalValue}
+                        currency={config.currency}
                     />
                 )}
 

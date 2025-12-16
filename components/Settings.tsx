@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { AppConfig, Transaction, PurchaseRequest } from '../types';
-import { Trash2, Plus, FileSpreadsheet, Download, Bell, CreditCard, CheckCircle, Clock, Upload, Shield, Key, Smartphone, Copy, Lock, Moon, Sun, AlertTriangle, FileText, QrCode, ArrowRight } from 'lucide-react';
+import { Trash2, Plus, FileSpreadsheet, Download, Bell, CreditCard, CheckCircle, Clock, Upload, Shield, Key, Smartphone, Copy, Lock, Moon, Sun, AlertTriangle, FileText, QrCode, ArrowRight, DollarSign } from 'lucide-react';
 import { exportToCSV, generateId, validateLicenseKey } from '../utils';
 import { DBService } from '../db';
 import { PrivacyModal } from './PrivacyModal';
@@ -15,7 +15,8 @@ interface SettingsProps {
 // --- CONFIGURAÇÃO DO PIX ---
 // Substitua esta chave pela sua Chave Pix real se necessário
 const PIX_KEY = "71ee2472-12a1-4edf-b0e0-ad0bc4c2a984"; 
-const PIX_NAME = "Finance Pro 360 Ltda";
+const PIX_NAME = "THIAGO DA SILVA NASCIMENTO";
+const PIX_VALUE = "49.90";
 
 export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, transactions }) => {
     const [newCat, setNewCat] = useState('');
@@ -92,7 +93,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
     };
 
     const handleWhatsAppRequest = () => {
-        const text = `Olá! Realizei o pagamento via Pix e gostaria de solicitar a licença do Finance Pro 360.\n\nMeu ID de Usuário: *${config.userId}*\n\n(Anexe o comprovante aqui)`;
+        const text = `Olá! Realizei o pagamento de R$ ${PIX_VALUE.replace('.', ',')} via Pix e gostaria de solicitar a licença do Finance Pro 360.\n\nMeu ID de Usuário: *${config.userId}*\n\n(Anexe o comprovante aqui)`;
         const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
         window.open(url, '_blank');
     };
@@ -249,7 +250,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                                     <div className="bg-blue-50 dark:bg-blue-900/10 p-6 rounded-xl border border-blue-100 dark:border-blue-800 text-center">
                                         <h4 className="text-lg font-bold text-blue-800 dark:text-blue-300 mb-2">Libere seu acesso agora</h4>
                                         <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 max-w-lg mx-auto">
-                                            Adquira a licença vitalícia para desbloquear gráficos avançados, aba de investimentos, cursos exclusivos e muito mais.
+                                            Adquira a licença vitalícia por apenas <span className="font-bold">R$ {PIX_VALUE.replace('.', ',')}</span> e desbloqueie gráficos avançados, aba de investimentos, cursos exclusivos e muito mais.
                                         </p>
                                         
                                         <div className="flex flex-col items-center gap-4">
@@ -282,7 +283,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                                                 Escaneie o QR Code abaixo com o app do seu banco:
                                             </p>
                                             
-                                            <div className="bg-white p-2 rounded-lg shadow-md border border-slate-200 inline-block">
+                                            <div className="bg-white p-2 rounded-lg shadow-md border border-slate-200 inline-block relative">
                                                 {/* IMAGEM DO QR CODE - Certifique-se que o arquivo pix-qrcode.png existe em public/ */}
                                                 <img 
                                                     src="/pix-qrcode.png" 
@@ -293,6 +294,9 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                                                         e.currentTarget.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(PIX_KEY)}`;
                                                     }}
                                                 />
+                                                <div className="text-center mt-2 pb-1 border-t border-slate-100">
+                                                    <p className="text-lg font-bold text-emerald-600">R$ {PIX_VALUE.replace('.', ',')}</p>
+                                                </div>
                                             </div>
 
                                             <div className="w-full max-w-sm space-y-2">
@@ -309,9 +313,11 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                                                         <Copy size={18} />
                                                     </button>
                                                 </div>
-                                                <p className="text-xs text-slate-400 dark:text-slate-500">
-                                                    Beneficiário: {PIX_NAME}
-                                                </p>
+                                                <div className="text-center mt-1">
+                                                    <p className="text-xs text-slate-400 dark:text-slate-500">
+                                                        Beneficiário: <strong className="text-slate-600 dark:text-slate-300">{PIX_NAME}</strong>
+                                                    </p>
+                                                </div>
                                             </div>
                                         </div>
                                         
@@ -363,40 +369,67 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                 </div>
             </div>
 
-            {/* Appearance Settings */}
+            {/* Appearance and Currency Settings */}
             <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
                 <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2 mb-4">
                     {config.theme === 'dark' ? <Moon className="text-blue-500" size={20} /> : <Sun className="text-orange-500" size={20} />}
-                    Aparência
+                    Aparência e Moeda
                 </h3>
-                <div className="flex items-center justify-between">
-                    <div>
-                        <p className="text-sm font-medium text-slate-800 dark:text-white">Tema da Aplicação</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                            Escolha entre o modo claro ou escuro para melhor visualização.
-                        </p>
+                
+                <div className="space-y-6">
+                    {/* Theme */}
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm font-medium text-slate-800 dark:text-white">Tema da Aplicação</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                Escolha entre o modo claro ou escuro.
+                            </p>
+                        </div>
+                        <div className="bg-slate-100 dark:bg-slate-700 p-1 rounded-lg flex items-center border border-slate-200 dark:border-slate-600">
+                            <button
+                                onClick={() => onUpdateConfig({...config, theme: 'light'})}
+                                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
+                                    config.theme !== 'dark' 
+                                    ? 'bg-white text-slate-800 shadow-sm' 
+                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                                }`}
+                            >
+                                Claro
+                            </button>
+                            <button
+                                onClick={() => onUpdateConfig({...config, theme: 'dark'})}
+                                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
+                                    config.theme === 'dark' 
+                                    ? 'bg-slate-600 text-white shadow-sm' 
+                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                                }`}
+                            >
+                                Escuro
+                            </button>
+                        </div>
                     </div>
-                    <div className="bg-slate-100 dark:bg-slate-700 p-1 rounded-lg flex items-center border border-slate-200 dark:border-slate-600">
-                        <button
-                            onClick={() => onUpdateConfig({...config, theme: 'light'})}
-                            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
-                                config.theme !== 'dark' 
-                                ? 'bg-white text-slate-800 shadow-sm' 
-                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-                            }`}
+
+                    {/* Currency */}
+                    <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-700 pt-6">
+                         <div>
+                            <p className="text-sm font-medium text-slate-800 dark:text-white flex items-center gap-2">
+                                <DollarSign size={16} className="text-emerald-500" /> Moeda Preferida
+                            </p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                Símbolo monetário usado em todo o aplicativo.
+                            </p>
+                        </div>
+                        <select
+                            value={config.currency || 'BRL'}
+                            onChange={(e) => onUpdateConfig({...config, currency: e.target.value as any})}
+                            className="bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 text-slate-800 dark:text-white text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
                         >
-                            Claro
-                        </button>
-                        <button
-                            onClick={() => onUpdateConfig({...config, theme: 'dark'})}
-                            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
-                                config.theme === 'dark' 
-                                ? 'bg-slate-600 text-white shadow-sm' 
-                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-                            }`}
-                        >
-                            Escuro
-                        </button>
+                            <option value="BRL">Real (R$)</option>
+                            <option value="USD">Dólar ($)</option>
+                            <option value="EUR">Euro (€)</option>
+                            <option value="GBP">Libra (£)</option>
+                            <option value="JPY">Iene (¥)</option>
+                        </select>
                     </div>
                 </div>
             </div>
