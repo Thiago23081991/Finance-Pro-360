@@ -370,7 +370,10 @@ export class DBService {
     };
 
     const { error } = await supabase.from('profiles').upsert(payload);
-    if (error) console.error("Erro ao salvar config", error);
+    if (error) {
+        // Exibe o erro real no console para depuração
+        console.error("Erro ao salvar config:", error.message);
+    }
   }
 
   static async updateUserLicense(userId: string, status: 'active' | 'inactive'): Promise<void> {
