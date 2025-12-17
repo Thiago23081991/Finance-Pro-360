@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { AppConfig, Debt } from '../types';
-import { Lock, Crown, CheckCircle, Plus, Trash2, TrendingUp, AlertOctagon, Info, ArrowRight, Scale, Calculator, Loader2, ArrowUp, ArrowDown, List, Sparkles } from 'lucide-react';
+import { Lock, Crown, CheckCircle, Plus, Trash2, TrendingUp, AlertOctagon, Info, ArrowRight, Scale, Calculator, Loader2, ArrowUp, ArrowDown, List, Sparkles, Snowflake, Flame } from 'lucide-react';
 import { formatCurrency, generateId } from '../utils';
 
 interface DebtsProps {
@@ -21,6 +21,9 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
     
     // Sort Mode State
     const [sortMode, setSortMode] = useState<'smart' | 'manual'>('smart');
+    // Strategy State: 'avalanche' (Interest Rate) or 'snowball' (Lowest Balance)
+    const [strategy, setStrategy] = useState<'avalanche' | 'snowball'>('avalanche');
+    
     // Local state to force re-render when local storage updates
     const [manualOrderTrigger, setManualOrderTrigger] = useState(0); 
     
@@ -31,13 +34,20 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
     const [dueDate, setDueDate] = useState('');
     const [category, setCategory] = useState<Debt['category']>('outro');
 
-    // --- PRIORITIZATION LOGIC (AVALANCHE METHOD - SMART) ---
+    // --- PRIORITIZATION LOGIC (SMART) ---
     const smartList = useMemo(() => {
-        return [...debts].sort((a, b) => {
-            if (b.interestRate !== a.interestRate) return b.interestRate - a.interestRate;
-            return a.totalAmount - b.totalAmount;
-        });
-    }, [debts]);
+        const sorted = [...debts];
+        if (strategy === 'avalanche') {
+            // Avalanche: Sort by Interest Rate (Desc), then Amount
+            return sorted.sort((a, b) => {
+                if (b.interestRate !== a.interestRate) return b.interestRate - a.interestRate;
+                return a.totalAmount - b.totalAmount;
+            });
+        } else {
+            // Snowball: Sort by Total Amount (Asc) - Ignore interest rate
+            return sorted.sort((a, b) => a.totalAmount - b.totalAmount);
+        }
+    }, [debts, strategy]);
 
     // --- MANUAL SORT LOGIC ---
     const manualList = useMemo(() => {
@@ -187,9 +197,9 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
                 )}
             </div>
 
-            {/* Sort Mode Switcher */}
+            {/* Controls Bar: Sort Mode & Strategy */}
             {debts.length > 0 && (
-                <div className="flex justify-center md:justify-start">
+                <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
                     <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-lg inline-flex border border-slate-200 dark:border-slate-700">
                         <button
                             onClick={() => setSortMode('smart')}
@@ -200,7 +210,7 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
                             }`}
                         >
                             <Sparkles size={14} />
-                            IA (Recomendado)
+                            IA
                         </button>
                         <button
                             onClick={() => setSortMode('manual')}
@@ -211,29 +221,49 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
                             }`}
                         >
                             <List size={14} />
-                            Minha Ordem
+                            Manual
                         </button>
                     </div>
+
+                    {sortMode === 'smart' && (
+                        <div className="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1">
+                            <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500">Método:</span>
+                            <select
+                                value={strategy}
+                                onChange={(e) => setStrategy(e.target.value as any)}
+                                className="text-xs font-medium bg-transparent text-slate-700 dark:text-slate-200 outline-none cursor-pointer"
+                            >
+                                <option value="avalanche">Avalanche (Matemático)</option>
+                                <option value="snowball">Bola de Neve (Psicológico)</option>
+                            </select>
+                        </div>
+                    )}
                 </div>
             )}
 
             {/* THE "NORTH" - AI RECOMMENDATION (Visible in Smart Mode) */}
             {debts.length > 0 && topPriority && sortMode === 'smart' && (
-                <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-xl p-6 text-white shadow-xl border border-slate-700 relative overflow-hidden animate-fade-in">
+                <div className={`rounded-xl p-6 text-white shadow-xl border relative overflow-hidden animate-fade-in ${
+                    strategy === 'avalanche' 
+                    ? 'bg-gradient-to-r from-slate-800 to-slate-900 border-slate-700' 
+                    : 'bg-gradient-to-r from-blue-800 to-indigo-900 border-blue-700'
+                }`}>
                     <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center gap-6">
                         <div className="p-4 bg-white/10 rounded-full shrink-0 animate-pulse">
-                            <Calculator size={32} className="text-amber-400" />
+                            {strategy === 'avalanche' ? <Calculator size={32} className="text-amber-400" /> : <Snowflake size={32} className="text-cyan-300" />}
                         </div>
                         <div className="flex-1">
-                            <h3 className="text-amber-400 font-bold text-sm uppercase tracking-wider mb-1 flex items-center gap-2">
+                            <h3 className={`${strategy === 'avalanche' ? 'text-amber-400' : 'text-cyan-300'} font-bold text-sm uppercase tracking-wider mb-1 flex items-center gap-2`}>
                                 <TrendingUp size={14} /> Recomendação Inteligente (O Norte)
                             </h3>
                             <h4 className="text-xl font-bold mb-2">
-                                Foque em quitar: <span className="text-white border-b-2 border-rose-500">{topPriority.name}</span>
+                                Foque em quitar: <span className="text-white border-b-2 border-white/30">{topPriority.name}</span>
                             </h4>
                             <p className="text-slate-300 text-sm leading-relaxed">
-                                Esta dívida possui a maior taxa de juros (<strong>{topPriority.interestRate}% a.m.</strong>). 
-                                Matematicamente, eliminá-la primeiro fará você economizar mais dinheiro a longo prazo (Método Avalanche).
+                                {strategy === 'avalanche' 
+                                    ? <span>Esta dívida possui a maior taxa de juros (<strong>{topPriority.interestRate}% a.m.</strong>). Matematicamente, eliminá-la primeiro fará você economizar mais dinheiro (Método Avalanche).</span>
+                                    : <span>Esta é a sua dívida de <strong>menor valor</strong>. Quitá-la rapidamente vai liberar seu fluxo de caixa e criar um efeito psicológico de vitória imediata (Método Bola de Neve).</span>
+                                }
                             </p>
                         </div>
                         <div className="bg-white/10 p-4 rounded-lg text-center min-w-[120px]">
@@ -242,7 +272,7 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
                         </div>
                     </div>
                     {/* Decorative */}
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/20 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
+                    <div className={`absolute top-0 right-0 w-32 h-32 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none ${strategy === 'avalanche' ? 'bg-rose-500/20' : 'bg-cyan-500/20'}`}></div>
                 </div>
             )}
 
@@ -324,8 +354,11 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
             {/* List */}
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden transition-colors">
                 <div className="p-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex justify-between items-center">
-                    <h3 className="font-bold text-slate-700 dark:text-slate-200">
-                        {sortMode === 'smart' ? 'Plano de Quitação (Recomendado)' : 'Sua Lista de Prioridades'}
+                    <h3 className="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                        {sortMode === 'smart' 
+                            ? (strategy === 'avalanche' ? <><Flame size={16} className="text-orange-500"/> Plano Avalanche</> : <><Snowflake size={16} className="text-cyan-500"/> Plano Bola de Neve</>)
+                            : 'Sua Lista Personalizada'
+                        }
                     </h3>
                     <span className="text-xs bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 px-2 py-1 rounded font-bold">
                         Total: {formatCurrency(debts.reduce((acc, curr) => acc + curr.totalAmount, 0), currency)}
@@ -342,12 +375,12 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
                         {displayList.map((debt, index) => (
                             <div key={debt.id} className="p-4 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors flex items-center justify-between group relative animate-fade-in">
                                 {sortMode === 'smart' && index === 0 && (
-                                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-amber-400"></div>
+                                    <div className={`absolute left-0 top-0 bottom-0 w-1 ${strategy === 'avalanche' ? 'bg-amber-400' : 'bg-cyan-400'}`}></div>
                                 )}
                                 <div className="flex items-center gap-4">
                                     <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${
                                         sortMode === 'smart' && index === 0 
-                                        ? 'bg-amber-100 text-amber-700 ring-2 ring-amber-400' 
+                                        ? (strategy === 'avalanche' ? 'bg-amber-100 text-amber-700 ring-2 ring-amber-400' : 'bg-cyan-100 text-cyan-700 ring-2 ring-cyan-400')
                                         : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-300'
                                     }`}>
                                         {index + 1}º
@@ -355,7 +388,13 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
                                     <div>
                                         <h4 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
                                             {debt.name}
-                                            {sortMode === 'smart' && index === 0 && <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded border border-amber-200">Prioridade Máxima</span>}
+                                            {sortMode === 'smart' && index === 0 && <span className={`text-[10px] px-1.5 py-0.5 rounded border ${
+                                                strategy === 'avalanche' 
+                                                ? 'bg-amber-100 text-amber-700 border-amber-200' 
+                                                : 'bg-cyan-100 text-cyan-700 border-cyan-200'
+                                            }`}>
+                                                {strategy === 'avalanche' ? 'Prioridade Máxima' : 'Vitória Rápida'}
+                                            </span>}
                                         </h4>
                                         <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-3 mt-1">
                                             <span className="flex items-center gap-1 text-rose-600 dark:text-rose-400 font-medium">
@@ -409,8 +448,7 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
                 <div className="p-4 bg-blue-50 dark:bg-blue-900/10 rounded-lg border border-blue-100 dark:border-blue-800 text-sm text-blue-700 dark:text-blue-300 flex items-start gap-3">
                     <Info className="shrink-0 mt-0.5" size={18} />
                     <p>
-                        <strong>Dica Pro:</strong> A ordem recomendada segue a matemática financeira para economizar dinheiro. 
-                        Se preferir, mude para o modo "Minha Ordem" para organizar conforme sua necessidade psicológica (Método Bola de Neve).
+                        <strong>Dica:</strong> Você pode alternar entre <strong>Avalanche</strong> (Matemática) e <strong>Bola de Neve</strong> (Psicologia) usando o seletor acima para ver qual plano se adapta melhor à sua realidade.
                     </p>
                 </div>
             )}

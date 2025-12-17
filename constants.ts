@@ -1,6 +1,12 @@
 
 import { AppConfig } from "./types";
 
+// COLOQUE AQUI SEUS LINKS DE CHECKOUT REAIS
+export const CHECKOUT_URLS = {
+    kiwify: "https://pay.kiwify.com.br/SEU_LINK_AQUI", 
+    hotmart: "https://pay.hotmart.com/SEU_LINK_AQUI"
+};
+
 export const DEFAULT_CONFIG: AppConfig = {
   theme: 'light',
   currency: 'BRL',

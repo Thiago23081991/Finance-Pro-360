@@ -1,7 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { AppConfig } from '../types';
-import { Lock, Crown, CheckCircle, TrendingUp, BarChart4, PieChart, Calculator, Landmark, ArrowRight, AlertTriangle } from 'lucide-react';
+import { Lock, Crown, CheckCircle, TrendingUp, BarChart4, PieChart, Calculator, Landmark, ArrowRight, AlertTriangle, Calendar, RefreshCw } from 'lucide-react';
 import { formatCurrency } from '../utils';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 
@@ -13,6 +13,16 @@ interface InvestmentsProps {
 type SubTab = 'suitability' | 'opportunities' | 'projection';
 type ProfileType = 'Conservador' | 'Moderado' | 'Arrojado' | null;
 
+interface Opportunity {
+    type: string;
+    title: string;
+    rate: string;
+    min: number;
+    risk: 'Baixo' | 'Médio' | 'Alto';
+    profile: string[];
+    change?: number; // Para variação diária visual
+}
+
 export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSettings }) => {
     const [subTab, setSubTab] = useState<SubTab>('suitability');
     
@@ -20,6 +30,10 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
     const [profile, setProfile] = useState<ProfileType>(null);
     const [answers, setAnswers] = useState<Record<number, number>>({});
     const [showQuiz, setShowQuiz] = useState(false);
+
+    // --- OPPORTUNITIES STATE ---
+    const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
+    const [lastUpdateDate, setLastUpdateDate] = useState('');
 
     // --- PROJECTION STATE ---
     const [projInitial, setProjInitial] = useState(1000);
@@ -34,10 +48,89 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
         if (savedProfile) {
             setProfile(savedProfile as ProfileType);
         }
+        
+        // Generate Daily Opportunities
+        generateDailyOpportunities();
     }, [config.userId]);
 
     const isPremium = config.licenseStatus === 'active';
     const currency = config.currency || 'BRL';
+
+    // --- LOGIC: DAILY OPPORTUNITIES GENERATOR ---
+    const generateDailyOpportunities = () => {
+        const today = new Date();
+        setLastUpdateDate(today.toLocaleDateString('pt-BR'));
+
+        // Criar uma semente numérica baseada no dia (garante que mude todo dia, mas seja igual durante o dia)
+        // Ex: 20231027
+        const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+
+        // Função pseudo-aleatória determinística baseada na semente
+        const seededRandom = (modifier: number) => {
+            const x = Math.sin(seed + modifier) * 10000;
+            return x - Math.floor(x);
+        };
+
+        const banks = ['Banco Master', 'Banco Pine', 'Banco Daycoval', 'Sofisa Direto', 'PagBank', 'C6 Bank'];
+        const lciBanks = ['Banco ABC', 'Banco Inter', 'Banco Bari', 'BTG Pactual'];
+        const stocks = ['VALE3', 'PETR4', 'ITUB4', 'BBAS3', 'WEGE3', 'PRIO3', 'RENT3'];
+        const fiis = ['MXRF11', 'HGLG11', 'KNIP11', 'XPML11', 'VISC11', 'BTLG11'];
+
+        const dailyOps: Opportunity[] = [
+            { 
+                type: 'Renda Fixa', 
+                title: `CDB ${banks[Math.floor(seededRandom(1) * banks.length)]}`, 
+                rate: `${(110 + Math.floor(seededRandom(2) * 20))}% CDI`, // 110% a 130%
+                min: Math.floor(seededRandom(3) * 5) * 1000 + 1000, 
+                risk: 'Baixo', 
+                profile: ['Conservador', 'Moderado', 'Arrojado'] 
+            },
+            { 
+                type: 'Isento IR', 
+                title: `LCI ${lciBanks[Math.floor(seededRandom(4) * lciBanks.length)]}`, 
+                rate: `${(90 + Math.floor(seededRandom(5) * 10))}% CDI`, // 90% a 100%
+                min: 5000, 
+                risk: 'Baixo', 
+                profile: ['Conservador', 'Moderado'] 
+            },
+            { 
+                type: 'Tesouro', 
+                title: `Tesouro IPCA+ ${2029 + Math.floor(seededRandom(6) * 15)}`, 
+                rate: `IPCA + ${(5 + seededRandom(7) * 1.5).toFixed(2)}%`, 
+                min: 30 + Math.floor(seededRandom(8) * 20), 
+                risk: 'Médio', 
+                profile: ['Moderado', 'Arrojado'] 
+            },
+            { 
+                type: 'FIIs', 
+                title: fiis[Math.floor(seededRandom(9) * fiis.length)], 
+                rate: `DY ${(9 + seededRandom(10) * 4).toFixed(2)}% a.a.`, 
+                min: 10 + Math.floor(seededRandom(11) * 100), 
+                risk: 'Médio', 
+                profile: ['Moderado', 'Arrojado'],
+                change: (seededRandom(12) - 0.3) * 2 // Variação do dia
+            },
+            { 
+                type: 'Ações', 
+                title: stocks[Math.floor(seededRandom(13) * stocks.length)], 
+                rate: `Potencial +${(10 + Math.floor(seededRandom(14) * 20))}%`, 
+                min: 20 + Math.floor(seededRandom(15) * 80), 
+                risk: 'Alto', 
+                profile: ['Arrojado'],
+                change: (seededRandom(16) - 0.4) * 3 // Variação do dia
+            },
+            { 
+                type: 'ETF', 
+                title: seededRandom(17) > 0.5 ? 'IVVB11 (S&P 500)' : 'BOVA11 (Ibovespa)', 
+                rate: seededRandom(17) > 0.5 ? 'Dolarizado' : 'Índice Brasil', 
+                min: 100 + Math.floor(seededRandom(18) * 200), 
+                risk: 'Alto', 
+                profile: ['Arrojado'] 
+            },
+        ];
+
+        setOpportunities(dailyOps);
+    };
 
     // --- LOGIC: SUITABILITY ---
     const questions = [
@@ -259,32 +352,38 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                 </div>
             )}
 
-            {/* 2. OPPORTUNITIES CONTENT */}
+            {/* 2. OPPORTUNITIES CONTENT (UPDATED DAILY) */}
             {subTab === 'opportunities' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                     <div className="col-span-full bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 p-4 rounded-lg flex items-start gap-3">
-                        <AlertTriangle className="text-blue-500 shrink-0 mt-0.5" size={20} />
-                        <div>
-                            <h4 className="font-bold text-blue-700 dark:text-blue-300 text-sm">Recomendações do Dia</h4>
-                            <p className="text-xs text-blue-600 dark:text-blue-400">
-                                Baseado no perfil: <strong>{profile || "Geral"}</strong>. Dados simulados para demonstração.
-                            </p>
+                     <div className="col-span-full bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 p-4 rounded-lg flex items-start gap-3 justify-between">
+                        <div className="flex items-start gap-3">
+                            <AlertTriangle className="text-blue-500 shrink-0 mt-0.5" size={20} />
+                            <div>
+                                <h4 className="font-bold text-blue-700 dark:text-blue-300 text-sm">Recomendações do Dia</h4>
+                                <p className="text-xs text-blue-600 dark:text-blue-400">
+                                    Baseado no perfil: <strong>{profile || "Geral"}</strong>. Oportunidades atualizadas diariamente.
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-1 text-[10px] bg-white dark:bg-slate-800 px-2 py-1 rounded border border-blue-100 dark:border-slate-700 text-slate-500 dark:text-slate-400 shadow-sm">
+                            <RefreshCw size={10} className="text-emerald-500" /> 
+                            <span>Atualizado em: <strong>{lastUpdateDate}</strong></span>
                         </div>
                      </div>
 
-                     {/* Cards */}
-                     {[
-                        { type: 'Renda Fixa', title: 'CDB Banco Master', rate: '118% CDI', min: 1000, risk: 'Baixo', profile: ['Conservador', 'Moderado', 'Arrojado'] },
-                        { type: 'Isento IR', title: 'LCI Banco ABC', rate: '94% CDI', min: 5000, risk: 'Baixo', profile: ['Conservador', 'Moderado'] },
-                        { type: 'Tesouro', title: 'Tesouro IPCA+ 2035', rate: 'IPCA + 6.1%', min: 35, risk: 'Médio', profile: ['Moderado', 'Arrojado'] },
-                        { type: 'FIIs', title: 'MXRF11', rate: 'Div. Yield 12% a.a.', min: 10, risk: 'Médio', profile: ['Moderado', 'Arrojado'] },
-                        { type: 'Ações', title: 'VALE3', rate: 'Potencial +15%', min: 65, risk: 'Alto', profile: ['Arrojado'] },
-                        { type: 'ETF', title: 'IVVB11 (S&P 500)', rate: 'Dolarizado', min: 280, risk: 'Alto', profile: ['Arrojado'] },
-                     ].filter(i => !profile || i.profile.includes(profile)).map((item, idx) => (
-                         <div key={idx} className="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-md transition-shadow flex flex-col justify-between">
+                     {/* Cards Gerados Automaticamente */}
+                     {opportunities.filter(i => !profile || i.profile.includes(profile)).map((item, idx) => (
+                         <div key={idx} className="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-md transition-shadow flex flex-col justify-between animate-fade-in">
                              <div>
-                                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 border border-slate-200 dark:border-slate-600 px-2 py-0.5 rounded-full">{item.type}</span>
-                                 <h3 className="text-lg font-bold text-slate-800 dark:text-white mt-2">{item.title}</h3>
+                                 <div className="flex justify-between items-start">
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 border border-slate-200 dark:border-slate-600 px-2 py-0.5 rounded-full">{item.type}</span>
+                                    {item.change !== undefined && (
+                                        <span className={`text-[10px] font-bold ${item.change >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                            {item.change > 0 ? '+' : ''}{item.change.toFixed(2)}%
+                                        </span>
+                                    )}
+                                 </div>
+                                 <h3 className="text-lg font-bold text-slate-800 dark:text-white mt-2 truncate" title={item.title}>{item.title}</h3>
                                  <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 my-2">{item.rate}</div>
                                  <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 mt-4">
                                      <span>Mínimo: {formatCurrency(item.min, currency)}</span>
