@@ -1,11 +1,11 @@
 
-import React, { useState } from 'react';
-import { AppConfig, Transaction } from '../types';
-import { Trash2, Plus, FileSpreadsheet, Download, Bell, CreditCard, CheckCircle, Upload, Shield, Key, Lock, Moon, Sun, AlertTriangle, FileText, ArrowRight, DollarSign, Rocket, Star, ExternalLink } from 'lucide-react';
-import { exportToCSV, validateLicenseKey } from '../utils';
+import React, { useState, useEffect } from 'react';
+import { AppConfig, Transaction, PurchaseRequest } from '../types';
+import { Trash2, Plus, FileSpreadsheet, Download, Bell, CreditCard, CheckCircle, Upload, Shield, Key, Lock, Moon, Sun, AlertTriangle, FileText, ArrowRight, DollarSign, Rocket, Star, ExternalLink, TableProperties, Info, Copy, Smartphone, Timer, QrCode, Loader2, Target, Scale } from 'lucide-react';
+import { exportToCSV, validateLicenseKey, generateId } from '../utils';
 import { DBService } from '../db';
 import { PrivacyModal } from './PrivacyModal';
-import { CHECKOUT_URLS } from '../constants';
+import { PAYMENT_CONFIG } from '../constants';
 
 interface SettingsProps {
     config: AppConfig;
@@ -18,19 +18,25 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
     const [newMethod, setNewMethod] = useState('');
     const [isRestoring, setIsRestoring] = useState(false);
     
-    // Remote License State
     const [inputLicenseKey, setInputLicenseKey] = useState('');
     const [licenseError, setLicenseError] = useState('');
+    const [purchaseRequest, setPurchaseRequest] = useState<PurchaseRequest | null>(null);
+    const [isRequesting, setIsRequesting] = useState(false);
 
-    // Change Password State
     const [newPassword, setNewPassword] = useState('');
     const [passSuccess, setPassSuccess] = useState(false);
 
-    // Privacy Modal State
     const [showPrivacyModal, setShowPrivacyModal] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [showSheetGuide, setShowSheetGuide] = useState(false);
 
     const isLicensed = config.licenseStatus === 'active' || config.licenseKey;
+
+    useEffect(() => {
+        if (config.userId && !isLicensed) {
+            DBService.getPurchaseRequest(config.userId).then(setPurchaseRequest);
+        }
+    }, [config.userId, isLicensed]);
 
     const handleActivateLicense = () => {
         if (!config.userId) return;
@@ -44,11 +50,35 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
              onUpdateConfig(newConfig);
              setLicenseError('');
              alert('Licença ativada com sucesso! Obrigado por ser Premium.');
-             // Also update local profile in DB
              DBService.saveConfig(newConfig);
         } else {
             setLicenseError('Chave inválida para este usuário. Verifique o e-mail de compra.');
         }
+    };
+
+    const handleRequestActivation = async () => {
+        if (!config.userId) return;
+        setIsRequesting(true);
+        try {
+            const req: PurchaseRequest = {
+                id: generateId(),
+                userId: config.userId,
+                requestDate: new Date().toISOString(),
+                status: 'pending'
+            };
+            await DBService.savePurchaseRequest(req);
+            setPurchaseRequest(req);
+            alert("Solicitação enviada! Após a confirmação do PIX, sua conta será ativada em até 24h.");
+        } catch (e) {
+            alert("Erro ao solicitar ativação.");
+        } finally {
+            setIsRequesting(false);
+        }
+    };
+
+    const copyPixCopiaECola = () => {
+        navigator.clipboard.writeText(PAYMENT_CONFIG.payload);
+        alert("PIX Copia e Cola copiado!");
     };
 
     const addCat = () => {
@@ -131,9 +161,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
 
     const handleDeleteAccount = async () => {
         if (!config.userId) return;
-        
         const confirmation = window.prompt("ATENÇÃO: Isso excluirá permanentemente TODOS os seus dados. Para confirmar, digite 'DELETAR':");
-        
         if (confirmation === 'DELETAR') {
             setIsDeleting(true);
             try {
@@ -147,38 +175,30 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
         }
     };
 
-    const openCheckout = (platform: 'kiwify' | 'hotmart') => {
-        window.open(CHECKOUT_URLS[platform], '_blank');
-    };
-
     return (
         <div className="max-w-5xl mx-auto animate-fade-in space-y-6 pb-10">
             
-            {/* Purchase / License Section */}
-            <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-1 rounded-xl shadow-lg text-white border border-slate-700 relative overflow-hidden">
-                {/* Decorative Glow */}
+            {/* Upgrade Section with QR Code */}
+            <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-1 rounded-xl shadow-lg text-white border border-slate-700 relative overflow-hidden transition-colors">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none -mr-16 -mt-16"></div>
-                
                 <div className="bg-white dark:bg-slate-900 rounded-lg p-6 relative z-10">
-                    
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
                         <div>
                             <h3 className="text-xl font-bold flex items-center gap-2 text-slate-800 dark:text-white">
                                 <Rocket className="text-emerald-500" size={24} />
-                                Plano & Assinatura
+                                Upgrade Premium
                             </h3>
                             <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
-                                Libere o poder máximo da sua gestão financeira.
+                                Desbloqueie relatórios avançados, IA de investimentos e muito mais.
                             </p>
                         </div>
-                        
                         <div className={`px-4 py-2 rounded-full border flex items-center gap-2 font-bold text-sm ${
                             isLicensed 
                             ? 'bg-emerald-100 border-emerald-200 text-emerald-700 dark:bg-emerald-900/30 dark:border-emerald-800 dark:text-emerald-400' 
                             : 'bg-slate-100 border-slate-200 text-slate-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400'
                         }`}>
                             {isLicensed ? (
-                                <><CheckCircle size={16} /> PREMIUM ATIVO</>
+                                <><CheckCircle size={16} /> ACESSO VITALÍCIO</>
                             ) : (
                                 <><Lock size={16} /> VERSÃO GRATUITA</>
                             )}
@@ -186,101 +206,93 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                     </div>
 
                     {!isLicensed ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            
-                            {/* SALES CARD */}
-                            <div className="space-y-4">
-                                <div className="bg-emerald-50 dark:bg-emerald-900/10 p-5 rounded-xl border border-emerald-100 dark:border-emerald-800">
-                                    <h4 className="text-lg font-bold text-emerald-800 dark:text-emerald-400 mb-2 flex items-center gap-2">
-                                        <Star size={18} className="fill-current" /> Finance Pro 360 Premium
-                                    </h4>
-                                    <ul className="space-y-2 text-sm text-slate-700 dark:text-slate-300 mb-6">
-                                        <li className="flex items-center gap-2"><CheckCircle size={14} className="text-emerald-500"/> Gráficos Avançados & Projeções</li>
-                                        <li className="flex items-center gap-2"><CheckCircle size={14} className="text-emerald-500"/> Módulo de Investimentos (Suitability)</li>
-                                        <li className="flex items-center gap-2"><CheckCircle size={14} className="text-emerald-500"/> Gestão Inteligente de Dívidas</li>
-                                        <li className="flex items-center gap-2"><CheckCircle size={14} className="text-emerald-500"/> Cursos Financeiros Exclusivos</li>
-                                    </ul>
-                                    
-                                    <div className="flex flex-col gap-3">
-                                        <button 
-                                            onClick={() => openCheckout('kiwify')}
-                                            className="w-full bg-[#35ce8d] hover:bg-[#2cb57b] text-white font-bold py-3 rounded-lg shadow-md transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
-                                        >
-                                            Comprar na Kiwify <ExternalLink size={16} />
-                                        </button>
-                                        <button 
-                                            onClick={() => openCheckout('hotmart')}
-                                            className="w-full bg-[#f04e23] hover:bg-[#d6421b] text-white font-bold py-3 rounded-lg shadow-md transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
-                                        >
-                                            Comprar na Hotmart <ExternalLink size={16} />
-                                        </button>
-                                    </div>
-                                    <p className="text-[10px] text-center text-slate-400 mt-2">Pagamento único. Acesso vitalício.</p>
+                        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                            {/* QR CODE AREA */}
+                            <div className="lg:col-span-2 flex flex-col items-center text-center">
+                                <div className="bg-white p-4 rounded-2xl shadow-md border border-slate-100 mb-4 inline-block">
+                                    <img 
+                                        src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(PAYMENT_CONFIG.payload)}`} 
+                                        alt="PIX QR Code" 
+                                        className="w-40 h-40"
+                                    />
                                 </div>
+                                <h4 className="text-slate-800 dark:text-white font-bold text-sm">Escaneie o QR Code</h4>
+                                <p className="text-slate-500 dark:text-slate-400 text-[10px] mt-1 uppercase font-bold tracking-widest">Valor: R$ {PAYMENT_CONFIG.value.toFixed(2)}</p>
+                                
+                                <button 
+                                    onClick={copyPixCopiaECola}
+                                    className="mt-6 flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 font-bold text-xs bg-blue-50 dark:bg-blue-900/20 px-4 py-2 rounded-full transition-colors border border-blue-100 dark:border-blue-800"
+                                >
+                                    <Copy size={14} /> Copiar Código "Copia e Cola"
+                                </button>
                             </div>
 
-                            {/* ACTIVATION AREA */}
-                            <div className="flex flex-col justify-center border-l border-slate-100 dark:border-slate-800 pl-0 md:pl-8">
-                                <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
-                                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase mb-2 flex items-center gap-2">
-                                        <Key size={16} /> Já comprou? Ative aqui
-                                    </h4>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
-                                        Insira a chave de licença enviada para o seu e-mail após a confirmação do pagamento.
-                                    </p>
-                                    
-                                    <div className="space-y-3">
-                                        <div>
-                                            <label className="text-[10px] font-bold text-slate-400 uppercase">Seu ID de Usuário</label>
-                                            <div className="flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded px-2 py-1.5">
-                                                <code className="text-xs font-mono text-slate-600 dark:text-slate-300 flex-1">{config.userId}</code>
-                                                <button 
-                                                    onClick={() => {navigator.clipboard.writeText(config.userId || ''); alert("ID Copiado!");}}
-                                                    className="text-blue-500 hover:text-blue-600"
-                                                    title="Copiar ID"
-                                                >
-                                                    <Key size={12} />
-                                                </button>
-                                            </div>
-                                        </div>
+                            {/* INSTRUCTIONS AREA */}
+                            <div className="lg:col-span-3 border-l border-slate-100 dark:border-slate-800 pl-0 lg:pl-8 flex flex-col justify-center">
+                                <div className="space-y-4 mb-8">
+                                    <div className="flex gap-4">
+                                        <div className="w-6 h-6 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-[10px] font-black text-slate-500 shrink-0">1</div>
+                                        <p className="text-xs text-slate-600 dark:text-slate-400">Abra o app do seu banco e escolha a opção <strong>PIX</strong>.</p>
+                                    </div>
+                                    <div className="flex gap-4">
+                                        <div className="w-6 h-6 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-[10px] font-black text-slate-500 shrink-0">2</div>
+                                        <p className="text-xs text-slate-600 dark:text-slate-400">Escaneie o código ao lado ou use o <strong>Copia e Cola</strong>.</p>
+                                    </div>
+                                    <div className="flex gap-4">
+                                        <div className="w-6 h-6 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-[10px] font-black text-slate-500 shrink-0">3</div>
+                                        <p className="text-xs text-slate-600 dark:text-slate-400">Após confirmar o pagamento, clique no botão <strong>ATIVAR AGORA</strong> abaixo.</p>
+                                    </div>
+                                </div>
 
+                                {purchaseRequest?.status === 'pending' ? (
+                                    <div className="bg-amber-100 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 p-4 rounded-xl flex items-center gap-4">
+                                        <Timer className="text-amber-600 animate-pulse" size={24} />
+                                        <div>
+                                            <p className="text-sm font-bold text-amber-800 dark:text-amber-400 uppercase tracking-wide">Solicitação em análise</p>
+                                            <p className="text-xs text-amber-700/80 dark:text-amber-400/80">Ativaremos sua conta em até 24h úteis após o recebimento.</p>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <button 
+                                        onClick={handleRequestActivation}
+                                        disabled={isRequesting}
+                                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-4 rounded-xl shadow-lg transition-all transform hover:scale-[1.02] flex items-center justify-center gap-3"
+                                    >
+                                        {isRequesting ? <Loader2 className="animate-spin" size={20} /> : <CheckCircle size={20} />}
+                                        {isRequesting ? 'ENVIANDO SOLICITAÇÃO...' : 'JÁ FIZ O PIX, ATIVAR AGORA'}
+                                    </button>
+                                )}
+
+                                <div className="mt-6 p-4 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+                                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2"><Key size={14} /> Ativação por Chave Manual</h4>
+                                    <div className="flex gap-2">
                                         <input 
                                             type="text" 
-                                            value={inputLicenseKey}
-                                            onChange={e => setInputLicenseKey(e.target.value.toUpperCase())}
-                                            placeholder="XXXX-XXXX (Chave de Acesso)"
-                                            className="w-full border-2 border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-lg px-4 py-2 text-sm font-mono uppercase focus:border-emerald-500 outline-none transition-colors"
+                                            value={inputLicenseKey} 
+                                            onChange={e => setInputLicenseKey(e.target.value.toUpperCase())} 
+                                            placeholder="XXXX-XXXX" 
+                                            className="flex-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded px-3 py-1.5 text-xs font-mono text-slate-700 dark:text-white uppercase outline-none focus:border-blue-500" 
                                         />
-                                        
                                         <button 
                                             onClick={handleActivateLicense}
-                                            className="w-full bg-slate-800 dark:bg-slate-700 text-white py-2 rounded-lg font-bold hover:bg-slate-900 dark:hover:bg-slate-600 transition-colors shadow-sm flex items-center justify-center gap-2"
+                                            className="bg-slate-800 dark:bg-slate-700 text-white px-3 py-1.5 rounded text-[10px] font-bold hover:bg-black transition-colors"
                                         >
-                                            Validar e Ativar <ArrowRight size={16} />
+                                            VALIDAR
                                         </button>
                                     </div>
-                                    {licenseError && (
-                                        <p className="text-xs text-rose-500 font-bold mt-2 flex items-center gap-1 animate-fade-in">
-                                            <AlertTriangle size={12} /> {licenseError}
-                                        </p>
-                                    )}
+                                    {licenseError && <p className="text-[10px] text-rose-500 font-bold mt-2 flex items-center gap-1"><AlertTriangle size={10} /> {licenseError}</p>}
                                 </div>
                             </div>
-
                         </div>
                     ) : (
-                        <div className="text-center py-8">
-                            <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <Star size={32} className="text-emerald-600 dark:text-emerald-400 fill-current" />
+                        <div className="text-center py-12">
+                            <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <Star size={40} className="text-emerald-600 dark:text-emerald-400 fill-current" />
                             </div>
-                            <h3 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">Você é Premium!</h3>
-                            <p className="text-slate-600 dark:text-slate-400 max-w-md mx-auto">
-                                Parabéns! Todos os recursos do Finance Pro 360 estão desbloqueados para sua conta. Aproveite seus gráficos avançados e cursos.
+                            <h3 className="text-3xl font-black text-slate-800 dark:text-white mb-2 tracking-tight">Experiência Premium Ativada!</h3>
+                            <p className="text-slate-600 dark:text-slate-400 max-w-md mx-auto text-sm leading-relaxed">
+                                Você agora tem acesso total a todos os módulos, gráficos de tendência e suporte prioritário. Obrigado pela confiança!
                             </p>
-                            <div className="mt-6 inline-block px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
-                                <span className="text-xs text-slate-500 uppercase font-bold">Chave Ativa:</span>
-                                <code className="ml-2 font-mono text-emerald-600 dark:text-emerald-400 font-bold">{config.licenseKey}</code>
-                            </div>
                         </div>
                     )}
                 </div>
@@ -292,49 +304,21 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                     {config.theme === 'dark' ? <Moon className="text-blue-500" size={20} /> : <Sun className="text-orange-500" size={20} />}
                     Aparência e Moeda
                 </h3>
-                
                 <div className="space-y-6">
-                    {/* Theme */}
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm font-medium text-slate-800 dark:text-white">Tema da Aplicação</p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                                Escolha entre o modo claro ou escuro.
-                            </p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Modo claro ou escuro.</p>
                         </div>
                         <div className="bg-slate-100 dark:bg-slate-700 p-1 rounded-lg flex items-center border border-slate-200 dark:border-slate-600">
-                            <button
-                                onClick={() => onUpdateConfig({...config, theme: 'light'})}
-                                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
-                                    config.theme !== 'dark' 
-                                    ? 'bg-white text-slate-800 shadow-sm' 
-                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-                                }`}
-                            >
-                                Claro
-                            </button>
-                            <button
-                                onClick={() => onUpdateConfig({...config, theme: 'dark'})}
-                                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
-                                    config.theme === 'dark' 
-                                    ? 'bg-slate-600 text-white shadow-sm' 
-                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-                                }`}
-                            >
-                                Escuro
-                            </button>
+                            <button onClick={() => onUpdateConfig({...config, theme: 'light'})} className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${config.theme !== 'dark' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}>Claro</button>
+                            <button onClick={() => onUpdateConfig({...config, theme: 'dark'})} className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${config.theme === 'dark' ? 'bg-slate-600 text-white shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}>Escuro</button>
                         </div>
                     </div>
-
-                    {/* Currency */}
                     <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-700 pt-6">
                          <div>
-                            <p className="text-sm font-medium text-slate-800 dark:text-white flex items-center gap-2">
-                                <DollarSign size={16} className="text-emerald-500" /> Moeda Preferida
-                            </p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                                Símbolo monetário usado em todo o aplicativo.
-                            </p>
+                            <p className="text-sm font-medium text-slate-800 dark:text-white flex items-center gap-2"><DollarSign size={16} className="text-emerald-500" /> Moeda Preferida</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Símbolo monetário usado no app.</p>
                         </div>
                         <select
                             value={config.currency || 'BRL'}
@@ -351,231 +335,197 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                 </div>
             </div>
 
-            {/* Security & Data Section */}
-            <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
-                <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2 mb-6">
-                    <Shield className="text-brand-blue dark:text-brand-gold" size={20} />
-                    Segurança e Privacidade
-                </h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {/* Password Change */}
-                    <div className="space-y-3">
-                        <h4 className="text-sm font-semibold text-slate-600 dark:text-slate-300 flex items-center gap-2">
-                            <Key size={16} /> Alterar Senha
-                        </h4>
-                        <div className="flex gap-2">
-                            <input 
-                                type="password" 
-                                placeholder="Nova senha..." 
-                                value={newPassword}
-                                onChange={(e) => setNewPassword(e.target.value)}
-                                className="flex-1 border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-brand-gold"
-                            />
-                            <button 
-                                onClick={handleChangePassword}
-                                className="bg-slate-800 dark:bg-slate-700 text-white px-4 py-2 rounded text-sm font-medium hover:bg-slate-900 dark:hover:bg-slate-600 transition-colors"
-                            >
-                                Atualizar
-                            </button>
-                        </div>
-                        {passSuccess && <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1"><CheckCircle size={12}/> Senha atualizada com sucesso!</p>}
-                        
-                        {/* Privacy Policy Link */}
-                        <div className="mt-4 pt-2">
-                            <button 
-                                onClick={() => setShowPrivacyModal(true)}
-                                className="text-sm text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 font-medium"
-                            >
-                                <FileText size={16} />
-                                Ver Política de Privacidade e LGPD
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Backup & Restore */}
-                    <div className="space-y-3 border-t md:border-t-0 md:border-l border-slate-100 dark:border-slate-700 md:pl-8 pt-4 md:pt-0">
-                        <h4 className="text-sm font-semibold text-slate-600 dark:text-slate-300 flex items-center gap-2">
-                            <Download size={16} /> Backup e Restauração
-                        </h4>
-                        <div className="flex flex-col sm:flex-row gap-3">
-                            <button 
-                                onClick={handleBackup}
-                                className="flex-1 flex items-center justify-center gap-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-3 py-2 rounded hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors text-sm font-medium"
-                            >
-                                <Download size={16} />
-                                Baixar Dados
-                            </button>
-                            <label className="flex-1 flex items-center justify-center gap-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 px-3 py-2 rounded hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors text-sm font-medium cursor-pointer">
-                                <Upload size={16} />
-                                {isRestoring ? 'Restaurando...' : 'Restaurar'}
-                                <input 
-                                    type="file" 
-                                    accept=".json"
-                                    onChange={handleRestore} 
-                                    disabled={isRestoring}
-                                    className="hidden"
-                                />
-                            </label>
-                        </div>
-                        <p className="text-xs text-slate-400">
-                            Grave todas as funções e cadastros em um arquivo seguro. Use a restauração para recuperar seus dados em caso de problemas ou mudança de navegador.
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            {/* DANGER ZONE - LGPD Right to be Forgotten */}
-            <div className="bg-rose-50 dark:bg-rose-950/20 p-6 rounded-xl shadow-sm border border-rose-200 dark:border-rose-900 transition-colors">
-                 <h3 className="text-lg font-semibold text-rose-700 dark:text-rose-500 flex items-center gap-2 mb-2">
-                    <AlertTriangle size={20} />
-                    Zona de Perigo
-                </h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-                    Ações irreversíveis relacionadas à sua conta e dados.
-                </p>
-                
-                <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-lg border border-rose-100 dark:border-rose-900/50">
+            {/* Google Sheets Guide - EXPANDIDO */}
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors overflow-hidden">
+                <div className="flex items-center justify-between mb-4">
                     <div>
-                        <p className="text-sm font-bold text-slate-800 dark:text-white">Excluir Minha Conta (LGPD)</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                            Isso apagará permanentemente todos os seus dados e revogará seu acesso.
-                        </p>
+                        <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                            <TableProperties className="text-indigo-600 dark:text-indigo-400" />
+                            Guia de Estrutura Google Sheets
+                        </h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Estrutura completa para criar sua planilha espelho.</p>
                     </div>
                     <button 
-                        onClick={handleDeleteAccount}
-                        disabled={isDeleting}
-                        className="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded text-sm font-bold transition-colors flex items-center gap-2"
+                        onClick={() => setShowSheetGuide(!showSheetGuide)}
+                        className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 uppercase tracking-wider"
                     >
-                        <Trash2 size={16} />
-                        {isDeleting ? 'Excluindo...' : 'Excluir Conta'}
+                        {showSheetGuide ? 'Ocultar Estrutura' : 'Ver Estrutura Completa'}
                     </button>
                 </div>
-            </div>
 
-            {/* Reminders Settings */}
-            <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
-                <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2 mb-4">
-                    <Bell className="text-blue-600 dark:text-blue-400" size={20} />
-                    Notificações e Lembretes
-                </h3>
-                <div className="flex items-center justify-between mb-2">
-                    <div>
-                        <p className="text-sm font-medium text-slate-800 dark:text-white">Lembretes de Metas</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                            Receba notificações periódicas no aplicativo para atualizar o progresso das suas metas financeiras.
-                        </p>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                            type="checkbox"
-                            className="sr-only peer"
-                            checked={config.enableReminders ?? true}
-                            onChange={(e) => onUpdateConfig({ ...config, enableReminders: e.target.checked })}
-                        />
-                        <div className="w-11 h-6 bg-slate-200 dark:bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-100 dark:peer-focus:ring-blue-900/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                    </label>
-                </div>
+                {showSheetGuide && (
+                    <div className="space-y-8 animate-fade-in mt-6">
+                        <div className="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-lg border border-indigo-100 dark:border-indigo-800 flex items-start gap-3">
+                            <Info size={18} className="text-indigo-600 dark:text-indigo-400 mt-0.5" />
+                            <p className="text-xs text-indigo-900 dark:text-indigo-300 leading-relaxed">
+                                Para importar ou exportar dados corretamente, sua planilha deve seguir esta ordem de colunas. Você pode ter múltiplas abas.
+                            </p>
+                        </div>
 
-                {/* Frequency Settings - Conditional */}
-                 {(config.enableReminders ?? true) && (
-                    <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700 animate-fade-in pl-2">
-                        <div className="flex items-center justify-between max-w-sm">
-                            <label className="text-sm text-slate-600 dark:text-slate-300 font-medium">Frequência dos alertas:</label>
-                            <select 
-                                value={config.reminderFrequency || 'weekly'} 
-                                onChange={(e) => onUpdateConfig({...config, reminderFrequency: e.target.value as any})}
-                                className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-white text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block p-2 outline-none w-40"
-                            >
-                                <option value="weekly">Semanal</option>
-                                <option value="biweekly">Quinzenal</option>
-                                <option value="monthly">Mensal</option>
-                            </select>
+                        {/* ABA 1: LANÇAMENTOS */}
+                        <div className="space-y-4">
+                            <h4 className="text-xs font-black uppercase text-slate-800 dark:text-white tracking-widest flex items-center gap-2">
+                                <ArrowRight className="text-emerald-500" size={14} /> Aba 1 — Controle Geral (Transações)
+                            </h4>
+                            <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700">
+                                <table className="w-full text-[10px] text-left">
+                                    <thead className="bg-slate-50 dark:bg-slate-900 text-slate-500 uppercase font-bold">
+                                        <tr>
+                                            <th className="p-2 border-b border-r dark:border-slate-700">Data (AAAA-MM-DD)</th>
+                                            <th className="p-2 border-b border-r dark:border-slate-700">Tipo (income/expense)</th>
+                                            <th className="p-2 border-b border-r dark:border-slate-700">Categoria</th>
+                                            <th className="p-2 border-b border-r dark:border-slate-700">Valor (0.00)</th>
+                                            <th className="p-2 border-b border-r dark:border-slate-700">Descrição</th>
+                                            <th className="p-2 border-b dark:border-slate-700">Pagamento</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="text-slate-700 dark:text-slate-300">
+                                        <tr>
+                                            <td className="p-2 border-r dark:border-slate-700">2024-03-01</td>
+                                            <td className="p-2 border-r dark:border-slate-700 font-mono text-emerald-600">income</td>
+                                            <td className="p-2 border-r dark:border-slate-700">Salário</td>
+                                            <td className="p-2 border-r dark:border-slate-700">5000.00</td>
+                                            <td className="p-2 border-r dark:border-slate-700">Depósito Mensal</td>
+                                            <td className="p-2 dark:border-slate-700">PIX</td>
+                                        </tr>
+                                        <tr className="bg-slate-50 dark:bg-slate-800/50">
+                                            <td className="p-2 border-r dark:border-slate-700">2024-03-05</td>
+                                            <td className="p-2 border-r dark:border-slate-700 font-mono text-rose-600">expense</td>
+                                            <td className="p-2 border-r dark:border-slate-700">Alimentação</td>
+                                            <td className="p-2 border-r dark:border-slate-700">150.00</td>
+                                            <td className="p-2 border-r dark:border-slate-700">Supermercado</td>
+                                            <td className="p-2 dark:border-slate-700">Crédito</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {/* ABA 2: METAS */}
+                        <div className="space-y-4">
+                            <h4 className="text-xs font-black uppercase text-slate-800 dark:text-white tracking-widest flex items-center gap-2">
+                                <Target className="text-blue-500" size={14} /> Aba 2 — Metas Financeiras
+                            </h4>
+                            <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700">
+                                <table className="w-full text-[10px] text-left">
+                                    <thead className="bg-slate-50 dark:bg-slate-900 text-slate-500 uppercase font-bold">
+                                        <tr>
+                                            <th className="p-2 border-b border-r dark:border-slate-700">Nome da Meta</th>
+                                            <th className="p-2 border-b border-r dark:border-slate-700">Valor Alvo</th>
+                                            <th className="p-2 border-b border-r dark:border-slate-700">Valor Atual</th>
+                                            <th className="p-2 border-b dark:border-slate-700">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="text-slate-700 dark:text-slate-300">
+                                        <tr>
+                                            <td className="p-2 border-r dark:border-slate-700">Reserva Emergência</td>
+                                            <td className="p-2 border-r dark:border-slate-700">10000.00</td>
+                                            <td className="p-2 border-r dark:border-slate-700">2500.00</td>
+                                            <td className="p-2 dark:border-slate-700">Em andamento</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {/* ABA 3: DÍVIDAS */}
+                        <div className="space-y-4">
+                            <h4 className="text-xs font-black uppercase text-slate-800 dark:text-white tracking-widest flex items-center gap-2">
+                                <Scale className="text-rose-500" size={14} /> Aba 3 — Gestão de Dívidas (Passivos)
+                            </h4>
+                            <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700">
+                                <table className="w-full text-[10px] text-left">
+                                    <thead className="bg-slate-50 dark:bg-slate-900 text-slate-500 uppercase font-bold">
+                                        <tr>
+                                            <th className="p-2 border-b border-r dark:border-slate-700">Credor / Nome</th>
+                                            <th className="p-2 border-b border-r dark:border-slate-700">Valor Total</th>
+                                            <th className="p-2 border-b border-r dark:border-slate-700">Juros Mensal (%)</th>
+                                            <th className="p-2 border-b border-r dark:border-slate-700">Vencimento</th>
+                                            <th className="p-2 border-b dark:border-slate-700">Categoria</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="text-slate-700 dark:text-slate-300">
+                                        <tr>
+                                            <td className="p-2 border-r dark:border-slate-700">Banco Santander</td>
+                                            <td className="p-2 border-r dark:border-slate-700">1200.00</td>
+                                            <td className="p-2 border-r dark:border-slate-700">12.5</td>
+                                            <td className="p-2 border-r dark:border-slate-700">2024-12-10</td>
+                                            <td className="p-2 dark:border-slate-700">banco</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 )}
             </div>
 
-            {/* Google Sheets / Data Integration Card */}
+            {/* Security & Data Section */}
             <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
-                <div className="flex items-start justify-between">
-                    <div>
-                        <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
-                            <FileSpreadsheet className="text-emerald-600 dark:text-emerald-400" />
-                            Integração Google Sheets
-                        </h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                            Exporte seus dados para backup ou análise avançada no Google Sheets e Excel.
-                        </p>
+                <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2 mb-6"><Shield className="text-brand-blue dark:text-brand-gold" size={20} />Segurança e Privacidade</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-3">
+                        <h4 className="text-sm font-semibold text-slate-600 dark:text-slate-300 flex items-center gap-2"><Key size={16} /> Alterar Senha</h4>
+                        <div className="flex gap-2">
+                            <input type="password" placeholder="Nova senha..." value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="flex-1 border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-brand-gold" />
+                            <button onClick={handleChangePassword} className="bg-slate-800 dark:bg-slate-700 text-white px-4 py-2 rounded text-sm font-medium hover:bg-slate-900 dark:hover:bg-slate-600 transition-colors">Atualizar</button>
+                        </div>
+                        {passSuccess && <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1"><CheckCircle size={12}/> Senha atualizada!</p>}
+                        <div className="mt-4 pt-2">
+                            <button onClick={() => setShowPrivacyModal(true)} className="text-sm text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 font-medium"><FileText size={16} />Ver Política de Privacidade</button>
+                        </div>
                     </div>
-                    <button 
-                        onClick={handleExport}
-                        className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors shadow-sm"
-                    >
-                        <Download size={18} />
-                        Exportar .CSV
-                    </button>
+                    <div className="space-y-3 border-t md:border-t-0 md:border-l border-slate-100 dark:border-slate-700 md:pl-8 pt-4 md:pt-0">
+                        <h4 className="text-sm font-semibold text-slate-600 dark:text-slate-300 flex items-center gap-2"><Download size={16} /> Backup e Restauração</h4>
+                        <div className="flex flex-col sm:flex-row gap-3">
+                            <button onClick={handleBackup} className="flex-1 flex items-center justify-center gap-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-3 py-2 rounded hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors text-sm font-medium"><Download size={16} />Baixar Dados</button>
+                            <label className="flex-1 flex items-center justify-center gap-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 px-3 py-2 rounded hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors text-sm font-medium cursor-pointer">
+                                <Upload size={16} />{isRestoring ? 'Processando...' : 'Restaurar'}<input type="file" accept=".json" onChange={handleRestore} disabled={isRestoring} className="hidden" />
+                            </label>
+                        </div>
+                    </div>
                 </div>
             </div>
 
+            {/* Google Sheets Integration Area */}
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
+                <div className="flex items-start justify-between">
+                    <div>
+                        <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2"><FileSpreadsheet className="text-emerald-600 dark:text-emerald-400" />Exportar Dados</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Gere um CSV compatível com Excel e Google Sheets.</p>
+                    </div>
+                    <button onClick={handleExport} className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors shadow-sm"><Download size={18} />Exportar .CSV</button>
+                </div>
+            </div>
+
+            {/* Categories & Methods */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Categories Settings */}
                 <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 h-full flex flex-col transition-colors">
                     <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">Categorias</h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Utilizadas em Receitas e Despesas.</p>
-                    
                     <div className="flex gap-2 mb-4">
-                        <input 
-                            type="text" 
-                            placeholder="Nova Categoria" 
-                            className="flex-1 border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
-                            value={newCat}
-                            onChange={e => setNewCat(e.target.value)}
-                            onKeyDown={e => e.key === 'Enter' && addCat()}
-                        />
-                        <button onClick={addCat} className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700">
-                            <Plus size={20} />
-                        </button>
+                        <input type="text" placeholder="Nova Categoria" className="flex-1 border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500" value={newCat} onChange={e => setNewCat(e.target.value)} onKeyDown={e => e.key === 'Enter' && addCat()} />
+                        <button onClick={addCat} className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700"><Plus size={20} /></button>
                     </div>
-
                     <ul className="space-y-2 overflow-y-auto custom-scrollbar pr-2 flex-1 max-h-80">
                         {config.categories.map(cat => (
                             <li key={cat} className="flex justify-between items-center bg-slate-50 dark:bg-slate-700/50 p-2 rounded border border-slate-100 dark:border-slate-700 group transition-colors">
                                 <span className="text-sm text-slate-700 dark:text-slate-300">{cat}</span>
-                                <button onClick={() => removeCat(cat)} className="text-slate-400 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Trash2 size={16} />
-                                </button>
+                                <button onClick={() => removeCat(cat)} className="text-slate-400 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={16} /></button>
                             </li>
                         ))}
                     </ul>
                 </div>
-
-                {/* Payment Methods Settings */}
                 <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 h-full flex flex-col transition-colors">
                     <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-4">Formas de Pagamento</h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Utilizadas apenas em Despesas.</p>
-
                     <div className="flex gap-2 mb-4">
-                        <input 
-                            type="text" 
-                            placeholder="Nova Forma de Pagamento" 
-                            className="flex-1 border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
-                            value={newMethod}
-                            onChange={e => setNewMethod(e.target.value)}
-                            onKeyDown={e => e.key === 'Enter' && addMethod()}
-                        />
-                        <button onClick={addMethod} className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700">
-                            <Plus size={20} />
-                        </button>
+                        <input type="text" placeholder="Nova Forma" className="flex-1 border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500" value={newMethod} onChange={e => setNewMethod(e.target.value)} onKeyDown={e => e.key === 'Enter' && addMethod()} />
+                        <button onClick={addMethod} className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700"><Plus size={20} /></button>
                     </div>
-
                     <ul className="space-y-2 overflow-y-auto custom-scrollbar pr-2 flex-1 max-h-80">
                         {config.paymentMethods.map(met => (
                             <li key={met} className="flex justify-between items-center bg-slate-50 dark:bg-slate-700/50 p-2 rounded border border-slate-100 dark:border-slate-700 group transition-colors">
                                 <span className="text-sm text-slate-700 dark:text-slate-300">{met}</span>
-                                <button onClick={() => removeMethod(met)} className="text-slate-400 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Trash2 size={16} />
-                                </button>
+                                <button onClick={() => removeMethod(met)} className="text-slate-400 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={16} /></button>
                             </li>
                         ))}
                     </ul>

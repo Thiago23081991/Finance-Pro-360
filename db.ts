@@ -1,23 +1,17 @@
-
 import { Transaction, Goal, Debt, AppConfig, UserAccount, PurchaseRequest, AdminMessage, SystemStats, UserProfile } from "./types";
 import { DEFAULT_CONFIG } from "./constants";
 import { supabase } from "./supabaseClient";
 import { generateId } from "./utils";
-
-// O Supabase substitui o IndexedDB.
-// Mantemos a classe DBService como fachada para facilitar a migração.
 
 export class DBService {
 
   // --- AUTH OPERATIONS ---
 
   static async registerUser(user: UserAccount): Promise<any> {
-    // 1. Criar usuário no Auth do Supabase
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: user.username, 
       password: user.password,
       options: {
-        // CRÍTICO: Redireciona de volta para a home do app após a confirmação do email
         emailRedirectTo: window.location.origin,
         data: {
           full_name: user.name
@@ -27,14 +21,12 @@ export class DBService {
 
     if (authError) throw new Error(authError.message);
     
-    // 2. Criar perfil IMEDIATAMENTE na tabela pública 'profiles'
     if (authData.user && authData.session) {
+        // Attempt to create profile with core columns only to be safe
         const { error: profileError } = await supabase.from('profiles').insert({
             id: authData.user.id,
             email: user.username,
             username: user.name || user.username.split('@')[0], 
-            theme: 'light',
-            currency: 'BRL',
             categories: DEFAULT_CONFIG.categories,
             payment_methods: DEFAULT_CONFIG.paymentMethods,
             enable_reminders: true,
@@ -82,7 +74,6 @@ export class DBService {
     if (error) throw new Error(error.message);
   }
 
-  // LGPD: Direito ao Esquecimento
   static async deleteUserAccount(userId: string): Promise<void> {
       const tablesToDelete = ['transactions', 'goals', 'debts', 'profiles', 'purchase_requests', 'messages'];
       
@@ -183,17 +174,12 @@ export class DBService {
     if (error) throw new Error(error.message);
   }
 
-  // --- DEBTS OPERATIONS ---
-
   static async getDebts(userId: string): Promise<Debt[]> {
     const { data, error } = await supabase.from('debts').select('*').order('interest_rate', { ascending: false });
     
     if (error) {
-        console.warn("Could not fetch debts from DB, checking local storage.", error.message);
         const localData = localStorage.getItem(`fp360_debts_${userId}`);
-        if (localData) {
-            return JSON.parse(localData);
-        }
+        if (localData) return JSON.parse(localData);
         return [];
     }
 
@@ -225,35 +211,23 @@ export class DBService {
     const { error } = await supabase.from('debts').upsert(payload);
     
     if (error) {
-        if (error.message.includes("Could not find the table") || error.code === '42P01') {
-            const currentDebts = await this.getDebts(user.id);
-            const index = currentDebts.findIndex(x => x.id === d.id);
-            if (index >= 0) {
-                currentDebts[index] = d;
-            } else {
-                currentDebts.push(d);
-            }
-            localStorage.setItem(`fp360_debts_${user.id}`, JSON.stringify(currentDebts));
-            return; 
-        }
-        throw new Error(error.message);
+        const currentDebts = await this.getDebts(user.id);
+        const index = currentDebts.findIndex(x => x.id === d.id);
+        if (index >= 0) currentDebts[index] = d;
+        else currentDebts.push(d);
+        localStorage.setItem(`fp360_debts_${user.id}`, JSON.stringify(currentDebts));
     }
   }
 
   static async deleteDebt(id: string): Promise<void> {
     const { error } = await supabase.from('debts').delete().eq('id', id);
-    
     if (error) {
-         if (error.message.includes("Could not find the table") || error.code === '42P01') {
-             const user = await this.getCurrentUser();
-             if (user) {
-                 const currentDebts = await this.getDebts(user.id);
-                 const filtered = currentDebts.filter(d => d.id !== id);
-                 localStorage.setItem(`fp360_debts_${user.id}`, JSON.stringify(filtered));
-                 return; 
-             }
+         const user = await this.getCurrentUser();
+         if (user) {
+             const currentDebts = await this.getDebts(user.id);
+             const filtered = currentDebts.filter(d => d.id !== id);
+             localStorage.setItem(`fp360_debts_${user.id}`, JSON.stringify(filtered));
          }
-         throw new Error(error.message);
     }
   }
 
@@ -261,45 +235,30 @@ export class DBService {
     const user = await this.getCurrentUser();
     if (!user) return DEFAULT_CONFIG;
 
+    // Load from LocalStorage as first source of truth for schema-volatile fields
+    const localConfigStr = localStorage.getItem(`fp360_config_${user.id}`);
+    const localConfig = localConfigStr ? JSON.parse(localConfigStr) : {};
+
     const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
 
     if (!data) {
-      console.log("Perfil não encontrado. Tentando criar perfil padrão...");
-      const fullName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
-
-      const { error: insertError } = await supabase.from('profiles').insert({
-        id: user.id,
-        email: user.email,
-        username: fullName,
-        theme: 'light',
-        currency: 'BRL',
-        categories: DEFAULT_CONFIG.categories,
-        payment_methods: DEFAULT_CONFIG.paymentMethods,
-        enable_reminders: true,
-        has_seen_tutorial: false
-      });
-      
-      if (!insertError) {
-          return { ...DEFAULT_CONFIG, userId: user.id, name: fullName };
-      }
-      
-      console.error("Erro fatal ao criar perfil:", insertError.message);
-      return { ...DEFAULT_CONFIG, userId: user.id };
+      return { ...DEFAULT_CONFIG, ...localConfig, userId: user.id };
     }
 
+    // Merge: Database (primary for shared data) + LocalStorage (fallback for missing columns)
     return {
       userId: data.id,
       name: data.username, 
-      theme: data.theme as 'light' | 'dark',
-      currency: data.currency || 'BRL',
+      theme: data.theme || localConfig.theme || 'light',
+      currency: data.currency || localConfig.currency || 'BRL',
       categories: data.categories || DEFAULT_CONFIG.categories,
       paymentMethods: data.payment_methods || DEFAULT_CONFIG.paymentMethods,
-      enableReminders: data.enable_reminders,
-      reminderFrequency: data.reminder_frequency,
-      lastSeenGoals: data.last_seen_goals,
-      hasSeenTutorial: data.has_seen_tutorial,
-      licenseKey: data.license_key,
-      licenseStatus: data.license_status
+      enableReminders: data.enable_reminders ?? localConfig.enableReminders ?? true,
+      reminderFrequency: data.reminder_frequency || localConfig.reminderFrequency,
+      lastSeenGoals: data.last_seen_goals || localConfig.lastSeenGoals,
+      hasSeenTutorial: data.has_seen_tutorial ?? localConfig.hasSeenTutorial ?? false,
+      licenseKey: data.license_key || localConfig.licenseKey,
+      licenseStatus: data.license_status || localConfig.licenseStatus
     };
   }
 
@@ -307,10 +266,13 @@ export class DBService {
     const user = await this.getCurrentUser();
     if (!user) return;
 
-    const payload = {
+    // Always update local storage first to prevent UI state loss
+    localStorage.setItem(`fp360_config_${user.id}`, JSON.stringify(config));
+
+    // Selective payload to avoid crashing on missing columns
+    // If 'currency' or other columns are missing, we try to update what we can.
+    const corePayload: any = {
       id: user.id,
-      theme: config.theme,
-      currency: config.currency,
       categories: config.categories,
       payment_methods: config.paymentMethods,
       enable_reminders: config.enableReminders,
@@ -321,9 +283,17 @@ export class DBService {
       license_status: config.licenseStatus
     };
 
-    const { error } = await supabase.from('profiles').upsert(payload);
-    if (error) {
-        console.error("Erro ao salvar config:", error.message);
+    // Try a broad update first
+    const { error } = await supabase.from('profiles').upsert({
+        ...corePayload,
+        theme: config.theme,
+        currency: config.currency
+    });
+
+    if (error && error.message.includes("column")) {
+        console.warn("Schema mismatch detected. Falling back to core columns only.");
+        // If it fails due to a column error, retry with only confirmed columns
+        await supabase.from('profiles').upsert(corePayload);
     }
   }
 
@@ -337,8 +307,6 @@ export class DBService {
         id: userId,
         email: email,
         username: name,
-        theme: 'light',
-        currency: 'BRL',
         categories: DEFAULT_CONFIG.categories,
         payment_methods: DEFAULT_CONFIG.paymentMethods,
         enable_reminders: true,
@@ -399,7 +367,7 @@ export class DBService {
         const cleanDebts = data.debts.map((d: any) => ({
             ...d, user_id: user.id
         }));
-        await supabase.from('debts').upsert(cleanDebts).then(res => { if(res.error) console.error(res.error) });
+        await supabase.from('debts').upsert(cleanDebts);
     }
 
     if (data.configs && data.configs.length > 0) {
@@ -504,7 +472,6 @@ export class DBService {
   }
 
   static async sendBroadcastMessage(content: string): Promise<void> {
-      // 1. Pegar todos os IDs de usuários
       const { data: profiles, error } = await supabase.from('profiles').select('id');
       if (error) throw new Error("Erro ao buscar usuários: " + error.message);
       
@@ -520,14 +487,12 @@ export class DBService {
           timestamp: timestamp
       }));
 
-      // Inserção em lote para performance (Supabase suporta arrays de objetos)
       const { error: insertError } = await supabase.from('messages').insert(messagesToInsert);
       if (insertError) throw new Error("Erro ao disparar mensagens: " + insertError.message);
   }
 
   static async getMessagesForUser(userId: string): Promise<AdminMessage[]> {
     const { data, error } = await supabase.from('messages').select('*').eq('receiver', userId);
-    
     if (error) return [];
     
     return data.map((m: any) => ({
