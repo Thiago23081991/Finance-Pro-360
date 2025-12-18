@@ -2,6 +2,7 @@
 import { Transaction, Goal, Debt, AppConfig, UserAccount, PurchaseRequest, AdminMessage, SystemStats, UserProfile } from "./types";
 import { DEFAULT_CONFIG } from "./constants";
 import { supabase } from "./supabaseClient";
+import { generateId } from "./utils";
 
 // O Supabase substitui o IndexedDB.
 // Mantemos a classe DBService como fachada para facilitar a migração.
@@ -12,11 +13,12 @@ export class DBService {
 
   static async registerUser(user: UserAccount): Promise<any> {
     // 1. Criar usuário no Auth do Supabase
-    // Passamos o nome completo nos metadados para persistência no Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: user.username, // Username tratado como email
+      email: user.username, 
       password: user.password,
       options: {
+        // CRÍTICO: Redireciona de volta para a home do app após a confirmação do email
+        emailRedirectTo: window.location.origin,
         data: {
           full_name: user.name
         }
@@ -26,17 +28,11 @@ export class DBService {
     if (authError) throw new Error(authError.message);
     
     // 2. Criar perfil IMEDIATAMENTE na tabela pública 'profiles'
-    // Apenas tentamos criar se houver uma sessão ativa (Email confirmation OFF).
-    // Se não houver sessão (Email confirmation ON), o insert falharia por RLS (Row Level Security).
-    // Nesses casos, o perfil será criado automaticamente no primeiro login via getConfig (self-healing).
     if (authData.user && authData.session) {
-        // CORREÇÃO: Usamos a coluna 'username' para armazenar o Nome Completo,
-        // já que a coluna 'name' não existe na tabela profiles atual.
         const { error: profileError } = await supabase.from('profiles').insert({
             id: authData.user.id,
             email: user.username,
-            // name: user.name, // REMOVIDO pois a coluna não existe
-            username: user.name || user.username.split('@')[0], // Salvando o nome na coluna username
+            username: user.name || user.username.split('@')[0], 
             theme: 'light',
             currency: 'BRL',
             categories: DEFAULT_CONFIG.categories,
@@ -47,12 +43,9 @@ export class DBService {
 
         if (profileError) {
             console.error("Erro ao criar perfil inicial:", profileError.message);
-            // Não lançamos erro aqui para não travar o fluxo de cadastro, 
-            // pois o getConfig tem um fallback (self-healing).
         }
     }
     
-    // Retornar dados completos para o frontend decidir se precisa de confirmação de email
     return authData;
   }
 
@@ -63,7 +56,6 @@ export class DBService {
     });
 
     if (error) {
-        // Lançar o erro real para que a UI possa mostrar "Email não confirmado" ou "Senha inválida"
         throw new Error(error.message);
     }
     return data.user;
@@ -79,47 +71,30 @@ export class DBService {
   }
 
   static async resetUserPassword(username: string, newPass: string): Promise<void> {
-    // Nota: Em produção, o Supabase usa email para reset. 
-    // Como estamos usando a lógica de "Chave Mestra" do Admin para forçar o reset:
-    // O admin precisaria usar a API de Admin do Supabase (service_role) para alterar senha de outros,
-    // o que não é seguro expor no frontend.
-    // Para este caso específico, vamos permitir que o PRÓPRIO usuário logado mude sua senha.
-    
     const { error } = await supabase.auth.updateUser({ password: newPass });
     if (error) throw new Error(error.message);
   }
 
   static async requestPasswordReset(email: string): Promise<void> {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin, // Redireciona de volta para a app
+      redirectTo: window.location.origin, 
     });
     if (error) throw new Error(error.message);
   }
 
   // LGPD: Direito ao Esquecimento
   static async deleteUserAccount(userId: string): Promise<void> {
-      // Nota: Pela API Client-side do Supabase, um usuário não pode deletar seu próprio registro da tabela auth.users.
-      // Isso requer uma Edge Function ou Service Role.
-      // Para cumprir a LGPD no frontend, vamos deletar TODOS os dados das tabelas públicas.
-      // O registro de Auth ficará órfão (sem dados) e inativo.
-      
       const tablesToDelete = ['transactions', 'goals', 'debts', 'profiles', 'purchase_requests', 'messages'];
       
       try {
-          // Deleta dados em paralelo
           await Promise.all(tablesToDelete.map(table => {
-              // Condição: algumas tabelas usam 'user_id', profiles usa 'id', messages usa 'receiver'
               let column = 'user_id';
               if (table === 'profiles') column = 'id';
               if (table === 'messages') column = 'receiver'; 
               
-              // Verifica se a tabela debts existe antes de tentar deletar (caso a migração não tenha ocorrido)
-              // Em um app real, o Supabase ignoraria tabelas inexistentes no client, mas é bom previnir erros JS
-              // CORREÇÃO: Usar .then ao invés de .catch para compatibilidade de tipos
               return supabase.from(table).delete().eq(column, userId).then(() => {}); 
           }));
 
-          // Deslogar após limpar os dados
           await this.logout();
       } catch (error: any) {
           throw new Error("Erro ao excluir dados: " + error.message);
@@ -129,8 +104,6 @@ export class DBService {
   // --- DATA OPERATIONS ---
 
   static async getTransactions(userId: string): Promise<Transaction[]> {
-    // userId no Supabase é o UUID do Auth. O parametro 'userId' vindo do App.tsx deve ser ignorado 
-    // em favor do auth.uid() real, mas o RLS já garante isso.
     const { data, error } = await supabase
       .from('transactions')
       .select('*')
@@ -138,7 +111,6 @@ export class DBService {
 
     if (error) throw error;
 
-    // Mapear snake_case (DB) para camelCase (App)
     return data.map((t: any) => ({
       id: t.id,
       userId: t.user_id,
@@ -152,13 +124,11 @@ export class DBService {
   }
 
   static async addTransaction(t: Transaction): Promise<void> {
-    // Verifica se é update ou insert
-    // Supabase 'upsert' funciona bem se tiver ID.
     const user = await this.getCurrentUser();
     if (!user) throw new Error("Usuário não autenticado");
 
     const payload = {
-      id: t.id, // Se for novo e gerado no front, ok. Se nao, o Supabase gera.
+      id: t.id, 
       user_id: user.id,
       date: t.date,
       amount: t.amount,
@@ -216,12 +186,9 @@ export class DBService {
   // --- DEBTS OPERATIONS ---
 
   static async getDebts(userId: string): Promise<Debt[]> {
-    // Supabase RLS handles user scoping
     const { data, error } = await supabase.from('debts').select('*').order('interest_rate', { ascending: false });
     
     if (error) {
-        // Fallback for when table doesn't exist yet (Development mode or Schema Cache issues)
-        // Try to load from LocalStorage to keep the app working
         console.warn("Could not fetch debts from DB, checking local storage.", error.message);
         const localData = localStorage.getItem(`fp360_debts_${userId}`);
         if (localData) {
@@ -258,25 +225,17 @@ export class DBService {
     const { error } = await supabase.from('debts').upsert(payload);
     
     if (error) {
-        // ERROR HANDLING: Check for missing table error
         if (error.message.includes("Could not find the table") || error.code === '42P01') {
-            console.warn("Debts table missing in DB. Saving to LocalStorage.");
-            
-            // Get current local debts
             const currentDebts = await this.getDebts(user.id);
-            
-            // Check if we are updating or adding
             const index = currentDebts.findIndex(x => x.id === d.id);
             if (index >= 0) {
                 currentDebts[index] = d;
             } else {
                 currentDebts.push(d);
             }
-            
             localStorage.setItem(`fp360_debts_${user.id}`, JSON.stringify(currentDebts));
-            return; // Exit successfully using fallback
+            return; 
         }
-        
         throw new Error(error.message);
     }
   }
@@ -285,14 +244,13 @@ export class DBService {
     const { error } = await supabase.from('debts').delete().eq('id', id);
     
     if (error) {
-         // ERROR HANDLING: Fallback for missing table
          if (error.message.includes("Could not find the table") || error.code === '42P01') {
              const user = await this.getCurrentUser();
              if (user) {
                  const currentDebts = await this.getDebts(user.id);
                  const filtered = currentDebts.filter(d => d.id !== id);
                  localStorage.setItem(`fp360_debts_${user.id}`, JSON.stringify(filtered));
-                 return; // Exit successfully
+                 return; 
              }
          }
          throw new Error(error.message);
@@ -300,24 +258,18 @@ export class DBService {
   }
 
   static async getConfig(userId: string): Promise<AppConfig> {
-    // Busca perfil. userId parametro é legacy, usamos auth.
     const user = await this.getCurrentUser();
     if (!user) return DEFAULT_CONFIG;
 
     const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
 
     if (!data) {
-      // SELF-HEALING: Se o usuário existe no Auth mas não tem perfil (ex: erro no registro ou DB não criado na hora), cria agora.
       console.log("Perfil não encontrado. Tentando criar perfil padrão...");
-      
-      // Tenta pegar o nome dos metadados do Auth se disponível
       const fullName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
 
-      // CORREÇÃO: Usar 'username' para armazenar o nome
       const { error: insertError } = await supabase.from('profiles').insert({
         id: user.id,
         email: user.email,
-        // name: fullName, // REMOVIDO
         username: fullName,
         theme: 'light',
         currency: 'BRL',
@@ -337,7 +289,7 @@ export class DBService {
 
     return {
       userId: data.id,
-      name: data.username, // Mapeando coluna 'username' (que contém o nome) para o campo 'name' da interface
+      name: data.username, 
       theme: data.theme as 'light' | 'dark',
       currency: data.currency || 'BRL',
       categories: data.categories || DEFAULT_CONFIG.categories,
@@ -371,19 +323,16 @@ export class DBService {
 
     const { error } = await supabase.from('profiles').upsert(payload);
     if (error) {
-        // Exibe o erro real no console para depuração
         console.error("Erro ao salvar config:", error.message);
     }
   }
 
   static async updateUserLicense(userId: string, status: 'active' | 'inactive'): Promise<void> {
-    // Permite que o Admin (ou o sistema) atualize diretamente o status da licença
     const { error } = await supabase.from('profiles').update({ license_status: status }).eq('id', userId);
     if (error) throw new Error(error.message);
   }
 
   static async createProfileManually(userId: string, email: string, name: string): Promise<void> {
-    // Ferramenta de Admin para criar perfil se o registro automatico falhar
     const payload = {
         id: userId,
         email: email,
@@ -409,7 +358,6 @@ export class DBService {
     const [txs, goals, debts, profile, reqs, msgs] = await Promise.all([
       supabase.from('transactions').select('*'),
       supabase.from('goals').select('*'),
-      // CORREÇÃO: Usar .then ao invés de .catch para compatibilidade de tipos
       supabase.from('debts').select('*').then(res => res.error ? { data: [] } : res),
       supabase.from('profiles').select('*').eq('id', user.id).single(),
       supabase.from('purchase_requests').select('*'),
@@ -433,15 +381,13 @@ export class DBService {
     const user = await this.getCurrentUser();
     if (!user) return;
 
-    // Restaurar Transações
     if (data.transactions && data.transactions.length > 0) {
        const cleanTxs = data.transactions.map((t: any) => ({
-         ...t, user_id: user.id // Força propriedade do usuário atual
+         ...t, user_id: user.id 
        }));
        await supabase.from('transactions').upsert(cleanTxs);
     }
     
-    // Restaurar Metas
     if (data.goals && data.goals.length > 0) {
        const cleanGoals = data.goals.map((g: any) => ({
          ...g, user_id: user.id
@@ -449,20 +395,16 @@ export class DBService {
        await supabase.from('goals').upsert(cleanGoals);
     }
 
-    // Restaurar Dívidas
     if (data.debts && data.debts.length > 0) {
         const cleanDebts = data.debts.map((d: any) => ({
             ...d, user_id: user.id
         }));
-        // CORREÇÃO: Usar .then ao invés de .catch para compatibilidade de tipos
         await supabase.from('debts').upsert(cleanDebts).then(res => { if(res.error) console.error(res.error) });
     }
 
-    // Configs - Apenas update
     if (data.configs && data.configs.length > 0) {
-       // Pega o primeiro config compatível
        const cfg = data.configs[0];
-       delete cfg.id; // Não sobrescrever ID
+       delete cfg.id; 
        await supabase.from('profiles').update(cfg).eq('id', user.id);
     }
   }
@@ -470,15 +412,12 @@ export class DBService {
   // --- ADMIN OPERATIONS ---
 
   static async getSystemStats(): Promise<SystemStats> {
-    // Nota: count('exact') pode ser lento em tabelas gigantes, mas ok para este escopo
     const { count: usersCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
     const { count: txCount } = await supabase.from('transactions').select('*', { count: 'exact', head: true });
     
-    // Soma de volumes (requer query real)
     const { data: volData } = await supabase.from('transactions').select('amount');
     const totalVol = volData ? volData.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0) : 0;
     
-    // Licenças ativas
     const { count: licenseCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('license_status', 'active');
 
     return {
@@ -490,13 +429,12 @@ export class DBService {
   }
 
   static async getAllProfiles(): Promise<UserProfile[]> {
-      // CORREÇÃO: Removemos 'name' do select pois a coluna não existe
       const { data, error } = await supabase.from('profiles').select('id, email, username, license_status, created_at');
       if (error) throw new Error(error.message);
       
       return data.map((p: any) => ({
           id: p.id,
-          name: p.username, // Mapeando 'username' (onde salvamos o nome) para a propriedade 'name' da interface
+          name: p.username, 
           email: p.email,
           username: p.username,
           licenseStatus: p.license_status,
@@ -505,7 +443,6 @@ export class DBService {
   }
 
   static async getPurchaseRequest(userId: string): Promise<PurchaseRequest | null> {
-    // userId aqui pode ser o UUID do user
     const { data } = await supabase.from('purchase_requests').select('*').eq('user_id', userId).maybeSingle();
     
     if (!data) return null;
@@ -527,17 +464,13 @@ export class DBService {
     const { error } = await supabase.from('purchase_requests').upsert(payload);
     if (error) throw new Error(error.message);
 
-    // FEATURE: Se a solicitação foi aprovada, garantimos que o perfil exista e tenha status active.
-    // Usamos UPSERT no profile para cobrir casos onde o usuário existe no Auth mas não no Profiles.
     if (req.status === 'approved') {
         const { error: profileError } = await supabase
             .from('profiles')
             .upsert({ 
                 id: req.userId,
                 license_status: 'active'
-                // Nota: Upsert parcial. Se o registro não existir, ele criará com campos nulos exceto ID e status.
-                // Idealmente o app já criou o perfil no cadastro, mas isso é self-healing.
-            }, { onConflict: 'id' }); // Apenas atualiza se existir, ou cria se não.
+            }, { onConflict: 'id' }); 
             
         if (profileError) console.error("Erro ao ativar licença no perfil:", profileError);
     }
@@ -561,13 +494,35 @@ export class DBService {
     const payload = {
       id: msg.id,
       sender: msg.sender,
-      receiver: msg.receiver, // UUID do destinatário
+      receiver: msg.receiver, 
       content: msg.content,
       read: msg.read,
       timestamp: msg.timestamp
     };
     const { error } = await supabase.from('messages').insert(payload);
     if (error) throw new Error(error.message);
+  }
+
+  static async sendBroadcastMessage(content: string): Promise<void> {
+      // 1. Pegar todos os IDs de usuários
+      const { data: profiles, error } = await supabase.from('profiles').select('id');
+      if (error) throw new Error("Erro ao buscar usuários: " + error.message);
+      
+      if (!profiles || profiles.length === 0) return;
+
+      const timestamp = new Date().toISOString();
+      const messagesToInsert = profiles.map(p => ({
+          id: generateId(),
+          sender: 'Admin',
+          receiver: p.id,
+          content: content,
+          read: false,
+          timestamp: timestamp
+      }));
+
+      // Inserção em lote para performance (Supabase suporta arrays de objetos)
+      const { error: insertError } = await supabase.from('messages').insert(messagesToInsert);
+      if (insertError) throw new Error("Erro ao disparar mensagens: " + insertError.message);
   }
 
   static async getMessagesForUser(userId: string): Promise<AdminMessage[]> {

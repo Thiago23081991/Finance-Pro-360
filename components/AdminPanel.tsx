@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { PurchaseRequest, AdminMessage, SystemStats, UserProfile } from '../types';
 import { DBService } from '../db';
-import { Check, X, ShieldAlert, User, MessageSquare, Send, FileText, Mail, Eye, EyeOff, RefreshCw, Key, Copy, Smartphone, Lock, Loader2, Users, BarChart3, Wallet, Database, ShieldOff, ShieldCheck, Wrench, UserPlus, AlertTriangle } from 'lucide-react';
+import { Check, X, ShieldAlert, User, MessageSquare, Send, FileText, Mail, Eye, EyeOff, RefreshCw, Key, Copy, Smartphone, Lock, Loader2, Users, BarChart3, Wallet, Database, ShieldOff, ShieldCheck, Wrench, UserPlus, AlertTriangle, Megaphone } from 'lucide-react';
 import { generateId, generateLicenseKey, formatCurrency } from '../utils';
 
 type AdminTab = 'overview' | 'users' | 'requests' | 'messages' | 'generator';
@@ -24,6 +24,7 @@ export const AdminPanel: React.FC = () => {
   const [msgTargetUser, setMsgTargetUser] = useState('');
   const [msgContent, setMsgContent] = useState('');
   const [sending, setSending] = useState(false);
+  const [isBroadcast, setIsBroadcast] = useState(false);
 
   // Tools/Generator State
   const [genUserId, setGenUserId] = useState('');
@@ -49,33 +50,28 @@ export const AdminPanel: React.FC = () => {
         setStats(sysStats);
 
         // --- LÓGICA DE MESCLAGEM AUTOMÁTICA (RESOLVE USUÁRIOS FANTASMAS) ---
-        // 1. Cria um mapa dos perfis existentes para acesso rápido
         const profileMap = new Map(dbProfiles.map(p => [p.id, p]));
         
-        // 2. Identifica usuários que estão nos PEDIDOS mas NÃO estão nos PERFIS
         const ghostUsers: UserProfile[] = [];
         const uniqueRequestUserIds = new Set(dbRequests.map(r => r.userId));
 
         uniqueRequestUserIds.forEach(reqUserId => {
             if (!profileMap.has(reqUserId)) {
-                // Usuário Fantasma detectado! Vamos criar um perfil virtual para exibição
                 ghostUsers.push({
                     id: reqUserId,
                     name: 'Usuário (Perfil Pendente)',
                     email: 'Email não registrado',
                     username: 'user_ghost',
-                    licenseStatus: 'inactive', // Default
+                    licenseStatus: 'inactive',
                     isGhost: true,
                     createdAt: new Date().toISOString()
                 });
             }
         });
 
-        // 3. Combina perfis reais com fantasmas para a lista completa
         const allProfiles = [...dbProfiles, ...ghostUsers];
         setProfiles(allProfiles);
 
-        // --- ENRIQUECIMENTO DAS SOLICITAÇÕES (EXIBIR NOME NA ABA LICENÇAS) ---
         const enrichedRequests = dbRequests.map(req => {
             const userProfile = profileMap.get(req.userId) || ghostUsers.find(g => g.id === req.userId);
             return {
@@ -85,7 +81,6 @@ export const AdminPanel: React.FC = () => {
             };
         });
 
-        // Ordenação dos pedidos
         const sortedReqs = enrichedRequests.sort((a, b) => {
             if (a.status === 'pending' && b.status !== 'pending') return -1;
             if (a.status !== 'pending' && b.status === 'pending') return 1;
@@ -104,7 +99,6 @@ export const AdminPanel: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-    // Refresh stats periodically
     const interval = setInterval(fetchData, 30000); 
     return () => clearInterval(interval);
   }, []);
@@ -113,22 +107,18 @@ export const AdminPanel: React.FC = () => {
     try {
         const updated: PurchaseRequest = { ...req, status: newStatus };
         await DBService.savePurchaseRequest(updated);
-        
-        // Refresh para garantir sincronia
         fetchData();
-
     } catch (error: any) {
         alert("Erro ao atualizar status: " + error.message);
     }
   };
 
   const handleToggleLicense = async (profile: UserProfile) => {
-      // Se for usuário fantasma, avisar que precisa criar o perfil primeiro
       if (profile.isGhost) {
           if (confirm("Este usuário não possui perfil completo no banco de dados. Deseja criar um perfil básico para ele agora para poder ativar o Premium?")) {
               setManualId(profile.id);
               setManualEmail(profile.email !== 'Email não registrado' ? profile.email : '');
-              setActiveTab('generator'); // Leva para a aba de ferramentas
+              setActiveTab('generator');
               alert("Por favor, preencha o e-mail do usuário na aba Ferramentas para finalizar o cadastro.");
           }
           return;
@@ -141,7 +131,6 @@ export const AdminPanel: React.FC = () => {
 
       try {
           await DBService.updateUserLicense(profile.id, newStatus);
-          // Update local state
           setProfiles(prev => prev.map(p => 
               p.id === profile.id ? { ...p, licenseStatus: newStatus } : p
           ));
@@ -150,8 +139,9 @@ export const AdminPanel: React.FC = () => {
       }
   };
 
-  const openMessageModal = (userId: string) => {
-      setMsgTargetUser(userId);
+  const openMessageModal = (userId: string, broadcast: boolean = false) => {
+      setIsBroadcast(broadcast);
+      setMsgTargetUser(broadcast ? 'TODOS OS USUÁRIOS' : userId);
       setMsgContent('');
       setMsgModalOpen(true);
   };
@@ -159,26 +149,33 @@ export const AdminPanel: React.FC = () => {
   const handleSendMessage = async () => {
       if (!msgContent.trim()) return;
 
-      if (!window.confirm(`Tem certeza que deseja enviar esta mensagem para o usuário?`)) {
-        return;
-      }
+      const confirmMsg = isBroadcast 
+        ? `VOCÊ ESTÁ PRESTES A ENVIAR UM COMUNICADO GERAL PARA TODOS OS ${profiles.length} USUÁRIOS. DESEJA CONTINUAR?`
+        : `Tem certeza que deseja enviar esta mensagem para o usuário?`;
+
+      if (!window.confirm(confirmMsg)) return;
 
       setSending(true);
       try {
-          const msg: AdminMessage = {
-              id: generateId(),
-              sender: 'Admin',
-              receiver: msgTargetUser,
-              content: msgContent,
-              timestamp: new Date().toISOString(),
-              read: false
-          };
-          await DBService.sendMessage(msg);
+          if (isBroadcast) {
+              await DBService.sendBroadcastMessage(msgContent);
+              alert(`Comunicado enviado com sucesso para ${profiles.length} usuários!`);
+          } else {
+              const msg: AdminMessage = {
+                  id: generateId(),
+                  sender: 'Admin',
+                  receiver: msgTargetUser,
+                  content: msgContent,
+                  timestamp: new Date().toISOString(),
+                  read: false
+              };
+              await DBService.sendMessage(msg);
+              alert('Mensagem enviada com sucesso!');
+          }
           setMsgModalOpen(false);
-          alert('Mensagem enviada com sucesso!');
           fetchData(); 
       } catch (error: any) {
-          alert('Erro ao enviar mensagem: ' + error.message);
+          alert('Erro no envio: ' + error.message);
       } finally {
           setSending(false);
       }
@@ -198,11 +195,11 @@ export const AdminPanel: React.FC = () => {
       setManualLoading(true);
       try {
           await DBService.createProfileManually(manualId, manualEmail, manualName || 'Usuário Recuperado');
-          alert("Perfil criado com sucesso! Agora você pode gerenciar este usuário na aba 'Usuários'.");
+          alert("Perfil criado com sucesso!");
           setManualId('');
           setManualEmail('');
           setManualName('');
-          fetchData(); // Refresh list
+          fetchData();
       } catch (error: any) {
           alert("Erro ao criar perfil: " + error.message);
       } finally {
@@ -212,7 +209,6 @@ export const AdminPanel: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto animate-fade-in space-y-6 relative pb-10">
-        {/* Header Area */}
         <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
@@ -224,16 +220,24 @@ export const AdminPanel: React.FC = () => {
                         <p className="text-slate-500 dark:text-slate-400">Gestão global do sistema Finance Pro 360.</p>
                     </div>
                 </div>
-                <button 
-                    onClick={fetchData} 
-                    className="p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 rounded-full transition-colors"
-                    title="Atualizar Dados"
-                >
-                    <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
-                </button>
+                <div className="flex items-center gap-2">
+                    <button 
+                        onClick={() => openMessageModal('', true)}
+                        className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md transition-all active:scale-95"
+                    >
+                        <Megaphone size={18} />
+                        Comunicado Geral
+                    </button>
+                    <button 
+                        onClick={fetchData} 
+                        className="p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 rounded-full transition-colors"
+                        title="Atualizar Dados"
+                    >
+                        <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
+                    </button>
+                </div>
             </div>
 
-            {/* Navigation Tabs */}
             <div className="flex gap-4 border-b border-slate-200 dark:border-slate-700 overflow-x-auto">
                 <button
                     onClick={() => setActiveTab('overview')}
@@ -292,9 +296,6 @@ export const AdminPanel: React.FC = () => {
             </div>
         </div>
 
-        {/* --- CONTENT AREA --- */}
-
-        {/* 1. DASHBOARD TAB */}
         {activeTab === 'overview' && stats && (
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in">
                 <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
@@ -347,7 +348,6 @@ export const AdminPanel: React.FC = () => {
              </div>
         )}
 
-        {/* 2. USERS TAB */}
         {activeTab === 'users' && (
              <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden animate-fade-in transition-colors">
                 <div className="overflow-x-auto">
@@ -376,7 +376,6 @@ export const AdminPanel: React.FC = () => {
                                                     {profile.isGhost && <span className="text-[9px] bg-amber-100 text-amber-700 px-1 rounded uppercase">Pendente</span>}
                                                 </span>
                                                 <span className="text-xs text-slate-500 dark:text-slate-400">{profile.email}</span>
-                                                {/* ID escondido em tooltip ou muito discreto */}
                                                 <span className="text-[9px] text-slate-300 dark:text-slate-600 font-mono mt-0.5 truncate max-w-[150px]" title={profile.id}>ID: {profile.id.substring(0,8)}...</span>
                                             </div>
                                         </td>
@@ -420,7 +419,6 @@ export const AdminPanel: React.FC = () => {
              </div>
         )}
 
-        {/* 3. REQUESTS TAB */}
         {activeTab === 'requests' && (
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden animate-fade-in transition-colors">
                 <div className="overflow-x-auto">
@@ -509,7 +507,6 @@ export const AdminPanel: React.FC = () => {
             </div>
         )}
 
-        {/* 4. MESSAGES TAB */}
         {activeTab === 'messages' && (
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden animate-fade-in transition-colors">
                 <div className="overflow-x-auto">
@@ -531,7 +528,6 @@ export const AdminPanel: React.FC = () => {
                                 </tr>
                             ) : (
                                 messages.map(msg => {
-                                    // Tentar encontrar nome do destinatário para exibição bonita
                                     const receiverProfile = profiles.find(p => p.id === msg.receiver);
                                     const receiverName = receiverProfile?.name || 'ID: ' + msg.receiver.substring(0,8)+'...';
 
@@ -564,18 +560,15 @@ export const AdminPanel: React.FC = () => {
             </div>
         )}
 
-        {/* 5. TOOLS / GENERATOR TAB */}
         {activeTab === 'generator' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
-                
-                {/* Manual Profile Creator (FIX GHOST USERS) */}
                 <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
                     <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
                         <UserPlus size={20} className="text-amber-500" />
                         Reparar Usuário Fantasma
                     </h3>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-                        Use isto se o usuário criou conta mas não aparece na lista (falha de registro no banco).
+                        Use isto se o usuário criou conta mas não aparece na lista.
                     </p>
 
                     <div className="space-y-4">
@@ -621,7 +614,6 @@ export const AdminPanel: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Key Generator */}
                 <div className="space-y-6">
                     <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
                         <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
@@ -684,12 +676,14 @@ export const AdminPanel: React.FC = () => {
             </div>
         )}
 
-        {/* Message Modal */}
         {msgModalOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
                 <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-md p-6 animate-fade-in border border-slate-200 dark:border-slate-700 transition-colors">
                     <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-bold text-slate-800 dark:text-white">Enviar Mensagem</h3>
+                        <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                            {isBroadcast ? <Megaphone className="text-indigo-500" size={20} /> : <Mail className="text-blue-500" size={20} />}
+                            {isBroadcast ? 'Comunicado Geral' : 'Enviar Mensagem'}
+                        </h3>
                         <button onClick={() => setMsgModalOpen(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
                             <X size={20} />
                         </button>
@@ -697,18 +691,19 @@ export const AdminPanel: React.FC = () => {
                     
                     <div className="mb-4">
                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Para:</label>
-                        <div className="p-2 bg-slate-100 dark:bg-slate-900 rounded text-sm font-mono text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                        <div className={`p-2 rounded text-sm font-bold border ${isBroadcast ? 'bg-indigo-50 border-indigo-200 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-800 dark:text-indigo-300' : 'bg-slate-100 dark:bg-slate-900 rounded text-sm font-mono text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700'}`}>
                             {msgTargetUser}
                         </div>
+                        {isBroadcast && <p className="text-[10px] text-indigo-500 mt-1 uppercase font-bold tracking-wider">Atenção: Esta mensagem será enviada individualmente para todos.</p>}
                     </div>
 
                     <div className="mb-4">
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Mensagem:</label>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Conteúdo da Mensagem:</label>
                         <textarea 
                             value={msgContent}
                             onChange={(e) => setMsgContent(e.target.value)}
-                            className="w-full h-32 border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded p-3 text-sm focus:border-blue-500 outline-none resize-none"
-                            placeholder="Escreva sua mensagem aqui..."
+                            className="w-full h-40 border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded p-3 text-sm focus:border-indigo-500 outline-none resize-none"
+                            placeholder={isBroadcast ? "Ex: Olá a todos! Temos novos recursos disponíveis no Finance Pro 360..." : "Escreva sua mensagem aqui..."}
                         ></textarea>
                     </div>
 
@@ -723,19 +718,19 @@ export const AdminPanel: React.FC = () => {
                         <button 
                             onClick={handleSendMessage}
                             disabled={sending || !msgContent.trim()}
-                            className={`px-4 py-2 rounded text-sm font-medium flex items-center gap-2 transition-colors ${
-                                sending ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
-                            } text-white disabled:opacity-50`}
+                            className={`px-4 py-2 rounded text-sm font-bold flex items-center gap-2 transition-all shadow-md ${
+                                sending ? 'bg-slate-400 cursor-not-allowed' : (isBroadcast ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-blue-600 hover:bg-blue-700')
+                            } text-white disabled:opacity-50 active:scale-95`}
                         >
                             {sending ? (
                                 <>
                                     <Loader2 size={16} className="animate-spin" />
-                                    Enviando...
+                                    Processando...
                                 </>
                             ) : (
                                 <>
-                                    <Send size={16} />
-                                    Enviar Mensagem
+                                    {isBroadcast ? <Megaphone size={16} /> : <Send size={16} />}
+                                    {isBroadcast ? 'Disparar Comunicado' : 'Enviar Mensagem'}
                                 </>
                             )}
                         </button>

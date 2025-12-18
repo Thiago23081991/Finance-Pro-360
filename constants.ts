@@ -1,6 +1,8 @@
 
 import { AppConfig } from "./types";
 
+export const APP_DOMAIN = "www.financepro360.com.br";
+
 // COLOQUE AQUI SEUS LINKS DE CHECKOUT REAIS
 export const CHECKOUT_URLS = {
     kiwify: "https://pay.kiwify.com.br/SEU_LINK_AQUI", 

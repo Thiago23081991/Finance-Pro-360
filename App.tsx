@@ -21,7 +21,7 @@ import { CalculatorModal } from './components/CalculatorModal';
 import { Logo } from './components/Logo';
 import { DBService } from './db';
 import { supabase } from './supabaseClient';
-import { LayoutDashboard, CreditCard, TrendingUp, Target, Settings as SettingsIcon, Menu, Filter, LogOut, Loader2, ShieldCheck, Mail, Sun, Moon, X, BarChart4, GraduationCap, Scale, Calculator, List, TableProperties } from 'lucide-react';
+import { LayoutDashboard, CreditCard, TrendingUp, Target, Settings as SettingsIcon, Menu, Filter, LogOut, Loader2, ShieldCheck, Mail, Sun, Moon, X, BarChart4, GraduationCap, Scale, Calculator, List, TableProperties, AlertTriangle, RefreshCw } from 'lucide-react';
 
 // Centralized Metadata for Tabs (Title, Label, Icon)
 const TAB_METADATA: Record<Tab, { label: string; pageTitle: string; icon: React.ReactNode }> = {
@@ -81,40 +81,24 @@ interface FinanceAppProps {
 // --- Authenticated Application Component ---
 const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirmed }) => {
   
-  // Define admin logic based on Email (Supabase)
   const [isAdmin, setIsAdmin] = useState(false);
   const [userEmail, setUserEmail] = useState('');
-
-  // State Management
   const [activeTab, setActiveTab] = useState<Tab>('controle');
-  
-  // Sub-tab state for Expenses
   const [expenseSubTab, setExpenseSubTab] = useState<'general' | 'cards'>('general');
-
   const [loading, setLoading] = useState(true);
+  const [dataError, setDataError] = useState<string | null>(null);
   const [contentLoading, setContentLoading] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [debts, setDebts] = useState<Debt[]>([]);
   const [config, setConfig] = useState<AppConfig>(DEFAULT_CONFIG);
-
-  // Toast Notification State
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastAction, setToastAction] = useState<{label: string, fn: () => void} | undefined>(undefined);
-
-  // Inbox State
   const [showInbox, setShowInbox] = useState(false);
   const [unreadMessages, setUnreadMessages] = useState(0);
-
-  // Calculator State
   const [showCalculator, setShowCalculator] = useState(false);
-
-  // Tutorial State
   const [showTutorial, setShowTutorial] = useState(false);
-
-  // Filter State
   const [filter, setFilter] = useState<FilterState>({
       month: new Date().getMonth(),
       year: new Date().getFullYear(),
@@ -122,58 +106,55 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
       paymentMethod: 'Todas'
   });
 
-  // Handle Email Confirmation Toast
+  // Initial Data Fetch
+  const fetchData = async () => {
+      setLoading(true);
+      setDataError(null);
+      try {
+          const currentUser = await DBService.getCurrentUser();
+          if (currentUser) {
+              setUserEmail(currentUser.email || '');
+              const adminEmails = ['admin@finance360.com', 'thiago@finance360.com', 'tsngti@gmail.com'];
+              if (currentUser.email && adminEmails.includes(currentUser.email)) {
+                  setIsAdmin(true);
+              }
+          }
+
+          const [txs, gls, cfg] = await Promise.all([
+              DBService.getTransactions(user),
+              DBService.getGoals(user),
+              DBService.getConfig(user)
+          ]);
+          
+          setTransactions(txs);
+          setGoals(gls);
+          
+          const mergedConfig = { ...DEFAULT_CONFIG, ...cfg, userId: user };
+          setConfig(mergedConfig);
+
+          checkUnreadMessages();
+
+          if (!isAdmin && mergedConfig.hasSeenTutorial === false) {
+              setTimeout(() => setShowTutorial(true), 500);
+          }
+
+      } catch (error: any) {
+          console.error("Failed to load data from Supabase", error);
+          setDataError("Não conseguimos sincronizar seus dados. Se você acabou de confirmar seu e-mail, tente atualizar a página em alguns segundos.");
+      } finally {
+          setLoading(false);
+      }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [user]);
+
   useEffect(() => {
     if (isEmailConfirmed) {
         setToastMessage("E-mail confirmado com sucesso! Seja bem-vindo.");
     }
   }, [isEmailConfirmed]);
-
-  // Initial Data Fetch from Database
-  useEffect(() => {
-    const fetchData = async () => {
-        setLoading(true);
-        try {
-            const currentUser = await DBService.getCurrentUser();
-            if (currentUser) {
-                setUserEmail(currentUser.email || '');
-                const adminEmails = [
-                    'admin@finance360.com', 
-                    'thiago@finance360.com', 
-                    'tsngti@gmail.com'
-                ];
-                
-                if (currentUser.email && adminEmails.includes(currentUser.email)) {
-                    setIsAdmin(true);
-                }
-            }
-
-            const [txs, gls, cfg] = await Promise.all([
-                DBService.getTransactions(user),
-                DBService.getGoals(user),
-                DBService.getConfig(user)
-            ]);
-            
-            setTransactions(txs);
-            setGoals(gls);
-            
-            const mergedConfig = { ...DEFAULT_CONFIG, ...cfg, userId: user };
-            setConfig(mergedConfig);
-
-            checkUnreadMessages();
-
-            if (!isAdmin && mergedConfig.hasSeenTutorial === false) {
-                setTimeout(() => setShowTutorial(true), 500);
-            }
-
-        } catch (error) {
-            console.error("Failed to load data from Supabase", error);
-        } finally {
-            setLoading(false);
-        }
-    };
-    fetchData();
-  }, [user]);
 
   useEffect(() => {
     if (config.theme === 'dark') {
@@ -231,7 +212,6 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
     
     try {
         const minLoadTime = new Promise(resolve => setTimeout(resolve, 400));
-        
         const dataPromises: Promise<any>[] = [minLoadTime];
 
         if (tab === 'controle' || tab === 'receitas' || tab === 'despesas') {
@@ -342,6 +322,24 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout, isEmailConfirme
               </div>
           </div>
       );
+  }
+
+  if (dataError) {
+    return (
+        <div className="h-screen w-full flex items-center justify-center bg-[#f3f4f6] dark:bg-slate-950 p-6">
+            <div className="max-w-md w-full bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-xl text-center border border-slate-200 dark:border-slate-800">
+                <AlertTriangle className="mx-auto text-amber-500 mb-4" size={48} />
+                <h2 className="text-xl font-bold mb-4 dark:text-white">Problema na Conexão</h2>
+                <p className="text-slate-600 dark:text-slate-400 mb-6">{dataError}</p>
+                <button 
+                    onClick={fetchData}
+                    className="w-full bg-brand-blue text-white py-3 rounded-xl font-bold hover:bg-slate-800 transition-colors flex items-center justify-center gap-2"
+                >
+                    <RefreshCw size={20} /> Tentar Sincronizar Agora
+                </button>
+            </div>
+        </div>
+    );
   }
 
   return (
@@ -715,7 +713,7 @@ const App: React.FC = () => {
         };
         checkSession();
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
             if (session?.user) {
                 setUser(session.user.id);
                 setIsEmailConfirmed(!!session.user.email_confirmed_at);
