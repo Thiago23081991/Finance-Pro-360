@@ -258,7 +258,9 @@ export class DBService {
       lastSeenGoals: data.last_seen_goals || localConfig.lastSeenGoals,
       hasSeenTutorial: data.has_seen_tutorial ?? localConfig.hasSeenTutorial ?? false,
       licenseKey: data.license_key || localConfig.licenseKey,
-      licenseStatus: data.license_status || localConfig.licenseStatus
+      licenseStatus: data.license_status || localConfig.licenseStatus,
+      // Added createdAt to support lazy initialization check in App.tsx
+      createdAt: data.created_at
     };
   }
 
@@ -273,11 +275,14 @@ export class DBService {
     // If 'currency' or other columns are missing, we try to update what we can.
     const corePayload: any = {
       id: user.id,
+      // Fixed: Map name back to username field in Supabase profiles table
+      username: config.name,
       categories: config.categories,
       payment_methods: config.paymentMethods,
       enable_reminders: config.enableReminders,
       reminder_frequency: config.reminderFrequency,
       last_seen_goals: config.lastSeenGoals,
+      // Fix: property name was has_seen_tutorial but AppConfig uses hasSeenTutorial
       has_seen_tutorial: config.hasSeenTutorial,
       license_key: config.licenseKey,
       license_status: config.licenseStatus

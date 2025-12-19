@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { AppConfig, Transaction, PurchaseRequest } from '../types';
-import { Trash2, Plus, FileSpreadsheet, Download, Bell, CreditCard, CheckCircle, Upload, Shield, Key, Lock, Moon, Sun, AlertTriangle, FileText, ArrowRight, DollarSign, Rocket, Star, ExternalLink, TableProperties, Info, Copy, Smartphone, Timer, QrCode, Loader2, Target, Scale } from 'lucide-react';
+import { Trash2, Plus, FileSpreadsheet, Download, Bell, CreditCard, CheckCircle, Upload, Shield, Key, Lock, Moon, Sun, AlertTriangle, FileText, ArrowRight, DollarSign, Rocket, Star, ExternalLink, TableProperties, Info, Copy, Smartphone, Timer, QrCode, Loader2, Target, Scale, User, Edit2, Save, MessageCircle } from 'lucide-react';
 import { exportToCSV, validateLicenseKey, generateId } from '../utils';
 import { DBService } from '../db';
 import { PrivacyModal } from './PrivacyModal';
@@ -18,10 +18,14 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
     const [newMethod, setNewMethod] = useState('');
     const [isRestoring, setIsRestoring] = useState(false);
     
+    // Perfil
+    const [isEditingName, setIsEditingName] = useState(false);
+    const [tempName, setTempName] = useState(config.name || '');
+
     const [inputLicenseKey, setInputLicenseKey] = useState('');
     const [licenseError, setLicenseError] = useState('');
     const [purchaseRequest, setPurchaseRequest] = useState<PurchaseRequest | null>(null);
-    const [isRequesting, setIsRequesting] = useState(false);
+    const [isRequestingState, setIsRequestingState] = useState(false);
 
     const [newPassword, setNewPassword] = useState('');
     const [passSuccess, setPassSuccess] = useState(false);
@@ -36,7 +40,13 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
         if (config.userId && !isLicensed) {
             DBService.getPurchaseRequest(config.userId).then(setPurchaseRequest);
         }
-    }, [config.userId, isLicensed]);
+        setTempName(config.name || '');
+    }, [config.userId, isLicensed, config.name]);
+
+    const handleSaveName = () => {
+        onUpdateConfig({ ...config, name: tempName });
+        setIsEditingName(false);
+    };
 
     const handleActivateLicense = () => {
         if (!config.userId) return;
@@ -58,7 +68,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
 
     const handleRequestActivation = async () => {
         if (!config.userId) return;
-        setIsRequesting(true);
+        setIsRequestingState(true);
         try {
             const req: PurchaseRequest = {
                 id: generateId(),
@@ -68,11 +78,16 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
             };
             await DBService.savePurchaseRequest(req);
             setPurchaseRequest(req);
-            alert("Solicitação enviada! Após a confirmação do PIX, sua conta será ativada em até 24h.");
+            
+            // Abrir WhatsApp automaticamente após solicitar
+            const whatsappUrl = `https://wa.me/5579988541124?text=${encodeURIComponent(`Olá! Acabei de solicitar a ativação do meu Finance Pro 360 e quero enviar o comprovante.\n\nUsuário: ${config.name || 'Sem Nome'}\nID: ${config.userId}`)}`;
+            window.open(whatsappUrl, '_blank');
+            
+            alert("Solicitação enviada! Você será redirecionado para o WhatsApp para enviar o comprovante.");
         } catch (e) {
             alert("Erro ao solicitar ativação.");
         } finally {
-            setIsRequesting(false);
+            setIsRequestingState(false);
         }
     };
 
@@ -159,25 +174,66 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
         }
     };
 
-    const handleDeleteAccount = async () => {
-        if (!config.userId) return;
-        const confirmation = window.prompt("ATENÇÃO: Isso excluirá permanentemente TODOS os seus dados. Para confirmar, digite 'DELETAR':");
-        if (confirmation === 'DELETAR') {
-            setIsDeleting(true);
-            try {
-                await DBService.deleteUserAccount(config.userId);
-                alert('Sua conta e seus dados foram excluídos com sucesso.');
-                window.location.reload();
-            } catch (error: any) {
-                alert('Erro ao excluir conta: ' + error.message);
-                setIsDeleting(false);
-            }
-        }
-    };
-
     return (
         <div className="max-w-5xl mx-auto animate-fade-in space-y-6 pb-10">
             
+            {/* User Profile Section */}
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
+                <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2 mb-6">
+                    <User className="text-blue-500" size={20} />
+                    Meu Perfil
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-1.5">Nome do Usuário (Prioritário)</label>
+                            <div className="flex gap-2">
+                                {isEditingName ? (
+                                    <>
+                                        <input 
+                                            type="text" 
+                                            value={tempName}
+                                            onChange={(e) => setTempName(e.target.value)}
+                                            className="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded px-3 py-2 text-sm text-slate-800 dark:text-white outline-none focus:border-blue-500"
+                                            placeholder="Seu nome para o sistema"
+                                        />
+                                        <button onClick={handleSaveName} className="p-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors"><Save size={18} /></button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-3 py-2 text-sm font-bold text-slate-800 dark:text-white">
+                                            {config.name || 'Usuário Sem Nome'}
+                                        </div>
+                                        <button onClick={() => setIsEditingName(true)} className="p-2 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"><Edit2 size={18} /></button>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-1.5">Identificador (ID)</label>
+                            <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-3 py-2 text-xs font-mono text-slate-500 dark:text-slate-400">
+                                <Key size={14} className="shrink-0" />
+                                <span className="truncate">{config.userId}</span>
+                                <button 
+                                    onClick={() => { navigator.clipboard.writeText(config.userId || ''); alert('ID copiado!'); }}
+                                    className="ml-auto text-blue-500 hover:text-blue-600 transition-colors"
+                                    title="Copiar ID"
+                                >
+                                    <Copy size={14} />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="flex flex-col justify-center items-center p-6 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-800 text-center">
+                        <div className="w-16 h-16 bg-brand-gold rounded-full flex items-center justify-center text-2xl font-black text-brand-blue mb-3 shadow-md">
+                            {(config.name || 'U').substring(0, 1).toUpperCase()}
+                        </div>
+                        <p className="text-sm font-bold text-slate-800 dark:text-white">{config.name || 'Defina seu nome'}</p>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider">Conta {isLicensed ? 'Premium' : 'Básica'}</p>
+                    </div>
+                </div>
+            </div>
+
             {/* Upgrade Section with QR Code */}
             <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-1 rounded-xl shadow-lg text-white border border-slate-700 relative overflow-hidden transition-colors">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none -mr-16 -mt-16"></div>
@@ -225,6 +281,16 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                                 >
                                     <Copy size={14} /> Copiar Código "Copia e Cola"
                                 </button>
+
+                                {/* WhatsApp Shortcut always available for support */}
+                                <a 
+                                    href={`https://wa.me/5579988541124?text=${encodeURIComponent(`Olá! Estou na área de pagamento do Finance Pro 360 e gostaria de suporte.\n\nUsuário: ${config.name || 'Sem Nome'}\nID: ${config.userId}`)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="mt-3 flex items-center gap-2 text-emerald-600 dark:text-emerald-400 hover:underline font-bold text-xs"
+                                >
+                                    <MessageCircle size={14} /> Falar no WhatsApp
+                                </a>
                             </div>
 
                             {/* INSTRUCTIONS AREA */}
@@ -245,21 +311,33 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                                 </div>
 
                                 {purchaseRequest?.status === 'pending' ? (
-                                    <div className="bg-amber-100 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 p-4 rounded-xl flex items-center gap-4">
-                                        <Timer className="text-amber-600 animate-pulse" size={24} />
-                                        <div>
-                                            <p className="text-sm font-bold text-amber-800 dark:text-amber-400 uppercase tracking-wide">Solicitação em análise</p>
-                                            <p className="text-xs text-amber-700/80 dark:text-amber-400/80">Ativaremos sua conta em até 24h úteis após o recebimento.</p>
+                                    <div className="space-y-4">
+                                        <div className="bg-amber-100 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 p-4 rounded-xl flex items-center gap-4">
+                                            <Timer className="text-amber-600 animate-pulse" size={24} />
+                                            <div>
+                                                <p className="text-sm font-bold text-amber-800 dark:text-amber-400 uppercase tracking-wide">Solicitação em análise</p>
+                                                <p className="text-xs text-amber-700/80 dark:text-amber-400/80">Ativaremos sua conta em até 24h úteis após o recebimento.</p>
+                                            </div>
                                         </div>
+                                        
+                                        <a 
+                                            href={`https://wa.me/5579988541124?text=${encodeURIComponent(`Olá! Já fiz o pagamento PIX e gostaria de agilizar a ativação.\n\nUsuário: ${config.name || 'Sem Nome'}\nID: ${config.userId}`)}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white font-black py-4 rounded-xl shadow-lg transition-all transform hover:scale-[1.02] flex items-center justify-center gap-3"
+                                        >
+                                            <MessageCircle size={20} />
+                                            ENVIAR COMPROVANTE AGORA
+                                        </a>
                                     </div>
                                 ) : (
                                     <button 
                                         onClick={handleRequestActivation}
-                                        disabled={isRequesting}
+                                        disabled={isRequestingState}
                                         className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-4 rounded-xl shadow-lg transition-all transform hover:scale-[1.02] flex items-center justify-center gap-3"
                                     >
-                                        {isRequesting ? <Loader2 className="animate-spin" size={20} /> : <CheckCircle size={20} />}
-                                        {isRequesting ? 'ENVIANDO SOLICITAÇÃO...' : 'JÁ FIZ O PIX, ATIVAR AGORA'}
+                                        {isRequestingState ? <Loader2 className="animate-spin" size={20} /> : <CheckCircle size={20} />}
+                                        {isRequestingState ? 'ENVIANDO SOLICITAÇÃO...' : 'JÁ FIZ O PIX, ATIVAR AGORA'}
                                     </button>
                                 )}
 
@@ -335,7 +413,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                 </div>
             </div>
 
-            {/* Google Sheets Guide - EXPANDIDO */}
+            {/* Google Sheets Guide */}
             <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors overflow-hidden">
                 <div className="flex items-center justify-between mb-4">
                     <div>

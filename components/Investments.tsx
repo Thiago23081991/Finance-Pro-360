@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { AppConfig } from '../types';
-import { Lock, Crown, CheckCircle, TrendingUp, BarChart4, PieChart, Calculator, Landmark, ArrowRight, AlertTriangle, Calendar, RefreshCw, Sparkles, BrainCircuit, Wallet, ArrowUpRight } from 'lucide-react';
+import { Lock, Crown, CheckCircle, TrendingUp, BarChart4, PieChart, Calculator, Landmark, ArrowRight, AlertTriangle, AlertCircle, Calendar, RefreshCw, Sparkles, BrainCircuit, Wallet, ArrowUpRight, PiggyBank, Info, ChevronRight } from 'lucide-react';
 import { formatCurrency } from '../utils';
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Cell, BarChart, Bar } from 'recharts';
 import { GoogleGenAI } from "@google/genai";
 
 interface InvestmentsProps {
@@ -10,7 +11,7 @@ interface InvestmentsProps {
     onNavigateToSettings: () => void;
 }
 
-type SubTab = 'suitability' | 'opportunities' | 'projection';
+type SubTab = 'suitability' | 'opportunities' | 'projection' | 'nubank';
 type ProfileType = 'Conservador' | 'Moderado' | 'Arrojado' | null;
 
 interface Opportunity {
@@ -40,6 +41,12 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
     const [projYears, setProjYears] = useState(10);
     const [projRate, setProjRate] = useState(10);
     const [projResult, setProjResult] = useState<{data: any[], totalInvested: number, totalInterest: number, totalAmount: number} | null>(null);
+
+    // Nubank Simulator States
+    const [nuInitial, setNuInitial] = useState(1000);
+    const [nuMonthly, setNuMonthly] = useState(200);
+    const [nuMonths, setNuMonths] = useState(12);
+    const [nuCDI, setNuCDI] = useState(10.75); // Benchmark CDI atual
 
     const isPremium = config.licenseStatus === 'active';
     const currency = config.currency || 'BRL';
@@ -138,10 +145,7 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
 
     const calculateProfile = () => {
         let total = 0;
-        // Fix: Explicitly cast p to number to avoid 'unknown' operator error
-        Object.values(answers).forEach((p: any) => {
-            total += Number(p);
-        });
+        Object.values(answers).forEach((p: any) => { total += Number(p); });
         let res: ProfileType = 'Conservador';
         if (total >= 5 && total <= 7) res = 'Moderado';
         if (total > 7) res = 'Arrojado';
@@ -150,21 +154,85 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
         localStorage.setItem(`fp360_investor_profile_${config.userId}`, res);
     };
 
-    const calculateProjection = () => {
-        const months = projYears * 12;
-        const monthlyRate = Math.pow(1 + (projRate / 100), 1 / 12) - 1;
-        let current = projInitial;
-        let totalInv = projInitial;
+    // Função de cálculo pura para ser reutilizada
+    const performProjectionCalculation = (initial: number, monthly: number, years: number, rate: number) => {
+        const months = years * 12;
+        const monthlyRate = Math.pow(1 + (rate / 100), 1 / 12) - 1;
+        let current = initial;
+        let totalInv = initial;
         const data = [];
         for (let i = 1; i <= months; i++) {
-            current = current * (1 + monthlyRate) + projMonthly;
-            totalInv += projMonthly;
+            current = current * (1 + monthlyRate) + monthly;
+            totalInv += monthly;
             if (i % 12 === 0 || i === 1) {
                 data.push({ name: `Ano ${Math.ceil(i/12)}`, Investido: Math.round(totalInv), Total: Math.round(current) });
             }
         }
         setProjResult({ data, totalInvested: totalInv, totalInterest: current - totalInv, totalAmount: current });
     };
+
+    const calculateProjection = () => {
+        performProjectionCalculation(projInitial, projMonthly, projYears, projRate);
+    };
+
+    // --- LÓGICA DE SIMULAÇÃO DE OPORTUNIDADE ---
+    const handleSimulateOpportunity = (opt: Opportunity) => {
+        // 1. Converter a string de taxa (ex: "115% CDI") para um número anual
+        let estimatedRate = 10; // default
+        const rateStr = opt.rate.toUpperCase();
+
+        if (rateStr.includes('% CDI')) {
+            const pct = parseFloat(rateStr.replace('% CDI', ''));
+            estimatedRate = (nuCDI * pct) / 100;
+        } else if (rateStr.includes('IPCA +')) {
+            const bonus = parseFloat(rateStr.replace('IPCA +', '').replace('%', ''));
+            estimatedRate = 4.5 + bonus; // Estimativa IPCA 4.5% + taxa do ativo
+        } else if (rateStr.includes('DY')) {
+            estimatedRate = parseFloat(rateStr.replace('DY', '').replace('% A.A.', ''));
+        } else if (rateStr.includes('POTENCIAL +')) {
+            estimatedRate = parseFloat(rateStr.replace('POTENCIAL +', '').replace('%', ''));
+        }
+
+        // 2. Atualizar os estados do simulador
+        setProjInitial(opt.min);
+        setProjRate(Number(estimatedRate.toFixed(2)));
+        
+        // 3. Mudar de aba
+        setSubTab('projection');
+
+        // 4. Executar o cálculo imediatamente com os novos valores
+        // (Como o estado do React é assíncrono, passamos os valores diretos aqui)
+        performProjectionCalculation(opt.min, projMonthly, projYears, estimatedRate);
+        
+        // Scroll para o topo para o usuário ver a mudança
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    // --- LÓGICA DO SIMULADOR NUBANK ---
+    const nuResult = useMemo(() => {
+        const monthlyRate = Math.pow(1 + (nuCDI / 100), 1 / 12) - 1;
+        let totalGross = nuInitial;
+        let totalInvested = nuInitial;
+        
+        for (let i = 0; i < nuMonths; i++) {
+            totalGross = totalGross * (1 + monthlyRate) + nuMonthly;
+            totalInvested += nuMonthly;
+        }
+
+        const totalInterest = totalGross - totalInvested;
+        
+        // Tabela Regressiva IR
+        let irRate = 0.225;
+        const days = nuMonths * 30;
+        if (days > 720) irRate = 0.15;
+        else if (days > 360) irRate = 0.175;
+        else if (days > 180) irRate = 0.20;
+
+        const irValue = totalInterest * irRate;
+        const totalNet = totalGross - irValue;
+
+        return { totalInvested, totalInterest, irValue, totalNet, irRatePercent: irRate * 100 };
+    }, [nuInitial, nuMonthly, nuMonths, nuCDI]);
 
     if (!isPremium) {
         return (
@@ -175,7 +243,7 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                         <Lock className="text-amber-600 dark:text-amber-400" size={40} />
                     </div>
                     <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-4">Investimentos Premium</h2>
-                    <p className="text-slate-600 dark:text-slate-400 mb-8">Desbloqueie recomendações diárias de IA, simuladores e análise de suitability.</p>
+                    <p className="text-slate-600 dark:text-slate-400 mb-8">Desbloqueie recomendações diárias de IA, simuladores de bancos e análise de suitability.</p>
                     <button onClick={onNavigateToSettings} className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 rounded-xl transition-all transform hover:scale-105 shadow-lg shadow-amber-500/20">Upgrade para Premium</button>
                 </div>
             </div>
@@ -185,14 +253,115 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
     return (
         <div className="space-y-6 animate-fade-in pb-20">
             {/* Tabs */}
-            <div className="flex gap-6 border-b border-slate-200 dark:border-slate-700">
-                {(['opportunities', 'suitability', 'projection'] as SubTab[]).map(t => (
-                    <button key={t} onClick={() => setSubTab(t)} className={`pb-3 px-1 text-sm font-bold uppercase tracking-wider transition-colors relative ${subTab === t ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 hover:text-slate-600'}`}>
-                        {t === 'opportunities' ? 'Oportunidades' : t === 'suitability' ? 'Suitability' : 'Projeção'}
-                        {subTab === t && <span className="absolute bottom-0 left-0 w-full h-1 bg-blue-600 dark:bg-blue-400 rounded-t-full"></span>}
+            <div className="flex gap-6 border-b border-slate-200 dark:border-slate-700 overflow-x-auto custom-scrollbar">
+                {(['opportunities', 'nubank', 'suitability', 'projection'] as SubTab[]).map(t => (
+                    <button key={t} onClick={() => setSubTab(t)} className={`pb-3 px-1 text-sm font-bold uppercase tracking-wider transition-colors relative whitespace-nowrap ${subTab === t ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 hover:text-slate-600'}`}>
+                        {t === 'opportunities' ? 'Oportunidades' : t === 'nubank' ? 'Simulador Nubank' : t === 'suitability' ? 'Suitability' : 'Projeção'}
+                        {subTab === t && <span className={`absolute bottom-0 left-0 w-full h-1 ${t === 'nubank' ? 'bg-[#820ad1]' : 'bg-blue-600'} rounded-t-full`}></span>}
                     </button>
                 ))}
             </div>
+
+            {subTab === 'nubank' && (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
+                    <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm h-fit space-y-6">
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="p-2 bg-[#820ad1] text-white rounded-lg">
+                                <PiggyBank size={20} />
+                            </div>
+                            <h3 className="font-black text-slate-800 dark:text-white">Caixinhas do Nubank</h3>
+                        </div>
+                        
+                        <div>
+                            <label className="text-[10px] font-black uppercase text-slate-400">Quanto você tem hoje?</label>
+                            <div className="relative mt-1">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">R$</span>
+                                <input type="number" value={nuInitial} onChange={e => setNuInitial(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pl-9 pr-4 font-bold text-sm outline-none focus:ring-2 focus:ring-[#820ad1]/20" />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="text-[10px] font-black uppercase text-slate-400">Quanto guardará por mês?</label>
+                            <div className="relative mt-1">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">R$</span>
+                                <input type="number" value={nuMonthly} onChange={e => setNuMonthly(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pl-9 pr-4 font-bold text-sm outline-none focus:ring-2 focus:ring-[#820ad1]/20" />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="text-[10px] font-black uppercase text-slate-400">Por quanto tempo? ({nuMonths} meses)</label>
+                            <input type="range" min="1" max="60" value={nuMonths} onChange={e => setNuMonths(Number(e.target.value))} className="w-full accent-[#820ad1] mt-2" />
+                            <div className="flex justify-between text-[10px] font-bold text-slate-400 mt-1">
+                                <span>1 Mês</span>
+                                <span>5 Anos</span>
+                            </div>
+                        </div>
+
+                        <div className="pt-4 border-t border-slate-100 dark:border-slate-700">
+                            <div className="flex justify-between items-center mb-2">
+                                <label className="text-[10px] font-black uppercase text-slate-400">Taxa CDI Atual</label>
+                                <span className="text-xs font-black text-[#820ad1]">{nuCDI}% a.a.</span>
+                            </div>
+                            <input type="number" step="0.01" value={nuCDI} onChange={e => setNuCDI(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl py-2 px-4 font-bold text-sm outline-none" />
+                        </div>
+                    </div>
+
+                    <div className="lg:col-span-2 space-y-6">
+                        <div className="bg-[#820ad1] p-8 rounded-3xl text-white shadow-xl relative overflow-hidden">
+                            <div className="relative z-10">
+                                <p className="text-purple-200 text-xs font-bold uppercase tracking-widest mb-2">Resultado Líquido Estimado</p>
+                                <h2 className="text-5xl font-black mb-6">{formatCurrency(nuResult.totalNet, currency)}</h2>
+                                
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                                    <div>
+                                        <p className="text-purple-300 text-[10px] font-bold uppercase">Total Guardado</p>
+                                        <p className="text-lg font-bold">{formatCurrency(nuResult.totalInvested, currency)}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-purple-300 text-[10px] font-bold uppercase">Rendimento Bruto</p>
+                                        <p className="text-lg font-bold text-emerald-300">+{formatCurrency(nuResult.totalInterest, currency)}</p>
+                                    </div>
+                                    <div className="col-span-2 md:col-span-1 border-t md:border-t-0 md:border-l border-white/10 pt-4 md:pt-0 md:pl-6">
+                                        <p className="text-purple-300 text-[10px] font-bold uppercase flex items-center gap-1">Imposto de Renda <Info size={10}/></p>
+                                        <p className="text-lg font-bold text-rose-300">-{formatCurrency(nuResult.irValue, currency)}</p>
+                                        <span className="text-[9px] font-bold bg-white/10 px-1.5 rounded">Alíquota de {nuResult.irRatePercent}%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-20 -mt-20"></div>
+                        </div>
+
+                        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                            <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+                                <BarChart4 size={18} className="text-[#820ad1]" /> Comparativo de Acúmulo
+                            </h4>
+                            <div className="h-48">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={[
+                                        { name: 'Investido', valor: nuResult.totalInvested, color: '#94a3b8' },
+                                        { name: 'Bruto', valor: nuResult.totalInvested + nuResult.totalInterest, color: '#c084fc' },
+                                        { name: 'Líquido', valor: nuResult.totalNet, color: '#820ad1' }
+                                    ]}>
+                                        <XAxis dataKey="name" tick={{fontSize: 10}} axisLine={false} tickLine={false} />
+                                        <Tooltip formatter={(v: any) => formatCurrency(v, currency)} />
+                                        <Bar dataKey="valor" radius={[6, 6, 0, 0]}>
+                                            {[0,1,2].map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={index === 0 ? '#94a3b8' : index === 1 ? '#c084fc' : '#820ad1'} />
+                                            ))}
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                            <div className="mt-6 p-4 bg-slate-50 dark:bg-slate-900 rounded-xl text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed border border-slate-100 dark:border-slate-800">
+                                <p className="font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
+                                    <AlertCircle size={12} className="text-blue-500" /> Sobre a tributação:
+                                </p>
+                                O Nubank utiliza a tabela regressiva de IR para Renda Fixa. O imposto incide apenas sobre o rendimento e a alíquota cai conforme o tempo: até 180 dias (22,5%), até 360 dias (20%), até 720 dias (17,5%) e acima de 720 dias (15%).
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {subTab === 'opportunities' && (
                 <div className="space-y-6">
@@ -254,7 +423,10 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                                         <span className={`text-[10px] font-bold ${opt.risk === 'Baixo' ? 'text-emerald-500' : opt.risk === 'Médio' ? 'text-amber-500' : 'text-rose-500'}`}>{opt.risk}</span>
                                     </div>
                                 </div>
-                                <button className="w-full mt-5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 py-2 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center justify-center gap-2 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 transition-all">
+                                <button 
+                                    onClick={() => handleSimulateOpportunity(opt)}
+                                    className="w-full mt-5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 py-2 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center justify-center gap-2 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 transition-all"
+                                >
                                     Simular Investimento <ArrowUpRight size={14} />
                                 </button>
                             </div>

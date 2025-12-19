@@ -1,4 +1,5 @@
 
+
 export type TransactionType = 'income' | 'expense';
 
 // Centralized Tab definition - Adicionado 'dividas'
@@ -50,6 +51,8 @@ export interface AppConfig {
   // Remote Licensing
   licenseKey?: string;
   licenseStatus?: 'active' | 'inactive';
+  // Added createdAt to allow checking if the config record exists in the database
+  createdAt?: string;
 }
 
 export interface FilterState {
