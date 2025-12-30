@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Transaction, TransactionType } from '../types';
 import { formatCurrency, generateId, formatDateRaw } from '../utils';
-import { Plus, Trash2, Save, X, CalendarClock, AlertCircle, Search, Filter, XCircle, Utensils, Car, Home, HeartPulse, PartyPopper, GraduationCap, Banknote, ShoppingBag, Zap, CircleDollarSign, Edit2, ArrowUp, ArrowDown } from 'lucide-react';
+import { Plus, Trash2, Save, X, CalendarClock, AlertCircle, Search, Filter, XCircle, Utensils, Car, Home, HeartPulse, PartyPopper, GraduationCap, Banknote, ShoppingBag, Zap, CircleDollarSign, Edit2, ArrowUp, ArrowDown, Calendar } from 'lucide-react';
 
 interface SheetViewProps {
   type: TransactionType;
@@ -433,7 +433,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
                     </div>
                 )}
 
-                <div className="col-span-2">
+                <div className="col-span-12 md:col-span-2">
                     <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Data</label>
                     <input
                         type="date"
@@ -448,7 +448,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
                         </div>
                     )}
                 </div>
-                <div className="col-span-2">
+                <div className="col-span-6 md:col-span-2">
                     <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Valor {installments > 1 ? '(Mensal)' : ''}</label>
                     <input
                         type="number"
@@ -459,7 +459,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
                         className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-sm px-2 py-1.5 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
                     />
                 </div>
-                <div className="col-span-2">
+                <div className="col-span-6 md:col-span-2">
                     <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Categoria</label>
                     <select
                         value={newCategory}
@@ -472,7 +472,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
 
                 {/* Conditional Payment Method - Only Expense */}
                 {type === 'expense' && (
-                    <div className="col-span-2">
+                    <div className="col-span-6 md:col-span-2">
                             <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Pagamento</label>
                             <select
                             value={newPayment}
@@ -485,7 +485,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
                 )}
 
                 {/* Installments / Recurrence */}
-                <div className="col-span-1">
+                <div className="col-span-6 md:col-span-1">
                     <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase" title="Número de meses/parcelas">
                         {type === 'expense' ? 'Parc.' : 'Repetir'}
                     </label>
@@ -503,7 +503,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
                     />
                 </div>
 
-                <div className={`${type === 'expense' ? 'col-span-2' : 'col-span-4'}`}>
+                <div className="col-span-12 md:col-span-3">
                     <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Descrição</label>
                     <input
                         type="text"
@@ -514,16 +514,16 @@ export const SheetView: React.FC<SheetViewProps> = ({
                     />
                 </div>
 
-                <div className="col-span-1 flex gap-2 mt-6">
+                <div className="col-span-12 flex justify-end gap-2 mt-2">
                     <button
                         onClick={handleSave}
-                        className={`p-2 text-white rounded-sm transition-colors ${editingId ? 'bg-amber-500 hover:bg-amber-600' : 'bg-emerald-500 hover:bg-emerald-600'}`}
-                        title={editingId ? "Atualizar Linha" : "Salvar Linha"}
+                        className={`flex-1 md:flex-none px-4 py-2 text-white rounded-sm transition-colors flex items-center justify-center gap-2 ${editingId ? 'bg-amber-500 hover:bg-amber-600' : 'bg-emerald-500 hover:bg-emerald-600'}`}
                     >
-                        <Save size={14} />
+                        <Save size={16} />
+                        {editingId ? 'Atualizar' : 'Salvar'}
                     </button>
-                    <button onClick={handleCancel} className="p-2 bg-slate-200 dark:bg-slate-600 text-slate-600 dark:text-slate-200 rounded-sm hover:bg-slate-300 dark:hover:bg-slate-500 transition-colors" title="Cancelar">
-                        <X size={14} />
+                    <button onClick={handleCancel} className="px-4 py-2 bg-slate-200 dark:bg-slate-600 text-slate-600 dark:text-slate-200 rounded-sm hover:bg-slate-300 dark:hover:bg-slate-500 transition-colors">
+                        Cancelar
                     </button>
                 </div>
             </div>
@@ -531,7 +531,8 @@ export const SheetView: React.FC<SheetViewProps> = ({
 
         {/* Spreadsheet Table Area */}
         <div className="flex-1 overflow-auto custom-scrollbar relative">
-             <table className="w-full text-left border-collapse">
+             {/* Desktop Table */}
+             <table className="w-full text-left border-collapse hidden md:table">
                 <thead className="bg-slate-100 dark:bg-slate-900 sticky top-0 z-10 shadow-sm">
                     <tr>
                         <th
@@ -634,6 +635,59 @@ export const SheetView: React.FC<SheetViewProps> = ({
                     </tfoot>
                 )}
              </table>
+
+             {/* Mobile List View (Cards) */}
+             <div className="md:hidden p-4 space-y-3 pb-24">
+                {sheetData.length === 0 ? (
+                    <div className="text-center py-10 text-slate-400 dark:text-slate-500 italic">
+                        <p>Nenhuma transação encontrada.</p>
+                        <p className="text-xs mt-1">Toque em + para adicionar.</p>
+                    </div>
+                ) : (
+                    sheetData.map((t) => (
+                        <div key={t.id} className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 flex justify-between items-start animate-fade-in">
+                            <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <span className={`p-1.5 rounded-full ${type === 'income' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'} dark:bg-opacity-20`}>
+                                        {getCategoryIcon(t.category)}
+                                    </span>
+                                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider px-2 py-0.5 bg-slate-100 dark:bg-slate-700 rounded-full">
+                                        {t.category}
+                                    </span>
+                                </div>
+                                <h4 className="font-bold text-slate-800 dark:text-white text-sm mb-1">{t.description || 'Sem descrição'}</h4>
+                                <div className="flex items-center gap-3 text-xs text-slate-400">
+                                    <span className="flex items-center gap-1"><Calendar size={10}/> {formatDateRaw(t.date)}</span>
+                                    {t.paymentMethod && <span>• {t.paymentMethod}</span>}
+                                </div>
+                            </div>
+                            <div className="flex flex-col items-end gap-2">
+                                <span className={`text-sm font-black font-mono ${type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                                    {formatCurrency(t.amount, currency)}
+                                </span>
+                                <div className="flex gap-2">
+                                    <button onClick={() => handleEdit(t)} className="p-1.5 text-slate-400 hover:text-blue-500 bg-slate-50 dark:bg-slate-700 rounded-lg transition-colors">
+                                        <Edit2 size={14} />
+                                    </button>
+                                    <button onClick={() => onDelete(t.id)} className="p-1.5 text-slate-400 hover:text-rose-500 bg-slate-50 dark:bg-slate-700 rounded-lg transition-colors">
+                                        <Trash2 size={14} />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ))
+                )}
+                
+                {/* Mobile Footer Summary */}
+                {sheetData.length > 0 && (
+                    <div className="fixed bottom-0 left-0 w-full bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 p-4 shadow-lg z-10 flex justify-between items-center mb-[56px] md:mb-0">
+                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Total ({sheetData.length})</span>
+                        <span className={`text-lg font-black font-mono ${type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                            {formatCurrency(totalValue, currency)}
+                        </span>
+                    </div>
+                )}
+             </div>
         </div>
 
         {/* Mobile Floating Action Button (FAB) */}

@@ -391,6 +391,46 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-20 -mt-20"></div>
                     </div>
 
+                    {/* Market Indicators */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-fade-in">
+                        <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center justify-between transition-colors hover:shadow-md">
+                            <div>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Taxa Selic</p>
+                                <p className="text-lg font-black text-slate-800 dark:text-white">10.75%</p>
+                            </div>
+                            <div className="bg-blue-100 dark:bg-blue-900/30 p-2.5 rounded-lg text-blue-600 dark:text-blue-400">
+                                <TrendingUp size={20} />
+                            </div>
+                        </div>
+                        <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center justify-between transition-colors hover:shadow-md">
+                            <div>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">CDI Hoje</p>
+                                <p className="text-lg font-black text-slate-800 dark:text-white">10.65%</p>
+                            </div>
+                            <div className="bg-indigo-100 dark:bg-indigo-900/30 p-2.5 rounded-lg text-indigo-600 dark:text-indigo-400">
+                                <BarChart4 size={20} />
+                            </div>
+                        </div>
+                         <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center justify-between transition-colors hover:shadow-md">
+                            <div>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">IPCA (12m)</p>
+                                <p className="text-lg font-black text-slate-800 dark:text-white">4.50%</p>
+                            </div>
+                            <div className="bg-amber-100 dark:bg-amber-900/30 p-2.5 rounded-lg text-amber-600 dark:text-amber-400">
+                                <AlertTriangle size={20} />
+                            </div>
+                        </div>
+                         <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center justify-between transition-colors hover:shadow-md">
+                            <div>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Poupança</p>
+                                <p className="text-lg font-black text-slate-800 dark:text-white">6.17% + TR</p>
+                            </div>
+                            <div className="bg-emerald-100 dark:bg-emerald-900/30 p-2.5 rounded-lg text-emerald-600 dark:text-emerald-400">
+                                <PiggyBank size={20} />
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="flex items-center justify-between">
                          <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
                              <Landmark className="text-emerald-500" size={20} /> Oportunidades do Dia <span className="text-xs font-normal text-slate-400">({lastUpdateDate})</span>

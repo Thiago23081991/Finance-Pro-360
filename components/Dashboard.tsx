@@ -1,7 +1,7 @@
-
 import React, { useMemo, useState } from 'react';
 import { Transaction, Goal, FilterState } from '../types';
 import { formatCurrency } from '../utils';
+import { MONTH_NAMES } from '../constants';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, Cell, LineChart, Line, Legend } from 'recharts';
 import { TrendingUp, TrendingDown, DollarSign, History, Utensils, Car, Home, HeartPulse, PartyPopper, GraduationCap, Banknote, ShoppingBag, Zap, CircleDollarSign, AlertTriangle, Lightbulb, Siren, Target, CheckCircle2, BarChart4, PieChart, LineChart as LineChartIcon, ArrowRightLeft } from 'lucide-react';
 
@@ -94,25 +94,53 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
           });
       }
 
-      // ALERTA: DESVIO DA MÉDIA HISTÓRICA (> 25% acima)
+      // ALERTA: DESVIO DA MÉDIA HISTÓRICA E NOVOS GASTOS
       Object.entries(currentExpenses).forEach(([cat, amount]) => {
           const hist = historicalStats[cat];
-          if (hist && hist.uniqueMonths.size > 0) {
-              const avg = hist.total / hist.uniqueMonths.size;
-              const deviation = ((amount - avg) / avg) * 100;
-
-              if (deviation > 25) {
+          
+          if (!hist) {
+              // Nova Categoria detectada (sem histórico anterior)
+              if (amount > 100) { // Ignora valores irrisórios
                   alerts.push({
                       type: 'warning',
-                      message: `Aumento de Gasto: ${cat}`,
-                      detail: `Você está gastando ${deviation.toFixed(0)}% a mais que sua média histórica nesta categoria (${formatCurrency(avg, currency)}).`
+                      message: `Novo Gasto: ${cat}`,
+                      detail: `Você iniciou gastos relevantes nesta categoria este mês (${formatCurrency(amount, currency)}).`
                   });
+              }
+          } else if (hist.uniqueMonths.size > 0) {
+              const avg = hist.total / hist.uniqueMonths.size;
+              // Ignorar pequenas variações em valores baixos
+              if (avg > 50) { 
+                  const deviation = ((amount - avg) / avg) * 100;
+
+                  if (deviation > 50) {
+                      alerts.push({
+                          type: 'critical',
+                          message: `Salto em ${cat}`,
+                          detail: `Gasto ${deviation.toFixed(0)}% acima da sua média habitual (${formatCurrency(avg, currency)}). Atenção redobrada!`
+                      });
+                  } else if (deviation > 25) {
+                      alerts.push({
+                          type: 'warning',
+                          message: `Aumento em ${cat}`,
+                          detail: `Você gastou ${deviation.toFixed(0)}% a mais que a média histórica (${formatCurrency(avg, currency)}).`
+                      });
+                  }
               }
           }
       });
 
+      // ALERTA: ORÇAMENTO ESTOURADO
+      if (kpiData.balance < 0 && kpiData.income > 0) {
+           alerts.push({
+              type: 'critical',
+              message: 'Orçamento Estourado',
+              detail: `Suas despesas superaram as receitas em ${formatCurrency(Math.abs(kpiData.balance), currency)}.`
+          });
+      }
+
       return alerts;
-  }, [filteredTransactions, transactions, kpiData.income, filter, currency]);
+  }, [filteredTransactions, transactions, kpiData.income, kpiData.balance, filter, currency]);
 
   // --- LÓGICA DE TENDÊNCIA POR CATEGORIA (12 MESES) ---
   const categoryTrendData = useMemo(() => {
@@ -393,8 +421,3 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
     </div>
   );
 };
-
-const MONTH_NAMES = [
-  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-];

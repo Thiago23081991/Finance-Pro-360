@@ -2,7 +2,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { Transaction } from '../types';
 import { formatCurrency, formatDateRaw, generateId } from '../utils';
-import { CreditCard, Calendar, TrendingUp, AlertCircle, ShoppingBag, Plus, Save, X } from 'lucide-react';
+import { CreditCard, Calendar, TrendingUp, AlertCircle, ShoppingBag, Plus, Save, X, Trash2 } from 'lucide-react';
 
 interface CreditCardControlProps {
     transactions: Transaction[];
@@ -250,27 +250,29 @@ export const CreditCardControl: React.FC<CreditCardControlProps> = ({ transactio
                 </div>
             )}
 
-            {/* Transactions List */}
+            {/* Transactions List Container */}
             <div className="flex-1 overflow-auto custom-scrollbar p-0 bg-white dark:bg-slate-800">
-                <table className="w-full text-left border-collapse">
+                {/* Desktop Table */}
+                <table className="w-full text-left border-collapse hidden md:table">
                     <thead className="bg-slate-50 dark:bg-slate-900 sticky top-0 z-10">
                         <tr>
                             <th className="py-3 px-6 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Data</th>
                             <th className="py-3 px-6 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Descrição</th>
                             <th className="py-3 px-6 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Categoria</th>
                             <th className="py-3 px-6 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 text-right">Valor</th>
+                            <th className="py-3 px-6 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 text-center">Ações</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                         {cardTransactions.length === 0 ? (
                             <tr>
-                                <td colSpan={4} className="py-12 text-center text-slate-400 dark:text-slate-500">
+                                <td colSpan={5} className="py-12 text-center text-slate-400 dark:text-slate-500">
                                     Nenhuma compra no cartão encontrada.
                                 </td>
                             </tr>
                         ) : (
                             cardTransactions.map(t => (
-                                <tr key={t.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                                <tr key={t.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors group">
                                     <td className="py-3 px-6 text-xs text-slate-600 dark:text-slate-300 font-mono">
                                         <div className="flex items-center gap-2">
                                             <Calendar size={12} className="text-slate-400" />
@@ -288,11 +290,52 @@ export const CreditCardControl: React.FC<CreditCardControlProps> = ({ transactio
                                     <td className="py-3 px-6 text-sm font-bold font-mono text-rose-600 dark:text-rose-400 text-right">
                                         {formatCurrency(t.amount, currency)}
                                     </td>
+                                    <td className="py-3 px-6 text-center">
+                                        <button 
+                                            onClick={() => onDelete(t.id)}
+                                            className="text-slate-300 hover:text-rose-500 transition-colors opacity-0 group-hover:opacity-100"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </td>
                                 </tr>
                             ))
                         )}
                     </tbody>
                 </table>
+
+                {/* Mobile Card List */}
+                <div className="md:hidden p-4 space-y-3 pb-20">
+                    {cardTransactions.length === 0 ? (
+                        <div className="text-center py-10 text-slate-400 dark:text-slate-500">
+                            Nenhuma compra encontrada.
+                        </div>
+                    ) : (
+                        cardTransactions.map(t => (
+                            <div key={t.id} className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 flex justify-between items-start animate-fade-in">
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider px-2 py-0.5 bg-slate-100 dark:bg-slate-700 rounded-full">
+                                            {t.category}
+                                        </span>
+                                    </div>
+                                    <h4 className="font-bold text-slate-800 dark:text-white text-sm mb-1">{t.description || 'Sem descrição'}</h4>
+                                    <div className="flex items-center gap-2 text-xs text-slate-400">
+                                        <Calendar size={10}/> {formatDateRaw(t.date)}
+                                    </div>
+                                </div>
+                                <div className="flex flex-col items-end gap-2">
+                                    <span className="text-sm font-black font-mono text-rose-600 dark:text-rose-400">
+                                        {formatCurrency(t.amount, currency)}
+                                    </span>
+                                    <button onClick={() => onDelete(t.id)} className="p-1.5 text-slate-400 hover:text-rose-500 bg-slate-50 dark:bg-slate-700 rounded-lg transition-colors">
+                                        <Trash2 size={14} />
+                                    </button>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
             </div>
         </div>
     );

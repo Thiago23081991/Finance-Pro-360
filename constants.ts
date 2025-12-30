@@ -1,14 +1,22 @@
+
 import { AppConfig } from "./types";
 
 export const APP_DOMAIN = "www.financepro360.com.br";
 
-// CONFIGURAÇÃO DE PAGAMENTO PIX REAL (PAGSEGURO)
-export const PAYMENT_CONFIG = {
-    pixKey: "71ee2472-12a1-4edf-b0e0-ad0bc4c2a984",
-    payload: "00020126580014br.gov.bcb.pix013671ee2472-12a1-4edf-b0e0-ad0bc4c2a98427600016BR.COM.PAGSEGURO0136D1917A9C-D209-49F6-BFBF-80644AC0D5A4520489995303986540549.905802BR5925THIAGO DA SILVA NASCIMENT6007Aracaju62290525PAGS0000049902512161508466304D551",
-    value: 49.90,
-    description: "Finance Pro 360 - Licença Vitalícia",
-    receiver: "THIAGO DA SILVA NASCIMENT"
+// CONFIGURAÇÃO DE PLANOS FINANCE PRO 360
+export const PLANS_CONFIG = {
+    basic: {
+        name: "Plano Básico",
+        value: 19.90,
+        payload: "00020126580014br.gov.bcb.pix013671ee2472-12a1-4edf-b0e0-ad0bc4c2a98427600016BR.COM.PAGSEGURO0136D1917A9C-D209-49F6-BFBF-80644AC0D5A4520489995303986540519.905802BR5925THIAGO DA SILVA NASCIMENT6007Aracaju62290525PAGS0000019902512161508466304D551",
+        features: ["Dashboard Completo", "Gestão de Receitas/Despesas", "Metas Financeiras", "Exportação de Planilhas"]
+    },
+    premium: {
+        name: "Plano Premium (IA + Cursos)",
+        value: 80.00,
+        payload: "00020126580014br.gov.bcb.pix013671ee2472-12a1-4edf-b0e0-ad0bc4c2a98427600016BR.COM.PAGSEGURO0136D1917A9C-D209-49F6-BFBF-80644AC0D5A4520489995303986540580.005802BR5925THIAGO DA SILVA NASCIMENT6007Aracaju62290525PAGS0000080002512161508466304D551",
+        features: ["Tudo do Básico", "Insights com Inteligência Artificial", "Simuladores de Bancos (Nubank)", "Cursos da Finance Academy", "Gestão Avançada de Dívidas"]
+    }
 };
 
 export const DEFAULT_CONFIG: AppConfig = {
@@ -29,7 +37,9 @@ export const DEFAULT_CONFIG: AppConfig = {
     "Débito",
     "Crédito",
     "PIX",
-    "Dinheiro"
+    "Dinheiro",
+    "Boleto",
+    "Transferência"
   ],
   enableReminders: true,
   reminderFrequency: 'weekly',

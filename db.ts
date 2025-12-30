@@ -1,3 +1,4 @@
+
 import { Transaction, Goal, Debt, AppConfig, UserAccount, PurchaseRequest, AdminMessage, SystemStats, UserProfile } from "./types";
 import { DEFAULT_CONFIG } from "./constants";
 import { supabase } from "./supabaseClient";
@@ -48,7 +49,7 @@ export class DBService {
     });
 
     if (error) {
-        throw new Error(error.message);
+        throw new Error(error.message || 'Falha na autenticação');
     }
     return data.user;
   }

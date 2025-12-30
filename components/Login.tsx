@@ -87,15 +87,25 @@ export const Login: React.FC<LoginProps> = ({ onLogin, initialMessage, messageTy
             }
         }
     } catch (err: any) {
-        console.error("Erro auth:", err);
-        if (err.message.includes('Invalid login credentials')) {
-            setError('E-mail ou senha incorretos. Verifique se digitou corretamente ou se já confirmou o e-mail de ativação.');
-        } else if (err.message.includes('Email not confirmed')) {
+        // Improved error handling
+        let msg = '';
+        if (typeof err === 'string') msg = err;
+        else if (err instanceof Error) msg = err.message;
+        else if (err?.message) msg = err.message;
+        else if (err?.error_description) msg = err.error_description;
+        
+        if (msg.includes('Invalid login credentials')) {
+            setError('E-mail ou senha incorretos. Verifique se digitou corretamente.');
+        } else if (msg.includes('Email not confirmed')) {
             setError('Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada.');
-        } else if (err.message.includes('User already registered')) {
+        } else if (msg.includes('User already registered')) {
             setError('Este e-mail já está cadastrado. Tente recuperar a senha ou fazer login.');
+        } else if (msg.includes('rate limit')) {
+            setError('Muitas tentativas. Aguarde um momento e tente novamente.');
         } else {
-            setError(err.message || 'Erro na autenticação. Tente novamente.');
+            // Only log unexpected system errors
+            console.warn("Auth warning:", err); 
+            setError(msg || 'Erro na autenticação. Tente novamente.');
         }
     } finally {
         setIsLoading(false);

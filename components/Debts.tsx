@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { AppConfig, Debt } from '../types';
-import { Lock, Crown, CheckCircle, Plus, Trash2, TrendingUp, AlertOctagon, Info, ArrowRight, Scale, Calculator, Loader2, ArrowUp, ArrowDown, List, Sparkles, Snowflake, Flame } from 'lucide-react';
+import { Lock, Crown, CheckCircle, Plus, Trash2, TrendingUp, AlertOctagon, Info, ArrowRight, Scale, Calculator, Loader2, ArrowUp, ArrowDown, List, Sparkles, Snowflake, Flame, HelpCircle, X } from 'lucide-react';
 import { formatCurrency, generateId } from '../utils';
 
 interface DebtsProps {
@@ -18,6 +18,7 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
     
     const [isAdding, setIsAdding] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [showStrategyInfo, setShowStrategyInfo] = useState(false);
     
     // Sort Mode State
     const [sortMode, setSortMode] = useState<'smart' | 'manual'>('smart');
@@ -236,6 +237,9 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
                                 <option value="avalanche">Avalanche (Matemático)</option>
                                 <option value="snowball">Bola de Neve (Psicológico)</option>
                             </select>
+                            <button onClick={() => setShowStrategyInfo(true)} className="text-slate-400 hover:text-blue-500 transition-colors p-1" title="Entenda as estratégias">
+                                <HelpCircle size={14} />
+                            </button>
                         </div>
                     )}
                 </div>
@@ -444,12 +448,45 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
                 )}
             </div>
 
-            {debts.length > 0 && sortMode === 'smart' && (
-                <div className="p-4 bg-blue-50 dark:bg-blue-900/10 rounded-lg border border-blue-100 dark:border-blue-800 text-sm text-blue-700 dark:text-blue-300 flex items-start gap-3">
-                    <Info className="shrink-0 mt-0.5" size={18} />
-                    <p>
-                        <strong>Dica:</strong> Você pode alternar entre <strong>Avalanche</strong> (Matemática) e <strong>Bola de Neve</strong> (Psicologia) usando o seletor acima para ver qual plano se adapta melhor à sua realidade.
-                    </p>
+            {/* Modal de Explicação das Estratégias */}
+            {showStrategyInfo && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowStrategyInfo(false)} />
+                    <div className="bg-white dark:bg-slate-900 w-full max-w-lg p-6 rounded-xl shadow-2xl relative animate-fade-in border border-slate-200 dark:border-slate-700">
+                        <button onClick={() => setShowStrategyInfo(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><X size={20} /></button>
+                        
+                        <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+                            <Sparkles className="text-amber-500" size={20} /> Qual estratégia escolher?
+                        </h3>
+
+                        <div className="space-y-6">
+                            <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg border border-amber-100 dark:border-amber-800">
+                                <h4 className="font-bold text-amber-700 dark:text-amber-400 flex items-center gap-2 mb-2">
+                                    <Flame size={18} /> Método Avalanche (Matemático)
+                                </h4>
+                                <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                                    Foca em pagar as dívidas com <strong>maiores juros</strong> primeiro.
+                                </p>
+                                <ul className="mt-2 space-y-1 text-xs text-slate-500 dark:text-slate-400">
+                                    <li className="flex gap-2"><CheckCircle size={12} className="text-emerald-500 mt-0.5"/> Você paga menos dinheiro no total.</li>
+                                    <li className="flex gap-2"><CheckCircle size={12} className="text-emerald-500 mt-0.5"/> Sai das dívidas mais rápido matematicamente.</li>
+                                </ul>
+                            </div>
+
+                            <div className="bg-cyan-50 dark:bg-cyan-900/20 p-4 rounded-lg border border-cyan-100 dark:border-cyan-800">
+                                <h4 className="font-bold text-cyan-700 dark:text-cyan-400 flex items-center gap-2 mb-2">
+                                    <Snowflake size={18} /> Método Bola de Neve (Psicológico)
+                                </h4>
+                                <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                                    Foca em pagar as dívidas de <strong>menor valor</strong> primeiro.
+                                </p>
+                                <ul className="mt-2 space-y-1 text-xs text-slate-500 dark:text-slate-400">
+                                    <li className="flex gap-2"><CheckCircle size={12} className="text-emerald-500 mt-0.5"/> Sensação rápida de vitória ao eliminar contas.</li>
+                                    <li className="flex gap-2"><CheckCircle size={12} className="text-emerald-500 mt-0.5"/> Libera fluxo de caixa mensal mais cedo.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>
