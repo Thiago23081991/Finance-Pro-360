@@ -118,10 +118,54 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
     else document.documentElement.classList.remove('dark');
   }, [config.theme]);
 
+  // Checagem de Mensagens e Vencimento da Fatura
   useEffect(() => {
-    const interval = setInterval(checkUnreadMessages, 15000); 
-    return () => clearInterval(interval);
-  }, [user]);
+    const checkInterval = setInterval(checkUnreadMessages, 15000); 
+    
+    // Verificar vencimento da fatura (Lógica Robusta)
+    if (config.creditCardDueDate) {
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth();
+        const dueDay = config.creditCardDueDate;
+        
+        // Define a data de vencimento deste mês
+        let nextDueDate = new Date(currentYear, currentMonth, dueDay);
+        
+        // Se hoje já passou do dia de vencimento deste mês, o próximo vencimento é mês que vem
+        // (Usamos setHours(0,0,0,0) para comparar apenas as datas)
+        const todayZero = new Date(today);
+        todayZero.setHours(0, 0, 0, 0);
+        
+        if (todayZero > nextDueDate) {
+             nextDueDate = new Date(currentYear, currentMonth + 1, dueDay);
+        }
+
+        // Calcula a diferença em dias
+        const diffTime = nextDueDate.getTime() - todayZero.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+        
+        // Alerta se faltar 3 dias ou menos (incluindo o dia, que é 0)
+        if (diffDays >= 0 && diffDays <= 3) {
+            const msg = diffDays === 0 
+                ? "⚠️ Atenção: Sua fatura do cartão vence HOJE!" 
+                : `📅 Lembrete: Sua fatura vence em ${diffDays} dias (Dia ${dueDay}).`;
+            
+            setTimeout(() => {
+                setToastMessage(msg);
+                setToastAction({
+                    label: "VER FATURA",
+                    fn: () => {
+                        handleTabChange('despesas');
+                        setExpenseSubTab('cards');
+                    }
+                });
+            }, 3000);
+        }
+    }
+
+    return () => clearInterval(checkInterval);
+  }, [user, config.creditCardDueDate]);
 
   const checkUnreadMessages = async () => {
       try {
@@ -222,7 +266,43 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
             <div className={`transition-opacity duration-300 ${contentLoading ? 'opacity-40' : 'opacity-100'}`}>
                 {activeTab === 'controle' && <Dashboard transactions={transactions} goals={goals} filter={filter} currency={config.currency} />}
                 {activeTab === 'receitas' && <SheetView type="income" transactions={transactions} categories={config.categories} paymentMethods={config.paymentMethods} onAdd={addTransaction} onUpdate={updateTransaction} onDelete={deleteTransaction} currency={config.currency} />}
-                {activeTab === 'despesas' && (<>{expenseSubTab === 'general' ? <SheetView type="expense" transactions={transactions} categories={config.categories} paymentMethods={config.paymentMethods} onAdd={addTransaction} onUpdate={updateTransaction} onDelete={deleteTransaction} currency={config.currency} /> : <CreditCardControl transactions={transactions} onDelete={deleteTransaction} onAdd={addTransaction} categories={config.categories} currency={config.currency} />}</>)}
+                
+                {activeTab === 'despesas' && (
+                    <div className="flex flex-col gap-4">
+                        <div className="flex justify-center">
+                            <div className="bg-slate-200 dark:bg-slate-800 p-1 rounded-lg flex items-center border border-slate-200 dark:border-slate-700">
+                                <button
+                                    onClick={() => setExpenseSubTab('general')}
+                                    className={`flex items-center gap-2 px-4 py-1.5 text-xs font-bold rounded-md transition-all ${
+                                        expenseSubTab === 'general'
+                                        ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-800 dark:text-white'
+                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                                    }`}
+                                >
+                                    <List size={14} />
+                                    Lista Geral
+                                </button>
+                                <button
+                                    onClick={() => setExpenseSubTab('cards')}
+                                    className={`flex items-center gap-2 px-4 py-1.5 text-xs font-bold rounded-md transition-all ${
+                                        expenseSubTab === 'cards'
+                                        ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-800 dark:text-white'
+                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                                    }`}
+                                >
+                                    <CreditCard size={14} />
+                                    Controle de Cartão e Crédito
+                                </button>
+                            </div>
+                        </div>
+                        {expenseSubTab === 'general' ? (
+                            <SheetView type="expense" transactions={transactions} categories={config.categories} paymentMethods={config.paymentMethods} onAdd={addTransaction} onUpdate={updateTransaction} onDelete={deleteTransaction} currency={config.currency} />
+                        ) : (
+                            <CreditCardControl transactions={transactions} onDelete={deleteTransaction} onAdd={addTransaction} categories={config.categories} currency={config.currency} config={config} />
+                        )}
+                    </div>
+                )}
+
                 {activeTab === 'dividas' && <Debts config={config} debts={debts} onAddDebt={addDebt} onDeleteDebt={deleteDebt} onNavigateToSettings={() => handleTabChange('config')} />}
                 {activeTab === 'metas' && <GoalsSheet goals={goals} onAdd={addGoal} onDelete={deleteGoal} onUpdate={updateGoalValue} currency={config.currency} />}
                 {activeTab === 'investimentos' && <Investments config={config} onNavigateToSettings={() => handleTabChange('config')} />}

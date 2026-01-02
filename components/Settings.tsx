@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { AppConfig, Transaction, PurchaseRequest } from '../types';
-import { Trash2, Plus, FileSpreadsheet, Download, Bell, CreditCard, CheckCircle, Upload, Shield, Key, Lock, Moon, Sun, AlertTriangle, FileText, ArrowRight, DollarSign, Rocket, Star, ExternalLink, TableProperties, Info, Copy, Smartphone, Timer, QrCode, Loader2, Target, Scale, User, Edit2, Save, MessageCircle, Zap, Tag, Wallet } from 'lucide-react';
+import { Trash2, Plus, FileSpreadsheet, Download, Bell, CreditCard, CheckCircle, Upload, Shield, Key, Lock, Moon, Sun, AlertTriangle, FileText, ArrowRight, DollarSign, Rocket, Star, ExternalLink, TableProperties, Info, Copy, Smartphone, Timer, QrCode, Loader2, Target, Scale, User, Edit2, Save, MessageCircle, Zap, Tag, Wallet, Calendar } from 'lucide-react';
 import { exportToCSV, validateLicenseKey, generateId } from '../utils';
 import { DBService } from '../db';
 import { PrivacyModal } from './PrivacyModal';
@@ -17,6 +17,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
     const [newCat, setNewCat] = useState('');
     const [newMethod, setNewMethod] = useState('');
     const [isRestoring, setIsRestoring] = useState(false);
+    const [dueDate, setDueDate] = useState(config.creditCardDueDate || 10);
     
     // Perfil
     const [isEditingName, setIsEditingName] = useState(false);
@@ -41,7 +42,8 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
             DBService.getPurchaseRequest(config.userId).then(setPurchaseRequest);
         }
         setTempName(config.name || '');
-    }, [config.userId, isLicensed, config.name]);
+        setDueDate(config.creditCardDueDate || 10);
+    }, [config.userId, isLicensed, config.name, config.creditCardDueDate]);
 
     const handleSaveName = () => {
         onUpdateConfig({ ...config, name: tempName });
@@ -147,6 +149,14 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
             setTimeout(() => setPassSuccess(false), 3000);
         } catch (e: any) {
             alert('Erro ao alterar senha: ' + e.message);
+        }
+    };
+
+    const handleDueDateChange = (val: string) => {
+        const day = parseInt(val);
+        if (day >= 1 && day <= 31) {
+            setDueDate(day);
+            onUpdateConfig({ ...config, creditCardDueDate: day });
         }
     };
 
@@ -376,26 +386,52 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                         </div>
                     </div>
 
-                    {/* Métodos de Pagamento */}
-                    <div className="space-y-4 border-t md:border-t-0 md:border-l border-slate-100 dark:border-slate-700 md:pl-8 pt-4 md:pt-0">
-                        <label className="block text-xs font-black text-slate-400 uppercase tracking-widest">Métodos de Pagamento</label>
-                        <div className="flex gap-2">
-                            <input 
-                                type="text" 
-                                placeholder="Novo método..." 
-                                value={newMethod} 
-                                onChange={(e) => setNewMethod(e.target.value)} 
-                                className="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-brand-gold" 
-                            />
-                            <button onClick={addMethod} className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 rounded-lg"><Plus size={18}/></button>
+                    {/* Métodos de Pagamento e Configurações */}
+                    <div className="space-y-6 border-t md:border-t-0 md:border-l border-slate-100 dark:border-slate-700 md:pl-8 pt-4 md:pt-0">
+                        <div className="space-y-4">
+                            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest">Métodos de Pagamento</label>
+                            <div className="flex gap-2">
+                                <input 
+                                    type="text" 
+                                    placeholder="Novo método..." 
+                                    value={newMethod} 
+                                    onChange={(e) => setNewMethod(e.target.value)} 
+                                    className="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-brand-gold" 
+                                />
+                                <button onClick={addMethod} className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 rounded-lg"><Plus size={18}/></button>
+                            </div>
+                            <div className="flex flex-wrap gap-2 mt-2">
+                                {config.paymentMethods.map(method => (
+                                    <span key={method} className="bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 border border-slate-200 dark:border-slate-600">
+                                        {method}
+                                        <button onClick={() => removeMethod(method)} className="text-slate-400 hover:text-rose-500"><Trash2 size={12}/></button>
+                                    </span>
+                                ))}
+                            </div>
                         </div>
-                        <div className="flex flex-wrap gap-2 mt-2">
-                            {config.paymentMethods.map(method => (
-                                <span key={method} className="bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 border border-slate-200 dark:border-slate-600">
-                                    {method}
-                                    <button onClick={() => removeMethod(method)} className="text-slate-400 hover:text-rose-500"><Trash2 size={12}/></button>
-                                </span>
-                            ))}
+
+                        {/* Configuração de Fatura */}
+                        <div className="pt-4 border-t border-slate-100 dark:border-slate-700">
+                            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                                <CreditCard size={14} /> Configuração de Cartão
+                            </label>
+                            <div className="flex items-center gap-4 bg-slate-50 dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
+                                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
+                                    <Calendar size={20} />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-sm font-bold text-slate-800 dark:text-white">Dia do Vencimento</p>
+                                    <p className="text-[10px] text-slate-500">Para alertas de fatura</p>
+                                </div>
+                                <input 
+                                    type="number" 
+                                    min="1" 
+                                    max="31" 
+                                    value={dueDate} 
+                                    onChange={(e) => handleDueDateChange(e.target.value)}
+                                    className="w-16 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1 text-center font-bold text-slate-800 dark:text-white outline-none focus:border-blue-500"
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>

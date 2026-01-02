@@ -1,6 +1,6 @@
 
 import React, { useMemo, useState, useEffect } from 'react';
-import { Transaction } from '../types';
+import { Transaction, AppConfig } from '../types';
 import { formatCurrency, formatDateRaw, generateId } from '../utils';
 import { CreditCard, Calendar, TrendingUp, AlertCircle, ShoppingBag, Plus, Save, X, Trash2 } from 'lucide-react';
 
@@ -10,9 +10,10 @@ interface CreditCardControlProps {
     onAdd: (t: Transaction) => void;
     categories: string[];
     currency?: string;
+    config?: AppConfig; // Config to access due date
 }
 
-export const CreditCardControl: React.FC<CreditCardControlProps> = ({ transactions, onDelete, onAdd, categories, currency = 'BRL' }) => {
+export const CreditCardControl: React.FC<CreditCardControlProps> = ({ transactions, onDelete, onAdd, categories, currency = 'BRL', config }) => {
     // --- ADD FORM STATE ---
     const [isAdding, setIsAdding] = useState(false);
     const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0]);
@@ -54,6 +55,31 @@ export const CreditCardControl: React.FC<CreditCardControlProps> = ({ transactio
 
         return { currentInvoice, totalLimitUsed };
     }, [cardTransactions, currentMonth, currentYear]);
+
+    // Lógica visual do status de vencimento
+    const dueDateStatus = useMemo(() => {
+        if (!config?.creditCardDueDate) return null;
+        
+        const today = new Date();
+        const dueDay = config.creditCardDueDate;
+        
+        let nextDueDate = new Date(today.getFullYear(), today.getMonth(), dueDay);
+        const todayZero = new Date(today);
+        todayZero.setHours(0,0,0,0);
+
+        if (todayZero > nextDueDate) {
+             nextDueDate = new Date(today.getFullYear(), today.getMonth() + 1, dueDay);
+        }
+
+        const diffTime = nextDueDate.getTime() - todayZero.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+
+        if (diffDays === 0) return { label: 'Vence HOJE!', color: 'bg-rose-500 text-white animate-pulse' };
+        if (diffDays <= 3) return { label: `Vence em ${diffDays} dias`, color: 'bg-rose-100 text-rose-600 border-rose-200' };
+        if (diffDays <= 7) return { label: `Vence em ${diffDays} dias`, color: 'bg-amber-100 text-amber-600 border-amber-200' };
+        
+        return { label: `Vence dia ${dueDay}`, color: 'bg-white/20 text-white border-white/20' };
+    }, [config?.creditCardDueDate]);
 
     const handleSave = () => {
         if (!newAmount || !newCategory || !newDate) return;
@@ -114,13 +140,20 @@ export const CreditCardControl: React.FC<CreditCardControlProps> = ({ transactio
                         <div className="flex justify-between items-start">
                             <div className="flex items-center gap-2">
                                 <CreditCard className="text-brand-gold" size={24} />
-                                <span className="text-xs font-semibold tracking-widest uppercase text-slate-300">Cartão Principal</span>
+                                <span className="text-xs font-semibold tracking-widest uppercase text-slate-300">Cartão de Crédito</span>
                             </div>
                             <span className="font-mono text-sm tracking-widest opacity-70">**** 3600</span>
                         </div>
 
                         <div>
-                            <p className="text-xs text-slate-400 uppercase mb-1">Fatura Atual ({new Date().toLocaleDateString('pt-BR', { month: 'long' })})</p>
+                            <div className="flex justify-between items-end mb-1">
+                                <p className="text-xs text-slate-400 uppercase">Fatura Atual ({new Date().toLocaleDateString('pt-BR', { month: 'long' })})</p>
+                                {dueDateStatus && (
+                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${dueDateStatus.color}`}>
+                                        {dueDateStatus.label}
+                                    </span>
+                                )}
+                            </div>
                             <h3 className="text-3xl font-bold tracking-tight">{formatCurrency(stats.currentInvoice, currency)}</h3>
                         </div>
 
@@ -162,7 +195,7 @@ export const CreditCardControl: React.FC<CreditCardControlProps> = ({ transactio
             <div className="px-6 py-3 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-800 sticky top-0 z-10">
                 <h3 className="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
                     <ShoppingBag size={18} />
-                    Extrato de Lançamentos
+                    Extrato de Cartão e Crédito
                 </h3>
                 <div className="flex items-center gap-3">
                     <span className="text-xs text-slate-400 hidden sm:inline">{cardTransactions.length} registros</span>

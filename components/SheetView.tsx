@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Transaction, TransactionType } from '../types';
 import { formatCurrency, generateId, formatDateRaw } from '../utils';
-import { Plus, Trash2, Save, X, CalendarClock, AlertCircle, Search, Filter, XCircle, Utensils, Car, Home, HeartPulse, PartyPopper, GraduationCap, Banknote, ShoppingBag, Zap, CircleDollarSign, Edit2, ArrowUp, ArrowDown, Calendar } from 'lucide-react';
+import { Plus, Trash2, Save, X, CalendarClock, AlertCircle, Search, Filter, XCircle, Utensils, Car, Home, HeartPulse, PartyPopper, GraduationCap, Banknote, ShoppingBag, Zap, CircleDollarSign, Edit2, ArrowUp, ArrowDown, Calendar, CreditCard } from 'lucide-react';
 
 interface SheetViewProps {
   type: TransactionType;
@@ -48,6 +48,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
   const [showFilters, setShowFilters] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
+  const [filterPaymentMethod, setFilterPaymentMethod] = useState(''); // New Payment Filter
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [minValue, setMinValue] = useState('');
@@ -75,6 +76,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
     setShowFilters(false);
     setSearchTerm('');
     setFilterCategory('');
+    setFilterPaymentMethod('');
     setStartDate('');
     setEndDate('');
     setMinValue('');
@@ -207,6 +209,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
   const clearFilters = () => {
       setSearchTerm('');
       setFilterCategory('');
+      setFilterPaymentMethod('');
       setStartDate('');
       setEndDate('');
       setMinValue('');
@@ -215,6 +218,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
 
   const activeFiltersCount = (searchTerm ? 1 : 0) +
                              (filterCategory ? 1 : 0) +
+                             (filterPaymentMethod ? 1 : 0) +
                              (startDate ? 1 : 0) +
                              (endDate ? 1 : 0) +
                              (minValue ? 1 : 0) +
@@ -235,6 +239,9 @@ export const SheetView: React.FC<SheetViewProps> = ({
             // Category Filter
             const matchesCategory = filterCategory ? t.category === filterCategory : true;
 
+            // Payment Method Filter
+            const matchesPayment = filterPaymentMethod ? t.paymentMethod === filterPaymentMethod : true;
+
             // Date Range
             const matchesStart = startDate ? t.date >= startDate : true;
             const matchesEnd = endDate ? t.date <= endDate : true;
@@ -245,7 +252,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
             const max = maxValue ? parseFloat(maxValue) : Infinity;
             const matchesValue = val >= min && val <= max;
 
-            return matchesSearch && matchesCategory && matchesStart && matchesEnd && matchesValue;
+            return matchesSearch && matchesCategory && matchesPayment && matchesStart && matchesEnd && matchesValue;
         })
         .sort((a, b) => {
             const { key, direction } = sortConfig;
@@ -265,7 +272,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
             }
             return 0;
         });
-  }, [transactions, type, searchTerm, filterCategory, startDate, endDate, minValue, maxValue, sortConfig]);
+  }, [transactions, type, searchTerm, filterCategory, filterPaymentMethod, startDate, endDate, minValue, maxValue, sortConfig]);
 
   // Calculate Total Value of filtered items
   const totalValue = useMemo(() => {
@@ -335,7 +342,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
         {/* Filters Panel */}
         {showFilters && (
             <div className="p-4 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 animate-fade-in">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className={`grid grid-cols-1 gap-4 ${type === 'expense' ? 'md:grid-cols-5' : 'md:grid-cols-4'}`}>
                     {/* Mobile Search - Only visible on small screens */}
                     <div className="md:hidden col-span-1">
                         <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Buscar</label>
@@ -381,6 +388,20 @@ export const SheetView: React.FC<SheetViewProps> = ({
                             {categories.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                     </div>
+
+                    {type === 'expense' && (
+                        <div>
+                            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Método Pagto</label>
+                            <select
+                                value={filterPaymentMethod}
+                                onChange={(e) => setFilterPaymentMethod(e.target.value)}
+                                className="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-sm focus:outline-none focus:border-blue-500"
+                            >
+                                <option value="">Todos</option>
+                                {paymentMethods.map(p => <option key={p} value={p}>{p}</option>)}
+                            </select>
+                        </div>
+                    )}
 
                     <div>
                         <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Valor ({currency})</label>

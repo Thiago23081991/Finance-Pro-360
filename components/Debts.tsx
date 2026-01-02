@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { AppConfig, Debt } from '../types';
-import { Lock, Crown, CheckCircle, Plus, Trash2, TrendingUp, AlertOctagon, Info, ArrowRight, Scale, Calculator, Loader2, ArrowUp, ArrowDown, List, Sparkles, Snowflake, Flame, HelpCircle, X } from 'lucide-react';
+import { Lock, Crown, CheckCircle, Plus, Trash2, TrendingUp, AlertOctagon, Info, ArrowRight, Scale, Calculator, Loader2, ArrowUp, ArrowDown, List, Sparkles, Snowflake, Flame, HelpCircle, X, Save } from 'lucide-react';
 import { formatCurrency, generateId } from '../utils';
 
 interface DebtsProps {
@@ -338,7 +338,7 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
                     <div className="flex justify-end gap-3">
                         <button 
                             onClick={() => setIsAdding(false)}
-                            className="px-4 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-sm font-bold transition-colors"
+                            className="px-4 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-sm font-bold transition-colors"
                             disabled={isSaving}
                         >
                             Cancelar
@@ -346,9 +346,9 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
                         <button 
                             onClick={handleSave}
                             disabled={isSaving}
-                            className="bg-rose-600 hover:bg-rose-700 text-white px-6 py-2 rounded text-sm font-bold shadow-md transition-colors flex items-center gap-2 disabled:opacity-50"
+                            className="bg-rose-600 hover:bg-rose-700 text-white px-6 py-2.5 rounded-lg font-bold shadow-md hover:shadow-lg transition-all transform active:scale-95 flex items-center gap-2 disabled:opacity-50 disabled:shadow-none"
                         >
-                            {isSaving ? <Loader2 className="animate-spin" size={16} /> : null}
+                            {isSaving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
                             {isSaving ? 'Salvando...' : 'Salvar Dívida'}
                         </button>
                     </div>

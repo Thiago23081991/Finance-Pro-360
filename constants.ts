@@ -41,6 +41,7 @@ export const DEFAULT_CONFIG: AppConfig = {
     "Boleto",
     "Transferência"
   ],
+  creditCardDueDate: 10,
   enableReminders: true,
   reminderFrequency: 'weekly',
   lastSeenGoals: new Date().toISOString(),

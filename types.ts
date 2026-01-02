@@ -1,5 +1,4 @@
 
-
 export type TransactionType = 'income' | 'expense';
 
 // Centralized Tab definition - Adicionado 'dividas'
@@ -42,6 +41,7 @@ export interface AppConfig {
   currency?: 'BRL' | 'USD' | 'EUR' | 'GBP' | 'JPY'; // Currency Field
   categories: string[];
   paymentMethods: string[];
+  creditCardDueDate?: number; // Dia do vencimento da fatura (1-31)
   // New fields for Reminders
   enableReminders?: boolean;
   reminderFrequency?: 'weekly' | 'biweekly' | 'monthly';
