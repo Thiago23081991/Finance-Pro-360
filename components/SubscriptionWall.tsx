@@ -14,7 +14,7 @@ export const SubscriptionWall: React.FC<SubscriptionWallProps> = ({ userId, user
 
     const getWhatsAppLink = () => {
         const message = `Olá, já realizei o pagamento do Plano Básico!\n\nID do Usuário: ${userId || 'N/A'}\nEmail: ${userEmail || 'N/A'}\n\nAguardo a liberação do acesso.`;
-        return `https://wa.me/5511999999999?text=${encodeURIComponent(message)}`;
+        return `https://wa.me/5579988541124?text=${encodeURIComponent(message)}`;
     };
 
     return (
