@@ -74,7 +74,7 @@ export const SubscriptionWall: React.FC = () => {
                         <p className="text-[10px] text-slate-500 mt-1 mb-4">Pagamento único. Sem mensalidades.</p>
 
                         <div className="bg-white p-2 rounded-lg inline-block mb-2">
-                            <img src="/pix-qrcode.png" alt="QR Code Pix" className="w-48 h-48 object-contain" />
+                            <img src="/pix-qrcode.jpg" alt="QR Code Pix" className="w-48 h-48 object-contain" />
                         </div>
                         <p className="text-xs text-brand-gold font-bold">Escaneie o QR Code para pagar via Pix</p>
                     </div>
