@@ -1,3 +1,5 @@
+import React from 'react';
+import { useState } from 'react';
 import { Rocket, Check, Zap, Copy, MessageCircle } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Logo } from './Logo';
