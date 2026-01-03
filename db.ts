@@ -303,10 +303,7 @@ export class DBService {
     }
   }
 
-  static async updateUserLicense(userId: string, status: 'active' | 'inactive'): Promise<void> {
-    const { error } = await supabase.from('profiles').update({ license_status: status }).eq('id', userId);
-    if (error) throw new Error(error.message);
-  }
+
 
   static async createProfileManually(userId: string, email: string, name: string): Promise<void> {
     const payload = {
