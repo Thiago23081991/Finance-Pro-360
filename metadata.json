@@ -1,0 +1,5 @@
+{
+  "name": "Finance Pro 360",
+  "description": "A powerful finance tracker combining Google Sheets-style data entry with Looker Studio-style dashboards.",
+  "requestFramePermissions": []
+}
