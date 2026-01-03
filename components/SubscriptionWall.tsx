@@ -11,12 +11,36 @@ interface SubscriptionWallProps {
 
 export const SubscriptionWall: React.FC<SubscriptionWallProps> = ({ userId, userEmail }) => {
     const [selectedPlan, setSelectedPlan] = useState<'basic' | 'premium'>('basic');
+    const [showKeyInput, setShowKeyInput] = useState(false);
+    const [licenseKey, setLicenseKey] = useState('');
+    const [activating, setActivating] = useState(false);
 
     const PIX_CODE_BASIC = "00020126580014BR.GOV.BCB.PIX0136ae75855f-8720-45b5-86c3-9d1a2411475f520400005303986540529.905802BR5925Thiago da Silva Nasciment6009SAO PAULO62140510ouz7uLxcyU6304BF59";
 
     const getWhatsAppLink = () => {
         const message = `Olá, já realizei o pagamento do Plano Básico!\n\nID do Usuário: ${userId || 'N/A'}\nEmail: ${userEmail || 'N/A'}\n\nAguardo a liberação do acesso.`;
         return `https://wa.me/5579988541124?text=${encodeURIComponent(message)}`;
+    };
+
+    const handleActivateKey = async () => {
+        if (!licenseKey || !userId) return;
+        setActivating(true);
+        try {
+            // Import dynamically to avoid circular dependency issues if any, or just standard import usage
+            const { DBService } = await import('../db');
+            const success = await DBService.activateLicenseKey(userId, licenseKey);
+            if (success) {
+                alert("Licença ativada com sucesso!");
+                window.location.reload();
+            } else {
+                alert("Chave inválida. Verifique o código e tente novamente.");
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Erro ao validar chave.");
+        } finally {
+            setActivating(false);
+        }
     };
 
     return (
@@ -192,6 +216,35 @@ export const SubscriptionWall: React.FC<SubscriptionWallProps> = ({ userId, user
                                 </div>
                             </div>
                         )}
+
+                        {/* Activation Key Section */}
+                        <div className="pt-4 border-t border-slate-800/50">
+                            <button
+                                onClick={() => setShowKeyInput(!showKeyInput)}
+                                className="text-xs text-slate-500 hover:text-brand-gold underline transition-colors"
+                            >
+                                {showKeyInput ? 'Fechar ativação manual' : 'Tenho um código de ativação'}
+                            </button>
+
+                            {showKeyInput && (
+                                <div className="mt-2 animate-fade-in bg-slate-900 p-3 rounded-lg border border-slate-700 flex flex-col sm:flex-row gap-2">
+                                    <input
+                                        type="text"
+                                        value={licenseKey}
+                                        onChange={(e) => setLicenseKey(e.target.value.toUpperCase())}
+                                        placeholder="XXXX-XXXX"
+                                        className="flex-1 bg-slate-800 border-none rounded px-3 py-2 text-white font-mono text-sm placeholder-slate-500 focus:ring-1 focus:ring-brand-gold"
+                                    />
+                                    <button
+                                        onClick={handleActivateKey}
+                                        disabled={activating || !licenseKey}
+                                        className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded text-sm font-bold transition-colors disabled:opacity-50"
+                                    >
+                                        {activating ? 'Validando...' : 'Ativar'}
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
 

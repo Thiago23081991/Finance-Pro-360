@@ -2,7 +2,7 @@
 import { Transaction, Goal, Debt, AppConfig, UserAccount, PurchaseRequest, AdminMessage, SystemStats, UserProfile } from "./types";
 import { DEFAULT_CONFIG } from "./constants";
 import { supabase } from "./supabaseClient";
-import { generateId } from "./utils";
+import { generateId, validateLicenseKey } from "./utils";
 
 export class DBService {
 
@@ -304,6 +304,14 @@ export class DBService {
   }
 
 
+
+  static async activateLicenseKey(userId: string, key: string): Promise<boolean> {
+    const isValid = validateLicenseKey(userId, key);
+    if (!isValid) return false;
+
+    await this.updateUserLicense(userId, 'active');
+    return true;
+  }
 
   static async createProfileManually(userId: string, email: string, name: string): Promise<void> {
     const payload = {
