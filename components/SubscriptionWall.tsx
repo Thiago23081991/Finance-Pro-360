@@ -68,14 +68,19 @@ export const SubscriptionWall: React.FC = () => {
                         <div className="absolute -right-6 -top-6 bg-brand-gold text-brand-blue font-bold px-8 py-1 rotate-45 text-xs shadow-lg">OFERTA</div>
                         <p className="text-slate-400 text-xs uppercase tracking-widest font-bold mb-1">Acesso Vitalício</p>
                         <div className="flex items-center justify-center gap-2">
-                            <span className="text-xl text-slate-500 line-through">R$ 297</span>
-                            <span className="text-4xl font-black text-white">R$ 97</span>
+                            <span className="text-xl text-slate-500 line-through">R$ 97</span>
+                            <span className="text-4xl font-black text-white">R$ 29,90</span>
                         </div>
-                        <p className="text-[10px] text-slate-500 mt-1">Pagamento único. Sem mensalidades.</p>
+                        <p className="text-[10px] text-slate-500 mt-1 mb-4">Pagamento único. Sem mensalidades.</p>
+
+                        <div className="bg-white p-2 rounded-lg inline-block mb-2">
+                            <img src="/pix-qrcode.png" alt="QR Code Pix" className="w-48 h-48 object-contain" />
+                        </div>
+                        <p className="text-xs text-brand-gold font-bold">Escaneie o QR Code para pagar via Pix</p>
                     </div>
 
                     <button className="w-full bg-brand-gold hover:bg-yellow-500 text-brand-blue font-bold py-4 rounded-xl shadow-lg shadow-brand-gold/20 flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98]">
-                        <span>LIBERAR ACESSO IMEDIATO</span>
+                        <span>ENVIAR COMPROVANTE</span>
                         <ArrowRight size={18} />
                     </button>
                     <p className="text-center mt-4 text-[10px] text-slate-500">
