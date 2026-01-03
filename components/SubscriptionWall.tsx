@@ -76,7 +76,26 @@ export const SubscriptionWall: React.FC = () => {
                         <div className="bg-white p-2 rounded-lg inline-block mb-2">
                             <img src="/pix-qrcode.jpg" alt="QR Code Pix" className="w-48 h-48 object-contain" />
                         </div>
-                        <p className="text-xs text-brand-gold font-bold">Escaneie o QR Code para pagar via Pix</p>
+                        <p className="text-xs text-brand-gold font-bold mb-4">Escaneie o QR Code para pagar via Pix</p>
+
+                        <div className="bg-slate-900/50 p-3 rounded-lg border border-slate-700 mb-6 text-left">
+                            <p className="text-[10px] text-slate-400 mb-1 font-bold uppercase tracking-wider">Pix Copia e Cola</p>
+                            <div className="flex gap-2">
+                                <code className="flex-1 bg-black/30 p-2 rounded text-[10px] text-slate-300 break-all font-mono border border-slate-800">
+                                    00020126580014BR.GOV.BCB.PIX0136ae75855f-8720-45b5-86c3-9d1a2411475f520400005303986540529.905802BR5925Thiago da Silva Nasciment6009SAO PAULO62140510ouz7uLxcyU6304BF59
+                                </code>
+                                <button
+                                    onClick={() => {
+                                        navigator.clipboard.writeText("00020126580014BR.GOV.BCB.PIX0136ae75855f-8720-45b5-86c3-9d1a2411475f520400005303986540529.905802BR5925Thiago da Silva Nasciment6009SAO PAULO62140510ouz7uLxcyU6304BF59");
+                                        alert("Código Pix copiado!");
+                                    }}
+                                    className="bg-slate-700 hover:bg-slate-600 text-white p-2 rounded flex items-center justify-center transition-colors"
+                                    title="Copiar código"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     <button className="w-full bg-brand-gold hover:bg-yellow-500 text-brand-blue font-bold py-4 rounded-xl shadow-lg shadow-brand-gold/20 flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98]">
