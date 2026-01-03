@@ -355,7 +355,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                 </nav>
                 {toastMessage && <Toast message={toastMessage} onClose={() => setToastMessage(null)} actionLabel={toastAction?.label} onAction={toastAction?.fn} />}
                 {showTutorial && <Tutorial onComplete={handleTutorialComplete} onStepChange={handleTutorialStepChange} />}
-                <TrialModal isOpen={showTrialModal} daysRemaining={daysRemaining} onClose={() => setShowTrialModal(false)} />
+                {showTrialModal && <TrialModal daysRemaining={daysRemaining} onClose={() => setShowTrialModal(false)} />}
                 <Inbox userId={user} isOpen={showInbox} onClose={() => setShowInbox(false)} onUpdateUnread={checkUnreadMessages} />
                 <CalculatorModal isOpen={showCalculatorModal} onClose={() => setShowCalculatorModal(false)} />
             </main>
