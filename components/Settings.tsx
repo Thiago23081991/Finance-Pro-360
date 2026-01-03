@@ -237,7 +237,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                                         {selectedPlan === 'basic' && <CheckCircle className="absolute top-4 right-4 text-brand-gold" size={20} />}
                                         <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Entrada</p>
                                         <h4 className="text-white font-black text-lg">PLANO BÁSICO</h4>
-                                        <div className="mt-2 text-2xl font-black text-white">R$ 19,90<span className="text-xs font-normal text-slate-400 ml-1">VITALÍCIO</span></div>
+                                        <div className="mt-2 text-2xl font-black text-white">R$ {PLANS_CONFIG.basic.value.toFixed(2).replace('.', ',')}<span className="text-xs font-normal text-slate-400 ml-1">VITALÍCIO</span></div>
                                         <ul className="mt-4 space-y-2">
                                             {PLANS_CONFIG.basic.features.slice(0, 3).map((f, i) => (
                                                 <li key={i} className="text-[11px] text-slate-400 flex items-center gap-2"><CheckCircle size={12} className="text-emerald-500"/> {f}</li>
@@ -253,7 +253,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                                         <div className="absolute -top-3 left-4 bg-brand-gold text-brand-blue text-[9px] font-black px-2 py-0.5 rounded-full">O MAIS COMPLETO</div>
                                         <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Profissional</p>
                                         <h4 className="text-white font-black text-lg">PLANO PREMIUM</h4>
-                                        <div className="mt-2 text-2xl font-black text-white">R$ 80,00<span className="text-xs font-normal text-slate-400 ml-1">VITALÍCIO</span></div>
+                                        <div className="mt-2 text-2xl font-black text-white">R$ {PLANS_CONFIG.premium.value.toFixed(2).replace('.', ',')}<span className="text-xs font-normal text-slate-400 ml-1">VITALÍCIO</span></div>
                                         <ul className="mt-4 space-y-2">
                                             {PLANS_CONFIG.premium.features.slice(1, 4).map((f, i) => (
                                                 <li key={i} className="text-[11px] text-slate-400 flex items-center gap-2"><Zap size={12} className="text-brand-gold fill-current"/> {f}</li>

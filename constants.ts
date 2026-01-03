@@ -7,8 +7,8 @@ export const APP_DOMAIN = "www.financepro360.com.br";
 export const PLANS_CONFIG = {
     basic: {
         name: "Plano Básico",
-        value: 19.90,
-        payload: "00020126580014br.gov.bcb.pix013671ee2472-12a1-4edf-b0e0-ad0bc4c2a98427600016BR.COM.PAGSEGURO0136D1917A9C-D209-49F6-BFBF-80644AC0D5A4520489995303986540519.905802BR5925THIAGO DA SILVA NASCIMENT6007Aracaju62290525PAGS0000019902512161508466304D551",
+        value: 29.90,
+        payload: "00020126580014BR.GOV.BCB.PIX0136ae75855f-8720-45b5-86c3-9d1a2411475f520400005303986540529.905802BR5925Thiago da Silva Nasciment6009SAO PAULO62140510ouz7uLxcyU6304BF59",
         features: ["Dashboard Completo", "Gestão de Receitas/Despesas", "Metas Financeiras", "Exportação de Planilhas"]
     },
     premium: {
