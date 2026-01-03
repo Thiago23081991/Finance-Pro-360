@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
 import { Rocket, Check, Zap, Copy, MessageCircle } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { Logo } from './Logo';
 
 interface SubscriptionWallProps {
@@ -115,9 +115,14 @@ export const SubscriptionWall: React.FC<SubscriptionWallProps> = ({ userId, user
                 <div className="bg-slate-950 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row gap-8 items-center md:items-start border border-slate-800/50">
 
                     {/* QR Code Section */}
-                    <div className="bg-white p-3 rounded-xl shrink-0">
+                    <div className="bg-white p-3 rounded-xl shrink-0 flex items-center justify-center">
                         {selectedPlan === 'basic' ? (
-                            <img src="/pix-qrcode.jpg" alt="QR Code 29.90" className="w-48 h-48 object-contain" />
+                            <QRCodeSVG
+                                value={PIX_CODE_BASIC}
+                                size={180}
+                                level={"M"}
+                                includeMargin={true}
+                            />
                         ) : (
                             <div className="w-48 h-48 flex items-center justify-center bg-slate-100 rounded text-slate-400 text-xs text-center p-4">
                                 QR Code do Plano Premium indisponível no momento
