@@ -255,7 +255,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
     if (loading) return <div className="h-screen w-full flex items-center justify-center bg-[#f3f4f6] dark:bg-slate-950 transition-colors"><Loader2 className="animate-spin text-brand-blue" size={48} /></div>;
 
     if (isTrialExpired) {
-        return <SubscriptionWall />;
+        return <SubscriptionWall userId={user} userEmail={userEmail} />;
     }
 
     return (

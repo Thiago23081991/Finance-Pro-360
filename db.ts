@@ -10,7 +10,7 @@ export class DBService {
 
   static async registerUser(user: UserAccount): Promise<any> {
     const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: user.username, 
+      email: user.username,
       password: user.password,
       options: {
         emailRedirectTo: window.location.origin,
@@ -21,24 +21,24 @@ export class DBService {
     });
 
     if (authError) throw new Error(authError.message);
-    
-    if (authData.user && authData.session) {
-        // Attempt to create profile with core columns only to be safe
-        const { error: profileError } = await supabase.from('profiles').insert({
-            id: authData.user.id,
-            email: user.username,
-            username: user.name || user.username.split('@')[0], 
-            categories: DEFAULT_CONFIG.categories,
-            payment_methods: DEFAULT_CONFIG.paymentMethods,
-            enable_reminders: true,
-            has_seen_tutorial: false
-        });
 
-        if (profileError) {
-            console.error("Erro ao criar perfil inicial:", profileError.message);
-        }
+    if (authData.user && authData.session) {
+      // Attempt to create profile with core columns only to be safe
+      const { error: profileError } = await supabase.from('profiles').insert({
+        id: authData.user.id,
+        email: user.username,
+        username: user.name || user.username.split('@')[0],
+        categories: DEFAULT_CONFIG.categories,
+        payment_methods: DEFAULT_CONFIG.paymentMethods,
+        enable_reminders: true,
+        has_seen_tutorial: false
+      });
+
+      if (profileError) {
+        console.error("Erro ao criar perfil inicial:", profileError.message);
+      }
     }
-    
+
     return authData;
   }
 
@@ -49,7 +49,7 @@ export class DBService {
     });
 
     if (error) {
-        throw new Error(error.message || 'Falha na autenticação');
+      throw new Error(error.message || 'Falha na autenticação');
     }
     return data.user;
   }
@@ -70,27 +70,27 @@ export class DBService {
 
   static async requestPasswordReset(email: string): Promise<void> {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin, 
+      redirectTo: window.location.origin,
     });
     if (error) throw new Error(error.message);
   }
 
   static async deleteUserAccount(userId: string): Promise<void> {
-      const tablesToDelete = ['transactions', 'goals', 'debts', 'profiles', 'purchase_requests', 'messages'];
-      
-      try {
-          await Promise.all(tablesToDelete.map(table => {
-              let column = 'user_id';
-              if (table === 'profiles') column = 'id';
-              if (table === 'messages') column = 'receiver'; 
-              
-              return supabase.from(table).delete().eq(column, userId).then(() => {}); 
-          }));
+    const tablesToDelete = ['transactions', 'goals', 'debts', 'profiles', 'purchase_requests', 'messages'];
 
-          await this.logout();
-      } catch (error: any) {
-          throw new Error("Erro ao excluir dados: " + error.message);
-      }
+    try {
+      await Promise.all(tablesToDelete.map(table => {
+        let column = 'user_id';
+        if (table === 'profiles') column = 'id';
+        if (table === 'messages') column = 'receiver';
+
+        return supabase.from(table).delete().eq(column, userId).then(() => { });
+      }));
+
+      await this.logout();
+    } catch (error: any) {
+      throw new Error("Erro ao excluir dados: " + error.message);
+    }
   }
 
   // --- DATA OPERATIONS ---
@@ -120,7 +120,7 @@ export class DBService {
     if (!user) throw new Error("Usuário não autenticado");
 
     const payload = {
-      id: t.id, 
+      id: t.id,
       user_id: user.id,
       date: t.date,
       amount: t.amount,
@@ -177,11 +177,11 @@ export class DBService {
 
   static async getDebts(userId: string): Promise<Debt[]> {
     const { data, error } = await supabase.from('debts').select('*').order('interest_rate', { ascending: false });
-    
+
     if (error) {
-        const localData = localStorage.getItem(`fp360_debts_${userId}`);
-        if (localData) return JSON.parse(localData);
-        return [];
+      const localData = localStorage.getItem(`fp360_debts_${userId}`);
+      if (localData) return JSON.parse(localData);
+      return [];
     }
 
     return data.map((d: any) => ({
@@ -210,25 +210,25 @@ export class DBService {
     };
 
     const { error } = await supabase.from('debts').upsert(payload);
-    
+
     if (error) {
-        const currentDebts = await this.getDebts(user.id);
-        const index = currentDebts.findIndex(x => x.id === d.id);
-        if (index >= 0) currentDebts[index] = d;
-        else currentDebts.push(d);
-        localStorage.setItem(`fp360_debts_${user.id}`, JSON.stringify(currentDebts));
+      const currentDebts = await this.getDebts(user.id);
+      const index = currentDebts.findIndex(x => x.id === d.id);
+      if (index >= 0) currentDebts[index] = d;
+      else currentDebts.push(d);
+      localStorage.setItem(`fp360_debts_${user.id}`, JSON.stringify(currentDebts));
     }
   }
 
   static async deleteDebt(id: string): Promise<void> {
     const { error } = await supabase.from('debts').delete().eq('id', id);
     if (error) {
-         const user = await this.getCurrentUser();
-         if (user) {
-             const currentDebts = await this.getDebts(user.id);
-             const filtered = currentDebts.filter(d => d.id !== id);
-             localStorage.setItem(`fp360_debts_${user.id}`, JSON.stringify(filtered));
-         }
+      const user = await this.getCurrentUser();
+      if (user) {
+        const currentDebts = await this.getDebts(user.id);
+        const filtered = currentDebts.filter(d => d.id !== id);
+        localStorage.setItem(`fp360_debts_${user.id}`, JSON.stringify(filtered));
+      }
     }
   }
 
@@ -249,7 +249,7 @@ export class DBService {
     // Merge: Database (primary for shared data) + LocalStorage (fallback for missing columns)
     return {
       userId: data.id,
-      name: data.username, 
+      name: data.username,
       theme: data.theme || localConfig.theme || 'light',
       currency: data.currency || localConfig.currency || 'BRL',
       categories: data.categories || DEFAULT_CONFIG.categories,
@@ -291,15 +291,15 @@ export class DBService {
 
     // Try a broad update first
     const { error } = await supabase.from('profiles').upsert({
-        ...corePayload,
-        theme: config.theme,
-        currency: config.currency
+      ...corePayload,
+      theme: config.theme,
+      currency: config.currency
     });
 
     if (error && error.message.includes("column")) {
-        console.warn("Schema mismatch detected. Falling back to core columns only.");
-        // If it fails due to a column error, retry with only confirmed columns
-        await supabase.from('profiles').upsert(corePayload);
+      console.warn("Schema mismatch detected. Falling back to core columns only.");
+      // If it fails due to a column error, retry with only confirmed columns
+      await supabase.from('profiles').upsert(corePayload);
     }
   }
 
@@ -310,14 +310,14 @@ export class DBService {
 
   static async createProfileManually(userId: string, email: string, name: string): Promise<void> {
     const payload = {
-        id: userId,
-        email: email,
-        username: name,
-        categories: DEFAULT_CONFIG.categories,
-        payment_methods: DEFAULT_CONFIG.paymentMethods,
-        enable_reminders: true,
-        has_seen_tutorial: false,
-        license_status: 'inactive'
+      id: userId,
+      email: email,
+      username: name,
+      categories: DEFAULT_CONFIG.categories,
+      payment_methods: DEFAULT_CONFIG.paymentMethods,
+      enable_reminders: true,
+      has_seen_tutorial: false,
+      license_status: 'inactive'
     };
     const { error } = await supabase.from('profiles').insert(payload);
     if (error) throw new Error(error.message);
@@ -335,7 +335,7 @@ export class DBService {
       supabase.from('debts').select('*').then(res => res.error ? { data: [] } : res),
       supabase.from('profiles').select('*').eq('id', user.id).single(),
       supabase.from('purchase_requests').select('*'),
-      supabase.from('messages').select('*').or(`receiver.eq.${user.id},sender.eq.Admin`) 
+      supabase.from('messages').select('*').or(`receiver.eq.${user.id},sender.eq.Admin`)
     ]);
 
     const backup = {
@@ -356,30 +356,30 @@ export class DBService {
     if (!user) return;
 
     if (data.transactions && data.transactions.length > 0) {
-       const cleanTxs = data.transactions.map((t: any) => ({
-         ...t, user_id: user.id 
-       }));
-       await supabase.from('transactions').upsert(cleanTxs);
+      const cleanTxs = data.transactions.map((t: any) => ({
+        ...t, user_id: user.id
+      }));
+      await supabase.from('transactions').upsert(cleanTxs);
     }
-    
+
     if (data.goals && data.goals.length > 0) {
-       const cleanGoals = data.goals.map((g: any) => ({
-         ...g, user_id: user.id
-       }));
-       await supabase.from('goals').upsert(cleanGoals);
+      const cleanGoals = data.goals.map((g: any) => ({
+        ...g, user_id: user.id
+      }));
+      await supabase.from('goals').upsert(cleanGoals);
     }
 
     if (data.debts && data.debts.length > 0) {
-        const cleanDebts = data.debts.map((d: any) => ({
-            ...d, user_id: user.id
-        }));
-        await supabase.from('debts').upsert(cleanDebts);
+      const cleanDebts = data.debts.map((d: any) => ({
+        ...d, user_id: user.id
+      }));
+      await supabase.from('debts').upsert(cleanDebts);
     }
 
     if (data.configs && data.configs.length > 0) {
-       const cfg = data.configs[0];
-       delete cfg.id; 
-       await supabase.from('profiles').update(cfg).eq('id', user.id);
+      const cfg = data.configs[0];
+      delete cfg.id;
+      await supabase.from('profiles').update(cfg).eq('id', user.id);
     }
   }
 
@@ -388,10 +388,10 @@ export class DBService {
   static async getSystemStats(): Promise<SystemStats> {
     const { count: usersCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
     const { count: txCount } = await supabase.from('transactions').select('*', { count: 'exact', head: true });
-    
+
     const { data: volData } = await supabase.from('transactions').select('amount');
     const totalVol = volData ? volData.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0) : 0;
-    
+
     const { count: licenseCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('license_status', 'active');
 
     return {
@@ -403,22 +403,22 @@ export class DBService {
   }
 
   static async getAllProfiles(): Promise<UserProfile[]> {
-      const { data, error } = await supabase.from('profiles').select('id, email, username, license_status, created_at');
-      if (error) throw new Error(error.message);
-      
-      return data.map((p: any) => ({
-          id: p.id,
-          name: p.username, 
-          email: p.email,
-          username: p.username,
-          licenseStatus: p.license_status,
-          createdAt: p.created_at
-      }));
+    const { data, error } = await supabase.from('profiles').select('id, email, username, license_status, created_at');
+    if (error) throw new Error(error.message);
+
+    return data.map((p: any) => ({
+      id: p.id,
+      name: p.username,
+      email: p.email,
+      username: p.username,
+      licenseStatus: p.license_status,
+      createdAt: p.created_at
+    }));
   }
 
   static async getPurchaseRequest(userId: string): Promise<PurchaseRequest | null> {
     const { data } = await supabase.from('purchase_requests').select('*').eq('user_id', userId).maybeSingle();
-    
+
     if (!data) return null;
     return {
       id: data.id,
@@ -439,15 +439,20 @@ export class DBService {
     if (error) throw new Error(error.message);
 
     if (req.status === 'approved') {
-        const { error: profileError } = await supabase
-            .from('profiles')
-            .upsert({ 
-                id: req.userId,
-                license_status: 'active'
-            }, { onConflict: 'id' }); 
-            
-        if (profileError) console.error("Erro ao ativar licença no perfil:", profileError);
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .upsert({
+          id: req.userId,
+          license_status: 'active'
+        }, { onConflict: 'id' });
+
+      if (profileError) console.error("Erro ao ativar licença no perfil:", profileError);
     }
+  }
+
+  static async updateUserLicense(userId: string, status: 'active' | 'inactive'): Promise<void> {
+    const { error } = await supabase.from('profiles').update({ license_status: status }).eq('id', userId);
+    if (error) throw new Error(error.message);
   }
 
   static async getAllPurchaseRequests(): Promise<PurchaseRequest[]> {
@@ -468,7 +473,7 @@ export class DBService {
     const payload = {
       id: msg.id,
       sender: msg.sender,
-      receiver: msg.receiver, 
+      receiver: msg.receiver,
       content: msg.content,
       read: msg.read,
       timestamp: msg.timestamp
@@ -478,29 +483,29 @@ export class DBService {
   }
 
   static async sendBroadcastMessage(content: string): Promise<void> {
-      const { data: profiles, error } = await supabase.from('profiles').select('id');
-      if (error) throw new Error("Erro ao buscar usuários: " + error.message);
-      
-      if (!profiles || profiles.length === 0) return;
+    const { data: profiles, error } = await supabase.from('profiles').select('id');
+    if (error) throw new Error("Erro ao buscar usuários: " + error.message);
 
-      const timestamp = new Date().toISOString();
-      const messagesToInsert = profiles.map(p => ({
-          id: generateId(),
-          sender: 'Admin',
-          receiver: p.id,
-          content: content,
-          read: false,
-          timestamp: timestamp
-      }));
+    if (!profiles || profiles.length === 0) return;
 
-      const { error: insertError } = await supabase.from('messages').insert(messagesToInsert);
-      if (insertError) throw new Error("Erro ao disparar mensagens: " + insertError.message);
+    const timestamp = new Date().toISOString();
+    const messagesToInsert = profiles.map(p => ({
+      id: generateId(),
+      sender: 'Admin',
+      receiver: p.id,
+      content: content,
+      read: false,
+      timestamp: timestamp
+    }));
+
+    const { error: insertError } = await supabase.from('messages').insert(messagesToInsert);
+    if (insertError) throw new Error("Erro ao disparar mensagens: " + insertError.message);
   }
 
   static async getMessagesForUser(userId: string): Promise<AdminMessage[]> {
     const { data, error } = await supabase.from('messages').select('*').eq('receiver', userId);
     if (error) return [];
-    
+
     return data.map((m: any) => ({
       id: m.id,
       sender: m.sender,
@@ -512,10 +517,10 @@ export class DBService {
   }
 
   static async getAllMessages(): Promise<AdminMessage[]> {
-     const { data, error } = await supabase.from('messages').select('*');
-     if (error) return [];
+    const { data, error } = await supabase.from('messages').select('*');
+    if (error) return [];
 
-     return data.map((m: any) => ({
+    return data.map((m: any) => ({
       id: m.id,
       sender: m.sender,
       receiver: m.receiver,

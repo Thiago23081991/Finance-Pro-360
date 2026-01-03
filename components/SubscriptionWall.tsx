@@ -2,10 +2,20 @@ import React, { useState } from 'react';
 import { Rocket, Check, Zap, Copy, MessageCircle } from 'lucide-react';
 import { Logo } from './Logo';
 
-export const SubscriptionWall: React.FC = () => {
+interface SubscriptionWallProps {
+    userId?: string;
+    userEmail?: string;
+}
+
+export const SubscriptionWall: React.FC<SubscriptionWallProps> = ({ userId, userEmail }) => {
     const [selectedPlan, setSelectedPlan] = useState<'basic' | 'premium'>('basic');
 
     const PIX_CODE_BASIC = "00020126580014BR.GOV.BCB.PIX0136ae75855f-8720-45b5-86c3-9d1a2411475f520400005303986540529.905802BR5925Thiago da Silva Nasciment6009SAO PAULO62140510ouz7uLxcyU6304BF59";
+
+    const getWhatsAppLink = () => {
+        const message = `Olá, já realizei o pagamento do Plano Básico!\n\nID do Usuário: ${userId || 'N/A'}\nEmail: ${userEmail || 'N/A'}\n\nAguardo a liberação do acesso.`;
+        return `https://wa.me/5511999999999?text=${encodeURIComponent(message)}`;
+    };
 
     return (
         <div className="min-h-screen bg-[#0a192f] text-slate-100 flex items-center justify-center p-4 md:p-8 font-sans">
@@ -24,8 +34,8 @@ export const SubscriptionWall: React.FC = () => {
                     <div
                         onClick={() => setSelectedPlan('basic')}
                         className={`relative p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${selectedPlan === 'basic'
-                                ? 'border-brand-gold bg-slate-800/50 shadow-2xl shadow-brand-gold/10'
-                                : 'border-slate-700 bg-slate-900/50 opacity-60 hover:opacity-100'
+                            ? 'border-brand-gold bg-slate-800/50 shadow-2xl shadow-brand-gold/10'
+                            : 'border-slate-700 bg-slate-900/50 opacity-60 hover:opacity-100'
                             }`}
                     >
                         {selectedPlan === 'basic' && (
@@ -68,8 +78,8 @@ export const SubscriptionWall: React.FC = () => {
                     <div
                         onClick={() => setSelectedPlan('premium')}
                         className={`relative p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 group overflow-hidden ${selectedPlan === 'premium'
-                                ? 'border-brand-gold bg-slate-800/50 shadow-2xl shadow-brand-gold/10'
-                                : 'border-slate-700 bg-slate-900/50 opacity-80 hover:opacity-100'
+                            ? 'border-brand-gold bg-slate-800/50 shadow-2xl shadow-brand-gold/10'
+                            : 'border-slate-700 bg-slate-900/50 opacity-80 hover:opacity-100'
                             }`}
                     >
                         <div className="absolute top-0 right-0 bg-brand-gold text-brand-blue text-[10px] font-black px-3 py-1 rounded-bl-lg">
@@ -126,26 +136,26 @@ export const SubscriptionWall: React.FC = () => {
                         </div>
 
                         {selectedPlan === 'basic' && (
-                            <div className="flex flex-col sm:flex-row gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <button
                                     onClick={() => {
                                         navigator.clipboard.writeText(PIX_CODE_BASIC);
                                         alert("Código Pix copiado com sucesso!");
                                     }}
-                                    className="bg-slate-800 hover:bg-slate-700 text-white px-6 py-4 rounded-xl font-bold flex items-center justify-center gap-3 transition-colors border border-slate-700"
+                                    className="bg-slate-800 hover:bg-slate-700 text-white px-4 py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors border border-slate-700"
                                 >
-                                    <Copy size={20} />
+                                    <Copy size={18} />
                                     COPIAR PIX
                                 </button>
 
                                 <a
-                                    href="https://wa.me/5511999999999?text=Tenho%20dúvidas%20sobre%20o%20Finance%20Pro%20360" // Placeholder number
+                                    href={getWhatsAppLink()}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="bg-emerald-950/30 hover:bg-emerald-900/40 text-emerald-400 border border-emerald-900/50 px-6 py-4 rounded-xl font-bold flex items-center justify-center gap-3 transition-colors"
+                                    className="bg-brand-gold hover:bg-yellow-500 text-brand-blue px-4 py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors shadow-lg shadow-brand-gold/10"
                                 >
-                                    <MessageCircle size={20} />
-                                    TIRAR DÚVIDAS
+                                    <MessageCircle size={18} />
+                                    ENVIAR COMPROVANTE
                                 </a>
                             </div>
                         )}
@@ -157,9 +167,23 @@ export const SubscriptionWall: React.FC = () => {
                         )}
 
                         {selectedPlan === 'basic' && (
-                            <p className="text-xs text-slate-500">
-                                Após o pagamento, envie o comprovante para liberação imediata.
-                            </p>
+                            <div className="space-y-4">
+                                <p className="text-xs text-slate-500 leading-relaxed">
+                                    <strong className="text-emerald-400">Como ativar rápido?</strong> <br />
+                                    1. Copie o código Pix e pague no seu banco. <br />
+                                    2. Clique em <strong>Enviar Comprovante</strong> acima. <br />
+                                    3. Você será redirecionado para o WhatsApp do suporte com seus dados já preenchidos.
+                                </p>
+
+                                <div className="bg-slate-900/50 p-3 rounded-lg border border-slate-700 text-left">
+                                    <p className="text-[10px] text-slate-400 mb-1 font-bold uppercase tracking-wider">Pix Copia e Cola</p>
+                                    <div className="flex gap-2">
+                                        <code className="flex-1 bg-black/30 p-2 rounded text-[10px] text-slate-300 break-all font-mono border border-slate-800 select-all">
+                                            {PIX_CODE_BASIC}
+                                        </code>
+                                    </div>
+                                </div>
+                            </div>
                         )}
                     </div>
                 </div>
