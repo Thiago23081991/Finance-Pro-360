@@ -131,9 +131,21 @@ export const AdminPanel: React.FC = () => {
 
         try {
             await DBService.updateUserLicense(profile.id, newStatus);
+
             setProfiles(prev => prev.map(p =>
                 p.id === profile.id ? { ...p, licenseStatus: newStatus } : p
             ));
+
+            // Optimistically update Active License Stats
+            if (stats) {
+                setStats({
+                    ...stats,
+                    activeLicenses: newStatus === 'active'
+                        ? stats.activeLicenses + 1
+                        : Math.max(0, stats.activeLicenses - 1)
+                });
+            }
+
             if (newStatus === 'active') alert(`Licença ativada com sucesso para ${profile.name}!`);
         } catch (error: any) {
             alert("Erro ao atualizar licença: " + error.message);
@@ -377,8 +389,8 @@ export const AdminPanel: React.FC = () => {
                                             </td>
                                             <td className="py-4 px-6">
                                                 <span className={`px-2 py-1 rounded-full text-xs font-bold uppercase ${profile.licenseStatus === 'active'
-                                                        ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
-                                                        : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
+                                                    ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
+                                                    : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
                                                     }`}>
                                                     {profile.licenseStatus === 'active' ? 'Premium' : 'Gratuito'}
                                                 </span>
@@ -388,8 +400,8 @@ export const AdminPanel: React.FC = () => {
                                                     <button
                                                         onClick={() => handleToggleLicense(profile)}
                                                         className={`p-2 rounded transition-colors mr-2 ${profile.licenseStatus === 'active'
-                                                                ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 hover:bg-rose-200 dark:hover:bg-rose-800'
-                                                                : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-800'
+                                                            ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 hover:bg-rose-200 dark:hover:bg-rose-800'
+                                                            : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-800'
                                                             }`}
                                                         title={profile.licenseStatus === 'active' ? "Remover Premium" : "Ativar Premium"}
                                                     >
@@ -456,8 +468,8 @@ export const AdminPanel: React.FC = () => {
                                             </td>
                                             <td className="py-4 px-6">
                                                 <span className={`px-2 py-1 rounded-full text-xs font-bold uppercase ${req.status === 'approved' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' :
-                                                        req.status === 'rejected' ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400' :
-                                                            'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
+                                                    req.status === 'rejected' ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400' :
+                                                        'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
                                                     }`}>
                                                     {req.status === 'pending' ? 'Pendente' : req.status === 'approved' ? 'Aprovado' : 'Rejeitado'}
                                                 </span>
