@@ -13,17 +13,17 @@ export const Courses: React.FC<CoursesProps> = ({ config }) => {
     const modules = [
         {
             id: 1,
-            title: "Módulo 1: Fundamentos da Riqueza",
+            title: "Módulo 1: Mentalidade De Riqueza",
             description: "Aprenda a mentalidade correta e os pilares para construir um patrimônio sólido.",
-            duration: "15 min",
+            duration: "07:39",
             videoUrl: "/videos/Modulo1.mp4",
             thumbnail: "bg-emerald-900"
         },
         {
             id: 2,
-            title: "Módulo 2: Estratégias de Investimento",
+            title: "Módulo 2: Finanças Sem Medo",
             description: "Como multiplicar seu dinheiro com segurança e rentabilidade acima da inflação.",
-            duration: "22 min",
+            duration: "06:17",
             videoUrl: "/videos/Modulo2.mp4",
             thumbnail: "bg-blue-900"
         }

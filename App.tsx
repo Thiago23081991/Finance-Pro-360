@@ -31,7 +31,7 @@ const TAB_METADATA: Record<Tab, { label: string; pageTitle: string; icon: React.
     dividas: { label: 'Dívidas', pageTitle: 'Gestão de Passivos', icon: <Scale size={20} /> },
     metas: { label: 'Metas', pageTitle: 'Metas Financeiras', icon: <Target size={20} /> },
     investimentos: { label: 'Investimentos', pageTitle: 'Central de Investimentos', icon: <BarChart4 size={20} /> },
-    cursos: { label: 'Cursos (Em Construção)', pageTitle: 'Educação Financeira', icon: <GraduationCap size={20} /> },
+    cursos: { label: 'Cursos', pageTitle: 'Educação Financeira', icon: <GraduationCap size={20} /> },
     config: { label: 'Configurações', pageTitle: 'Ajustes do Sistema', icon: <SettingsIcon size={20} /> },
     admin: { label: 'Administração', pageTitle: 'Painel Administrativo', icon: <ShieldCheck size={20} /> }
 };
