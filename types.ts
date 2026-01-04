@@ -73,7 +73,7 @@ export interface PurchaseRequest {
   id: string;
   userId: string;
   // Campos virtuais para exibição na UI
-  userName?: string; 
+  userName?: string;
   userEmail?: string;
   requestDate: string;
   status: 'pending' | 'approved' | 'rejected';

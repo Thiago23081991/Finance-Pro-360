@@ -7,8 +7,8 @@ import { CreditCardControl } from './components/CreditCardControl';
 import { GoalsSheet } from './components/GoalsSheet';
 import { Settings } from './components/Settings';
 import { AdminPanel } from './components/AdminPanel';
-import { Investments } from './components/Investments';
 import { Courses } from './components/Courses';
+import { Investments } from './components/Investments';
 import { Debts } from './components/Debts';
 import { Login } from './components/Login';
 import { Toast } from './components/Toast';
@@ -350,8 +350,8 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                     <Plus size={28} />
                 </button>
 
-                <nav className="md:hidden fixed bottom-0 w-full bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 z-40 flex justify-around items-center pb-safe pt-1 shadow-lg">
-                    {(['controle', 'receitas', 'despesas', 'dividas', 'config'] as Tab[]).map(t => (<button key={t} onClick={() => handleTabChange(t)} className={`flex flex-col items-center justify-center p-2 w-full ${activeTab === t ? 'text-brand-blue dark:text-brand-gold' : 'text-slate-400'}`}>{TAB_METADATA[t].icon}<span className="text-[10px] mt-1 font-medium">{TAB_METADATA[t].label}</span></button>))}
+                <nav className="md:hidden fixed bottom-0 w-full bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 z-40 flex justify-around items-center pb-safe pt-1 shadow-lg overflow-x-auto">
+                    {(['controle', 'receitas', 'despesas', 'cursos', 'config'] as Tab[]).map(t => (<button key={t} onClick={() => handleTabChange(t)} className={`flex flex-col items-center justify-center p-2 min-w-[70px] ${activeTab === t ? 'text-brand-blue dark:text-brand-gold' : 'text-slate-400'}`}>{TAB_METADATA[t].icon}<span className="text-[10px] mt-1 font-medium">{TAB_METADATA[t].label}</span></button>))}
                 </nav>
                 {toastMessage && <Toast message={toastMessage} onClose={() => setToastMessage(null)} actionLabel={toastAction?.label} onAction={toastAction?.fn} />}
                 {showTutorial && <Tutorial onComplete={handleTutorialComplete} onStepChange={handleTutorialStepChange} />}
