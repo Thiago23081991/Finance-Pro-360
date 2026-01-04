@@ -16,7 +16,7 @@ export const Courses: React.FC<CoursesProps> = ({ config }) => {
             title: "Módulo 1: Fundamentos da Riqueza",
             description: "Aprenda a mentalidade correta e os pilares para construir um patrimônio sólido.",
             duration: "15 min",
-            videoUrl: "/videos/modulo1.mp4",
+            videoUrl: "/videos/Modulo1.mp4",
             thumbnail: "bg-emerald-900"
         },
         {
@@ -24,7 +24,7 @@ export const Courses: React.FC<CoursesProps> = ({ config }) => {
             title: "Módulo 2: Estratégias de Investimento",
             description: "Como multiplicar seu dinheiro com segurança e rentabilidade acima da inflação.",
             duration: "22 min",
-            videoUrl: "/videos/modulo2.mp4",
+            videoUrl: "/videos/Modulo2.mp4",
             thumbnail: "bg-blue-900"
         }
     ];
