@@ -10,7 +10,7 @@ import { PLANS_CONFIG } from '../constants';
 interface SettingsProps {
     config: AppConfig;
     onUpdateConfig: (c: AppConfig) => void;
-    transactions: Transaction[]; 
+    transactions: Transaction[];
 }
 
 export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, transactions }) => {
@@ -18,7 +18,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
     const [newMethod, setNewMethod] = useState('');
     const [isRestoring, setIsRestoring] = useState(false);
     const [dueDate, setDueDate] = useState(config.creditCardDueDate || 10);
-    
+
     // Perfil
     const [isEditingName, setIsEditingName] = useState(false);
     const [tempName, setTempName] = useState(config.name || '');
@@ -50,61 +50,62 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
         setIsEditingName(false);
     };
 
+    // Funções de Checkout simplificadas (lógica movida para o botão)
     const handleActivateLicense = () => {
         if (!config.userId) return;
         if (validateLicenseKey(config.userId, inputLicenseKey)) {
-             const newConfig = { ...config, licenseKey: inputLicenseKey, licenseStatus: 'active' as const };
-             onUpdateConfig(newConfig);
-             setLicenseError('');
-             alert('Licença ativada com sucesso! Obrigado por ser Premium.');
-             DBService.saveConfig(newConfig);
+            const newConfig = { ...config, licenseKey: inputLicenseKey, licenseStatus: 'active' as const };
+            onUpdateConfig(newConfig);
+            setLicenseError('');
+            alert('Licença ativada com sucesso! Obrigado por ser Premium.');
+            DBService.saveConfig(newConfig);
         } else {
             setLicenseError('Chave inválida para este usuário. Verifique o e-mail de compra.');
         }
     };
 
-    const handleRequestActivation = async () => {
-        if (!config.userId) return;
-        setIsRequestingState(true);
-        try {
-            const req: PurchaseRequest = {
-                id: generateId(),
-                userId: config.userId,
-                requestDate: new Date().toISOString(),
-                status: 'pending'
-            };
-            await DBService.savePurchaseRequest(req);
-            setPurchaseRequest(req);
-            
-            // Redirecionar para o WhatsApp com os dados do plano escolhido
-            const planName = PLANS_CONFIG[selectedPlan].name;
-            const planValue = PLANS_CONFIG[selectedPlan].value.toFixed(2);
-            const whatsappMsg = `Olá! Acabei de fazer o PIX de R$ ${planValue} para o ${planName}.\n\nNome: ${config.name || 'Usuário Sem Nome'}\nID do Usuário: ${config.userId}\n\nEstou enviando o comprovante em anexo.`;
-            window.open(`https://wa.me/5579988541124?text=${encodeURIComponent(whatsappMsg)}`, '_blank');
-            
-            alert("Solicitação registrada! Agora envie o comprovante no WhatsApp que abrimos para você.");
-        } catch (e) {
-            alert("Erro ao solicitar ativação.");
-        } finally {
-            setIsRequestingState(false);
-        }
-    };
+    // const handleRequestActivation = async () => { // Removed as per instruction
+    //     if (!config.userId) return;
+    //     setIsRequestingState(true);
+    //     try {
+    //         const req: PurchaseRequest = {
+    //             id: generateId(),
+    //             userId: config.userId,
+    //             requestDate: new Date().toISOString(),
+    //             status: 'pending'
+    //         };
+    //         await DBService.savePurchaseRequest(req);
+    //         setPurchaseRequest(req);
 
-    const copyPixCopiaECola = () => {
-        navigator.clipboard.writeText(PLANS_CONFIG[selectedPlan].payload);
-        alert("PIX Copia e Cola copiado!");
-    };
+    //         // Redirecionar para o WhatsApp com os dados do plano escolhido
+    //         const planName = PLANS_CONFIG[selectedPlan].name;
+    //         const planValue = PLANS_CONFIG[selectedPlan].value.toFixed(2);
+    //         const whatsappMsg = `Olá! Acabei de fazer o PIX de R$ ${planValue} para o ${planName}.\n\nNome: ${config.name || 'Usuário Sem Nome'}\nID do Usuário: ${config.userId}\n\nEstou enviando o comprovante em anexo.`;
+    //         window.open(`https://wa.me/5579988541124?text=${encodeURIComponent(whatsappMsg)}`, '_blank');
+
+    //         alert("Solicitação registrada! Agora envie o comprovante no WhatsApp que abrimos para você.");
+    //     } catch (e) {
+    //         alert("Erro ao solicitar ativação.");
+    //     } finally {
+    //         setIsRequestingState(false);
+    //     }
+    // }; // Removed as per instruction
+
+    // const copyPixCopiaECola = () => { // Removed as per instruction
+    //     navigator.clipboard.writeText(PLANS_CONFIG[selectedPlan].payload);
+    //     alert("PIX Copia e Cola copiado!");
+    // }; // Removed as per instruction
 
     const addCat = () => {
-        if(newCat && !config.categories.includes(newCat)) {
-            onUpdateConfig({...config, categories: [...config.categories, newCat]});
+        if (newCat && !config.categories.includes(newCat)) {
+            onUpdateConfig({ ...config, categories: [...config.categories, newCat] });
             setNewCat('');
         }
     };
 
     const removeCat = (c: string) => {
         if (window.confirm(`Deseja remover a categoria "${c}"?`)) {
-            onUpdateConfig({...config, categories: config.categories.filter(cat => cat !== c)});
+            onUpdateConfig({ ...config, categories: config.categories.filter(cat => cat !== c) });
         }
     };
 
@@ -162,7 +163,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
 
     return (
         <div className="max-w-5xl mx-auto animate-fade-in space-y-6 pb-10">
-            
+
             {/* Perfil do Usuário */}
             <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
                 <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2 mb-6">
@@ -176,8 +177,8 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                             <div className="flex gap-2">
                                 {isEditingName ? (
                                     <>
-                                        <input 
-                                            type="text" 
+                                        <input
+                                            type="text"
                                             value={tempName}
                                             onChange={(e) => setTempName(e.target.value)}
                                             className="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded px-4 py-2.5 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20"
@@ -219,7 +220,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
             {/* UPGRADE - ESCOLHA DE PLANOS */}
             <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-black p-8 rounded-2xl shadow-xl border border-slate-700 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none -mr-32 -mt-32"></div>
-                
+
                 <div className="relative z-10 flex flex-col lg:flex-row gap-8 items-start">
                     <div className="flex-1 w-full">
                         <div className="flex items-center gap-3 mb-6">
@@ -230,7 +231,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                         {!isLicensed ? (
                             <div className="space-y-6">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <button 
+                                    <button
                                         onClick={() => setSelectedPlan('basic')}
                                         className={`relative p-5 rounded-2xl border-2 text-left transition-all ${selectedPlan === 'basic' ? 'border-brand-gold bg-white/5 ring-4 ring-brand-gold/10' : 'border-slate-700 bg-black/20 hover:border-slate-500'}`}
                                     >
@@ -240,12 +241,12 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                                         <div className="mt-2 text-2xl font-black text-white">R$ {PLANS_CONFIG.basic.value.toFixed(2).replace('.', ',')}<span className="text-xs font-normal text-slate-400 ml-1">VITALÍCIO</span></div>
                                         <ul className="mt-4 space-y-2">
                                             {PLANS_CONFIG.basic.features.slice(0, 3).map((f, i) => (
-                                                <li key={i} className="text-[11px] text-slate-400 flex items-center gap-2"><CheckCircle size={12} className="text-emerald-500"/> {f}</li>
+                                                <li key={i} className="text-[11px] text-slate-400 flex items-center gap-2"><CheckCircle size={12} className="text-emerald-500" /> {f}</li>
                                             ))}
                                         </ul>
                                     </button>
 
-                                    <button 
+                                    <button
                                         onClick={() => setSelectedPlan('premium')}
                                         className={`relative p-5 rounded-2xl border-2 text-left transition-all ${selectedPlan === 'premium' ? 'border-brand-gold bg-white/5 ring-4 ring-brand-gold/10' : 'border-slate-700 bg-black/20 hover:border-slate-500'}`}
                                     >
@@ -256,7 +257,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                                         <div className="mt-2 text-2xl font-black text-white">R$ {PLANS_CONFIG.premium.value.toFixed(2).replace('.', ',')}<span className="text-xs font-normal text-slate-400 ml-1">VITALÍCIO</span></div>
                                         <ul className="mt-4 space-y-2">
                                             {PLANS_CONFIG.premium.features.slice(1, 4).map((f, i) => (
-                                                <li key={i} className="text-[11px] text-slate-400 flex items-center gap-2"><Zap size={12} className="text-brand-gold fill-current"/> {f}</li>
+                                                <li key={i} className="text-[11px] text-slate-400 flex items-center gap-2"><Zap size={12} className="text-brand-gold fill-current" /> {f}</li>
                                             ))}
                                         </ul>
                                     </button>
@@ -264,47 +265,35 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
 
                                 <div className="bg-black/30 p-6 rounded-2xl border border-white/5 space-y-4">
                                     <div className="flex flex-col md:flex-row gap-8 items-center">
-                                        <div className="bg-white p-3 rounded-xl shrink-0">
-                                            <img 
-                                                src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(PLANS_CONFIG[selectedPlan].payload)}`} 
-                                                alt="PIX QR Code" 
-                                                className="w-32 h-32"
-                                            />
-                                        </div>
+
                                         <div className="flex-1 space-y-4 text-center md:text-left">
                                             <div>
                                                 <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest">Plano Selecionado: {PLANS_CONFIG[selectedPlan].name}</p>
                                                 <h4 className="text-white font-bold text-lg">Total a pagar: R$ {PLANS_CONFIG[selectedPlan].value.toFixed(2)}</h4>
-                                            </div>
-                                            <div className="flex flex-wrap gap-3 justify-center md:justify-start">
-                                                <button onClick={copyPixCopiaECola} className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all border border-white/10">
-                                                    <Copy size={14} /> COPIAR PIX
-                                                </button>
-                                                <a href={`https://wa.me/5579988541124?text=${encodeURIComponent(`Olá! Quero suporte sobre o plano ${PLANS_CONFIG[selectedPlan].name}.\nID: ${config.userId}`)}`} target="_blank" className="flex items-center gap-2 text-emerald-400 hover:text-emerald-300 text-xs font-bold px-4 py-2 rounded-lg border border-emerald-500/20 bg-emerald-500/5">
-                                                    <MessageCircle size={14} /> TIRAR DÚVIDAS
-                                                </a>
+                                                <p className="text-xs text-slate-400 mt-2">
+                                                    Pagamento único e vitalício. Processado de forma segura pela <strong>Kiwify</strong>.
+                                                    <br />Liberação automática em segundos.
+                                                </p>
                                             </div>
                                         </div>
                                     </div>
 
-                                    {purchaseRequest?.status === 'pending' ? (
-                                        <div className="bg-amber-500/20 border border-amber-500/30 p-4 rounded-xl flex items-center gap-4">
-                                            <Timer className="text-amber-400 animate-pulse" size={24} />
-                                            <div>
-                                                <p className="text-sm font-bold text-amber-200">SOLICITAÇÃO EM ANÁLISE</p>
-                                                <p className="text-[11px] text-amber-200/60">Aguardando confirmação do PIX. O prazo é de até 24h.</p>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <button 
-                                            onClick={handleRequestActivation}
-                                            disabled={isRequestingState}
-                                            className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-4 rounded-xl shadow-lg transition-all transform hover:scale-[1.02] flex items-center justify-center gap-3"
-                                        >
-                                            {isRequestingState ? <Loader2 className="animate-spin" size={24} /> : <MessageCircle size={24} />}
-                                            {isRequestingState ? 'PROCESSANDO...' : 'JÁ FIZ O PIX, ENVIAR COMPROVANTE'}
-                                        </button>
-                                    )}
+                                    <button
+                                        onClick={() => {
+                                            const link = PLANS_CONFIG[selectedPlan].checkoutUrl;
+                                            // Adiciona email e ID para rastreamento se disponível
+                                            const finalLink = `${link}?email=${encodeURIComponent(config.userId + '@user.app')}&custom_id=${config.userId}`;
+                                            window.open(finalLink, '_blank');
+                                        }}
+                                        className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-black py-4 rounded-xl shadow-lg transition-all transform hover:scale-[1.02] flex items-center justify-center gap-3"
+                                    >
+                                        <CreditCard size={24} />
+                                        COMPRAR AGORA E DESBLOQUEAR
+                                    </button>
+
+                                    <div className="flex items-center justify-center gap-2 text-[10px] text-slate-500">
+                                        <Lock size={12} /> Pagamento 100% Seguro
+                                    </div>
                                 </div>
                             </div>
                         ) : (
@@ -333,8 +322,8 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                             <p className="text-[11px] text-slate-500">Claro ou Escuro</p>
                         </div>
                         <div className="bg-white dark:bg-slate-800 p-1 rounded-lg flex items-center border border-slate-200 dark:border-slate-700 shadow-sm">
-                            <button onClick={() => onUpdateConfig({...config, theme: 'light'})} className={`px-4 py-1.5 rounded-md text-xs font-black transition-all ${config.theme !== 'dark' ? 'bg-blue-600 text-white' : 'text-slate-500'}`}>CLARO</button>
-                            <button onClick={() => onUpdateConfig({...config, theme: 'dark'})} className={`px-4 py-1.5 rounded-md text-xs font-black transition-all ${config.theme === 'dark' ? 'bg-blue-600 text-white' : 'text-slate-500'}`}>ESCURO</button>
+                            <button onClick={() => onUpdateConfig({ ...config, theme: 'light' })} className={`px-4 py-1.5 rounded-md text-xs font-black transition-all ${config.theme !== 'dark' ? 'bg-blue-600 text-white' : 'text-slate-500'}`}>CLARO</button>
+                            <button onClick={() => onUpdateConfig({ ...config, theme: 'dark' })} className={`px-4 py-1.5 rounded-md text-xs font-black transition-all ${config.theme === 'dark' ? 'bg-blue-600 text-white' : 'text-slate-500'}`}>ESCURO</button>
                         </div>
                     </div>
                     <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-xl">
@@ -344,7 +333,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                         </div>
                         <select
                             value={config.currency || 'BRL'}
-                            onChange={(e) => onUpdateConfig({...config, currency: e.target.value as any})}
+                            onChange={(e) => onUpdateConfig({ ...config, currency: e.target.value as any })}
                             className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white text-sm font-bold rounded-lg px-3 py-2 outline-none"
                         >
                             <option value="BRL">REAL (R$)</option>
@@ -361,26 +350,26 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                     <Tag className="text-brand-blue dark:text-brand-gold" size={20} />
                     Personalização de Listas
                 </h3>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {/* Categorias */}
                     <div className="space-y-4">
                         <label className="block text-xs font-black text-slate-400 uppercase tracking-widest">Minhas Categorias</label>
                         <div className="flex gap-2">
-                            <input 
-                                type="text" 
-                                placeholder="Nova categoria..." 
-                                value={newCat} 
-                                onChange={(e) => setNewCat(e.target.value)} 
-                                className="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-brand-gold" 
+                            <input
+                                type="text"
+                                placeholder="Nova categoria..."
+                                value={newCat}
+                                onChange={(e) => setNewCat(e.target.value)}
+                                className="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-brand-gold"
                             />
-                            <button onClick={addCat} className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 rounded-lg"><Plus size={18}/></button>
+                            <button onClick={addCat} className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 rounded-lg"><Plus size={18} /></button>
                         </div>
                         <div className="flex flex-wrap gap-2 mt-2">
                             {config.categories.map(cat => (
                                 <span key={cat} className="bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 border border-slate-200 dark:border-slate-600">
                                     {cat}
-                                    <button onClick={() => removeCat(cat)} className="text-slate-400 hover:text-rose-500"><Trash2 size={12}/></button>
+                                    <button onClick={() => removeCat(cat)} className="text-slate-400 hover:text-rose-500"><Trash2 size={12} /></button>
                                 </span>
                             ))}
                         </div>
@@ -391,20 +380,20 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                         <div className="space-y-4">
                             <label className="block text-xs font-black text-slate-400 uppercase tracking-widest">Métodos de Pagamento</label>
                             <div className="flex gap-2">
-                                <input 
-                                    type="text" 
-                                    placeholder="Novo método..." 
-                                    value={newMethod} 
-                                    onChange={(e) => setNewMethod(e.target.value)} 
-                                    className="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-brand-gold" 
+                                <input
+                                    type="text"
+                                    placeholder="Novo método..."
+                                    value={newMethod}
+                                    onChange={(e) => setNewMethod(e.target.value)}
+                                    className="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-brand-gold"
                                 />
-                                <button onClick={addMethod} className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 rounded-lg"><Plus size={18}/></button>
+                                <button onClick={addMethod} className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 rounded-lg"><Plus size={18} /></button>
                             </div>
                             <div className="flex flex-wrap gap-2 mt-2">
                                 {config.paymentMethods.map(method => (
                                     <span key={method} className="bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 border border-slate-200 dark:border-slate-600">
                                         {method}
-                                        <button onClick={() => removeMethod(method)} className="text-slate-400 hover:text-rose-500"><Trash2 size={12}/></button>
+                                        <button onClick={() => removeMethod(method)} className="text-slate-400 hover:text-rose-500"><Trash2 size={12} /></button>
                                     </span>
                                 ))}
                             </div>
@@ -423,11 +412,11 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                                     <p className="text-sm font-bold text-slate-800 dark:text-white">Dia do Vencimento</p>
                                     <p className="text-[10px] text-slate-500">Para alertas de fatura</p>
                                 </div>
-                                <input 
-                                    type="number" 
-                                    min="1" 
-                                    max="31" 
-                                    value={dueDate} 
+                                <input
+                                    type="number"
+                                    min="1"
+                                    max="31"
+                                    value={dueDate}
                                     onChange={(e) => handleDueDateChange(e.target.value)}
                                     className="w-16 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1 text-center font-bold text-slate-800 dark:text-white outline-none focus:border-blue-500"
                                 />
@@ -447,7 +436,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                             <input type="password" placeholder="Nova senha..." value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-brand-gold outline-none" />
                             <button onClick={handleChangePassword} className="bg-slate-800 dark:bg-slate-700 text-white px-4 py-2 rounded-lg text-xs font-black hover:bg-black transition-colors">ATUALIZAR</button>
                         </div>
-                        {passSuccess && <p className="text-[10px] text-emerald-600 font-black uppercase flex items-center gap-1"><CheckCircle size={12}/> Senha Alterada!</p>}
+                        {passSuccess && <p className="text-[10px] text-emerald-600 font-black uppercase flex items-center gap-1"><CheckCircle size={12} /> Senha Alterada!</p>}
                     </div>
                     <div className="space-y-4 border-t md:border-t-0 md:border-l border-slate-100 dark:border-slate-700 md:pl-8 pt-4 md:pt-0">
                         <label className="block text-xs font-black text-slate-400 uppercase tracking-widest">Exportação e Segurança</label>

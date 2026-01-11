@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Rocket, Check, Zap, ShoppingCart, Lock } from 'lucide-react';
 
+import { PLANS_CONFIG } from '../constants';
+
 interface SubscriptionWallProps {
     userId?: string;
     userEmail?: string;
@@ -12,12 +14,8 @@ export const SubscriptionWall: React.FC<SubscriptionWallProps> = ({ userId, user
     const [showKeyInput, setShowKeyInput] = useState(false);
     const [licenseKey, setLicenseKey] = useState('');
 
-    // LINKS DE CHECKOUT (Substitua pelos seus links reais da Kiwify/Hotmart)
-    const CHECKOUT_BASIC = "https://pay.kiwify.com.br/4A8FZ7I";
-    const CHECKOUT_PREMIUM = "https://pay.kiwify.com.br/PZzs9Up";
-
     const handleCheckout = () => {
-        const link = selectedPlan === 'basic' ? CHECKOUT_BASIC : CHECKOUT_PREMIUM;
+        const link = PLANS_CONFIG[selectedPlan].checkoutUrl;
         // Adicionar email e ID na URL para rastreamento (UTM ou parâmetros personalizados se a plataforma suportar)
         const finalLink = `${link}?email=${userEmail || ''}&custom_id=${userId || ''}`;
         window.open(finalLink, '_blank');
