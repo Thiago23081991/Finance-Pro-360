@@ -1,8 +1,5 @@
-import React from 'react';
-import { useState } from 'react';
-import { Rocket, Check, Zap, Copy, MessageCircle } from 'lucide-react';
-import { QRCodeSVG } from 'qrcode.react';
-import { Logo } from './Logo';
+import React, { useState } from 'react';
+import { Rocket, Check, Zap, ShoppingCart, Lock } from 'lucide-react';
 
 interface SubscriptionWallProps {
     userId?: string;
@@ -11,29 +8,32 @@ interface SubscriptionWallProps {
 
 export const SubscriptionWall: React.FC<SubscriptionWallProps> = ({ userId, userEmail }) => {
     const [selectedPlan, setSelectedPlan] = useState<'basic' | 'premium'>('basic');
+    const [activating, setActivating] = useState(false);
     const [showKeyInput, setShowKeyInput] = useState(false);
     const [licenseKey, setLicenseKey] = useState('');
-    const [activating, setActivating] = useState(false);
 
-    const PIX_CODE_BASIC = "00020126580014BR.GOV.BCB.PIX0136ae75855f-8720-45b5-86c3-9d1a2411475f520400005303986540529.905802BR5925Thiago da Silva Nasciment6009SAO PAULO62140510ouz7uLxcyU6304BF59";
+    // LINKS DE CHECKOUT (Substitua pelos seus links reais da Kiwify/Hotmart)
+    const CHECKOUT_BASIC = "https://pay.kiwify.com.br/4A8FZ7I";
+    const CHECKOUT_PREMIUM = "https://pay.kiwify.com.br/PZzs9Up";
 
-    const getWhatsAppLink = () => {
-        const message = `Olá, já realizei o pagamento do Plano Básico!\n\nID do Usuário: ${userId || 'N/A'}\nEmail: ${userEmail || 'N/A'}\n\nAguardo a liberação do acesso.`;
-        return `https://wa.me/5579988541124?text=${encodeURIComponent(message)}`;
+    const handleCheckout = () => {
+        const link = selectedPlan === 'basic' ? CHECKOUT_BASIC : CHECKOUT_PREMIUM;
+        // Adicionar email e ID na URL para rastreamento (UTM ou parâmetros personalizados se a plataforma suportar)
+        const finalLink = `${link}?email=${userEmail || ''}&custom_id=${userId || ''}`;
+        window.open(finalLink, '_blank');
     };
 
     const handleActivateKey = async () => {
         if (!licenseKey || !userId) return;
         setActivating(true);
         try {
-            // Import dynamically to avoid circular dependency issues if any, or just standard import usage
             const { DBService } = await import('../db');
             const success = await DBService.activateLicenseKey(userId, licenseKey);
             if (success) {
-                alert("Licença ativada com sucesso!");
+                alert("Licença ativada com sucesso! Bem-vindo ao Pro.");
                 window.location.reload();
             } else {
-                alert("Chave inválida. Verifique o código e tente novamente.");
+                alert("Chave inválida. Verifique seu email de compra.");
             }
         } catch (error) {
             console.error(error);
@@ -48,54 +48,52 @@ export const SubscriptionWall: React.FC<SubscriptionWallProps> = ({ userId, user
             <div className="max-w-5xl w-full space-y-8">
 
                 {/* Header */}
-                <div className="flex items-center gap-3">
-                    <Rocket className="text-brand-gold" size={32} />
-                    <h1 className="text-3xl font-black uppercase tracking-tight">Evolua sua Gestão</h1>
+                <div className="text-center space-y-2">
+                    <div className="flex items-center justify-center gap-3 mb-4">
+                        <Rocket className="text-brand-gold" size={42} />
+                        <h1 className="text-4xl font-black uppercase tracking-tight text-white">Evolua sua Gestão</h1>
+                    </div>
+                    <p className="text-slate-400 text-lg">Desbloqueie todo o potêncial do Finance Pro 360 e assuma o controle.</p>
                 </div>
 
                 {/* Plans Grid */}
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
 
                     {/* Basic Plan */}
                     <div
                         onClick={() => setSelectedPlan('basic')}
-                        className={`relative p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${selectedPlan === 'basic'
-                            ? 'border-brand-gold bg-slate-800/50 shadow-2xl shadow-brand-gold/10'
-                            : 'border-slate-700 bg-slate-900/50 opacity-60 hover:opacity-100'
+                        className={`relative p-8 rounded-3xl border-2 cursor-pointer transition-all duration-300 ${selectedPlan === 'basic'
+                            ? 'border-brand-gold bg-slate-800/80 shadow-2xl shadow-brand-gold/10 scale-105 z-10'
+                            : 'border-slate-700 bg-slate-900/40 opacity-70 hover:opacity-100 hover:scale-[1.02]'
                             }`}
                     >
                         {selectedPlan === 'basic' && (
-                            <div className="absolute top-4 right-4 text-brand-gold">
-                                <Check size={24} strokeWidth={3} />
+                            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-gold text-brand-blue text-xs font-black px-4 py-1 rounded-full uppercase tracking-wider">
+                                Selecionado
                             </div>
                         )}
 
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Entrada</p>
-                        <h2 className="text-2xl font-black mb-1">PLANO BÁSICO</h2>
-                        <div className="flex items-baseline gap-1 mb-6">
-                            <span className="text-lg font-bold">R$</span>
-                            <span className="text-4xl font-black">29,90</span>
-                            <span className="text-[10px] text-slate-400 font-bold uppercase ml-1">Vitalício</span>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Iniciante</p>
+                        <h2 className="text-3xl font-black mb-4">Essencial</h2>
+                        <div className="flex items-baseline gap-1 mb-8">
+                            <span className="text-lg font-bold text-slate-300">R$</span>
+                            <span className="text-5xl font-black text-white">47</span>
+                            <span className="text-xl font-bold text-slate-500">,00</span>
                         </div>
+                        <p className="text-xs text-brand-gold font-bold uppercase mb-8 bg-brand-gold/10 inline-block px-3 py-1 rounded">Pagamento Único (Vitalício)</p>
 
-                        <ul className="space-y-3">
-                            <li className="flex items-center gap-2 text-sm text-slate-300">
-                                <div className="w-5 h-5 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 shrink-0">
-                                    <Check size={12} strokeWidth={3} />
-                                </div>
-                                Dashboard Completo
+                        <ul className="space-y-4 mb-8">
+                            <li className="flex items-center gap-3 text-sm text-slate-300">
+                                <Check size={18} className="text-emerald-400 shrink-0" />
+                                <span>Dashboard Completo</span>
                             </li>
-                            <li className="flex items-center gap-2 text-sm text-slate-300">
-                                <div className="w-5 h-5 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 shrink-0">
-                                    <Check size={12} strokeWidth={3} />
-                                </div>
-                                Gestão de Receitas/Despesas
+                            <li className="flex items-center gap-3 text-sm text-slate-300">
+                                <Check size={18} className="text-emerald-400 shrink-0" />
+                                <span>Controle de Receitas/Despesas</span>
                             </li>
-                            <li className="flex items-center gap-2 text-sm text-slate-300">
-                                <div className="w-5 h-5 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 shrink-0">
-                                    <Check size={12} strokeWidth={3} />
-                                </div>
-                                Metas Financeiras
+                            <li className="flex items-center gap-3 text-sm text-slate-300">
+                                <Check size={18} className="text-emerald-400 shrink-0" />
+                                <span>Gerenciador de Metas</span>
                             </li>
                         </ul>
                     </div>
@@ -103,148 +101,88 @@ export const SubscriptionWall: React.FC<SubscriptionWallProps> = ({ userId, user
                     {/* Premium Plan */}
                     <div
                         onClick={() => setSelectedPlan('premium')}
-                        className={`relative p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 group overflow-hidden ${selectedPlan === 'premium'
-                            ? 'border-brand-gold bg-slate-800/50 shadow-2xl shadow-brand-gold/10'
-                            : 'border-slate-700 bg-slate-900/50 opacity-80 hover:opacity-100'
+                        className={`relative p-8 rounded-3xl border-2 cursor-pointer transition-all duration-300 overflow-hidden ${selectedPlan === 'premium'
+                            ? 'border-brand-gold bg-slate-800/80 shadow-2xl shadow-brand-gold/10 scale-105 z-10'
+                            : 'border-slate-700 bg-slate-900/40 opacity-70 hover:opacity-100 hover:scale-[1.02]'
                             }`}
                     >
-                        <div className="absolute top-0 right-0 bg-brand-gold text-brand-blue text-[10px] font-black px-3 py-1 rounded-bl-lg">
-                            O MAIS COMPLETO
+                        <div className="absolute top-0 right-0 bg-gradient-to-l from-brand-gold to-yellow-400 text-brand-blue text-[10px] font-black px-4 py-1.5 rounded-bl-xl shadow-lg">
+                            RECOMENDADO
                         </div>
 
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Profissional</p>
-                        <h2 className="text-2xl font-black mb-1">PLANO PREMIUM</h2>
-                        <div className="flex items-baseline gap-1 mb-6">
-                            <span className="text-lg font-bold">R$</span>
-                            <span className="text-4xl font-black">80,00</span>
-                            <span className="text-[10px] text-slate-400 font-bold uppercase ml-1">Vitalício</span>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Profissional</p>
+                        <h2 className="text-3xl font-black mb-4">Premium AI</h2>
+                        <div className="flex items-baseline gap-1 mb-8">
+                            <span className="text-lg font-bold text-slate-300">R$</span>
+                            <span className="text-5xl font-black text-white">97</span>
+                            <span className="text-xl font-bold text-slate-500">,00</span>
                         </div>
+                        <p className="text-xs text-brand-gold font-bold uppercase mb-8 bg-brand-gold/10 inline-block px-3 py-1 rounded">Pagamento Único (Vitalício)</p>
 
-                        <ul className="space-y-3">
-                            <li className="flex items-center gap-2 text-sm text-slate-300">
-                                <Zap size={16} className="text-brand-gold fill-brand-gold" />
-                                Insights com Inteligência Artificial
+                        <ul className="space-y-4 mb-8">
+                            <li className="flex items-center gap-3 text-sm text-slate-300">
+                                <Zap size={18} className="text-brand-gold shrink-0 fill-brand-gold" />
+                                <span className="font-bold text-white">Todas as funções do Essencial</span>
                             </li>
-                            <li className="flex items-center gap-2 text-sm text-slate-300">
-                                <Zap size={16} className="text-brand-gold fill-brand-gold" />
-                                Simuladores de Bancos (Nubank)
+                            <li className="flex items-center gap-3 text-sm text-slate-300">
+                                <Zap size={18} className="text-brand-gold shrink-0 fill-brand-gold" />
+                                <span>Insights com Inteligência Artificial</span>
                             </li>
-                            <li className="flex items-center gap-2 text-sm text-slate-300">
-                                <Zap size={16} className="text-brand-gold fill-brand-gold" />
-                                Cursos da Finance Academy
+                            <li className="flex items-center gap-3 text-sm text-slate-300">
+                                <Zap size={18} className="text-brand-gold shrink-0 fill-brand-gold" />
+                                <span>Acesso aos Cursos Academy</span>
+                            </li>
+                            <li className="flex items-center gap-3 text-sm text-slate-300">
+                                <Zap size={18} className="text-brand-gold shrink-0 fill-brand-gold" />
+                                <span>Prioridade no Suporte</span>
                             </li>
                         </ul>
                     </div>
                 </div>
 
-                {/* Payment Main Area */}
-                <div className="bg-slate-950 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row gap-8 items-center md:items-start border border-slate-800/50">
+                {/* CTA Section */}
+                <div className="max-w-md mx-auto mt-8 space-y-4">
+                    <button
+                        onClick={handleCheckout}
+                        className="w-full bg-gradient-to-r from-brand-gold to-yellow-500 hover:from-yellow-400 hover:to-yellow-500 text-brand-blue text-lg font-black py-5 rounded-2xl shadow-lg shadow-brand-gold/20 transform transition-all active:scale-95 flex items-center justify-center gap-3 group"
+                    >
+                        <ShoppingCart className="group-hover:animate-bounce" />
+                        DESBLOQUEAR ACESSO AGORA
+                    </button>
 
-                    {/* QR Code Section */}
-                    <div className="bg-white p-3 rounded-xl shrink-0 flex items-center justify-center">
-                        {selectedPlan === 'basic' ? (
-                            <QRCodeSVG
-                                value={PIX_CODE_BASIC}
-                                size={180}
-                                level={"M"}
-                                includeMargin={true}
-                            />
-                        ) : (
-                            <div className="w-48 h-48 flex items-center justify-center bg-slate-100 rounded text-slate-400 text-xs text-center p-4">
-                                QR Code do Plano Premium indisponível no momento
-                            </div>
-                        )}
-                    </div>
+                    <p className="text-center text-xs text-slate-500 leading-relaxed">
+                        Pagamento processado de forma segura pela Kiwify. <br />
+                        Seu acesso é liberado automaticamente após a confirmação.
+                    </p>
 
-                    {/* Details & Actions */}
-                    <div className="flex-1 w-full space-y-6">
-                        <div>
-                            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Plano Selecionado: {selectedPlan === 'basic' ? 'Plano Básico' : 'Plano Premium'}</p>
-                            <div className="flex items-center gap-2">
-                                <h2 className="text-3xl font-bold text-white">Total a pagar:</h2>
-                                <span className="text-3xl font-black text-white">R$ {selectedPlan === 'basic' ? '29.90' : '80.00'}</span>
-                            </div>
-                        </div>
+                    {/* Manual Activation Toggle */}
+                    <div className="pt-6 border-t border-slate-800/50 text-center">
+                        <button
+                            onClick={() => setShowKeyInput(!showKeyInput)}
+                            className="text-xs text-slate-500 hover:text-white flex items-center justify-center gap-1 mx-auto transition-colors"
+                        >
+                            <Lock size={12} />
+                            {showKeyInput ? 'Fechar ativação manual' : 'Já comprei e tenho uma chave'}
+                        </button>
 
-                        {selectedPlan === 'basic' && (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {showKeyInput && (
+                            <div className="mt-4 animate-fade-in bg-slate-900/80 p-4 rounded-xl border border-slate-700 flex flex-col sm:flex-row gap-2 max-w-sm mx-auto shadow-xl">
+                                <input
+                                    type="text"
+                                    value={licenseKey}
+                                    onChange={(e) => setLicenseKey(e.target.value.toUpperCase())}
+                                    placeholder="XXXX-XXXX"
+                                    className="flex-1 bg-black/40 border-slate-700 rounded-lg px-3 py-2 text-white font-mono text-center text-sm placeholder-slate-600 focus:ring-2 focus:ring-brand-gold/50 outline-none"
+                                />
                                 <button
-                                    onClick={() => {
-                                        navigator.clipboard.writeText(PIX_CODE_BASIC);
-                                        alert("Código Pix copiado com sucesso!");
-                                    }}
-                                    className="bg-slate-800 hover:bg-slate-700 text-white px-4 py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors border border-slate-700"
+                                    onClick={handleActivateKey}
+                                    disabled={activating || !licenseKey}
+                                    className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors disabled:opacity-50"
                                 >
-                                    <Copy size={18} />
-                                    COPIAR PIX
+                                    {activating ? '...' : 'Validar'}
                                 </button>
-
-                                <a
-                                    href={getWhatsAppLink()}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="bg-brand-gold hover:bg-yellow-500 text-brand-blue px-4 py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors shadow-lg shadow-brand-gold/10"
-                                >
-                                    <MessageCircle size={18} />
-                                    ENVIAR COMPROVANTE
-                                </a>
                             </div>
                         )}
-
-                        {selectedPlan === 'premium' && (
-                            <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg text-yellow-500 text-sm">
-                                Este plano está temporariamente indisponível para compra automática. Entre em contato com o suporte.
-                            </div>
-                        )}
-
-                        {selectedPlan === 'basic' && (
-                            <div className="space-y-4">
-                                <p className="text-xs text-slate-500 leading-relaxed">
-                                    <strong className="text-emerald-400">Como ativar rápido?</strong> <br />
-                                    1. Copie o código Pix e pague no seu banco. <br />
-                                    2. Clique em <strong>Enviar Comprovante</strong> acima. <br />
-                                    3. Você será redirecionado para o WhatsApp do suporte com seus dados já preenchidos.
-                                </p>
-
-                                <div className="bg-slate-900/50 p-3 rounded-lg border border-slate-700 text-left">
-                                    <p className="text-[10px] text-slate-400 mb-1 font-bold uppercase tracking-wider">Pix Copia e Cola</p>
-                                    <div className="flex gap-2">
-                                        <code className="flex-1 bg-black/30 p-2 rounded text-[10px] text-slate-300 break-all font-mono border border-slate-800 select-all">
-                                            {PIX_CODE_BASIC}
-                                        </code>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Activation Key Section */}
-                        <div className="pt-4 border-t border-slate-800/50">
-                            <button
-                                onClick={() => setShowKeyInput(!showKeyInput)}
-                                className="text-xs text-slate-500 hover:text-brand-gold underline transition-colors"
-                            >
-                                {showKeyInput ? 'Fechar ativação manual' : 'Tenho um código de ativação'}
-                            </button>
-
-                            {showKeyInput && (
-                                <div className="mt-2 animate-fade-in bg-slate-900 p-3 rounded-lg border border-slate-700 flex flex-col sm:flex-row gap-2">
-                                    <input
-                                        type="text"
-                                        value={licenseKey}
-                                        onChange={(e) => setLicenseKey(e.target.value.toUpperCase())}
-                                        placeholder="XXXX-XXXX"
-                                        className="flex-1 bg-slate-800 border-none rounded px-3 py-2 text-white font-mono text-sm placeholder-slate-500 focus:ring-1 focus:ring-brand-gold"
-                                    />
-                                    <button
-                                        onClick={handleActivateKey}
-                                        disabled={activating || !licenseKey}
-                                        className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded text-sm font-bold transition-colors disabled:opacity-50"
-                                    >
-                                        {activating ? 'Validando...' : 'Ativar'}
-                                    </button>
-                                </div>
-                            )}
-                        </div>
                     </div>
                 </div>
 
