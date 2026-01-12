@@ -37,9 +37,12 @@ export interface Debt {
 export interface AppConfig {
   userId?: string;
   name?: string; // Nome do usuário para exibição
+  planType?: 'basic' | 'premium'; // Tipo do plano
   theme?: 'light' | 'dark'; // New Theme Field
   currency?: 'BRL' | 'USD' | 'EUR' | 'GBP' | 'JPY'; // Currency Field
-  categories: string[];
+  categories: string[]; // Deprecated, kept for backward compat
+  incomeCategories: string[]; // New separate list
+  expenseCategories: string[]; // New separate list
   paymentMethods: string[];
   creditCardDueDate?: number; // Dia do vencimento da fatura (1-31)
   // New fields for Reminders

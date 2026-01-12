@@ -288,16 +288,16 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
             )}
 
             <main className="flex-1 flex flex-col h-full overflow-hidden relative">
-                <header className="bg-white dark:bg-slate-900 h-16 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-4 sm:px-6 shadow-sm z-10 transition-colors">
-                    <div className="flex items-center gap-4"><button onClick={() => setIsMobileMenuOpen(true)} className="md:hidden text-slate-500 hover:bg-slate-100 p-2 rounded-lg"><Menu /></button><h2 className="text-lg font-semibold dark:text-white">{TAB_METADATA[activeTab].pageTitle}</h2></div>
+                <header className="bg-white dark:bg-slate-900 h-16 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-4 shadow-sm z-30 transition-colors">
+                    <div className="flex items-center gap-3"><button onClick={() => setIsMobileMenuOpen(true)} className="md:hidden text-slate-500 hover:bg-slate-100 p-2 rounded-lg -ml-2"><Menu /></button><h2 className="text-lg font-semibold dark:text-white truncate max-w-[200px]">{TAB_METADATA[activeTab].pageTitle}</h2></div>
                     <div className="flex items-center gap-2 sm:gap-4"><div className="hidden sm:block"><FilterBar filter={filter} setFilter={setFilter} activeTab={activeTab} config={config} /></div><button onClick={() => updateConfig({ ...config, theme: config.theme === 'dark' ? 'light' : 'dark' })} className="p-2 text-slate-500 dark:hover:bg-slate-800 rounded-full transition-colors">{config.theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}</button><button onClick={() => setShowCalculatorModal(true)} className="p-2 text-slate-500 dark:hover:bg-slate-800 rounded-full transition-colors"><Calculator size={20} /></button><button onClick={() => setShowInbox(true)} className="relative p-2 text-slate-500 dark:hover:bg-slate-800 rounded-full transition-colors"><Mail size={20} />{unreadMessages > 0 && <span className="absolute top-1 right-1 w-3 h-3 bg-brand-gold rounded-full border-2 border-white dark:border-slate-900 animate-pulse"></span>}</button></div>
                 </header>
 
-                <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar mb-16 md:mb-0 relative">
+                <div className="flex-1 overflow-y-auto p-4 custom-scrollbar pb-28 md:pb-6 relative">
                     {contentLoading && <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm z-20"><Loader2 size={40} className="animate-spin text-brand-gold mb-3" /><p className="text-sm font-medium animate-pulse">Sincronizando...</p></div>}
                     <div className={`transition-opacity duration-300 ${contentLoading ? 'opacity-40' : 'opacity-100'}`}>
                         {activeTab === 'controle' && <Dashboard transactions={transactions} goals={goals} filter={filter} currency={config.currency} />}
-                        {activeTab === 'receitas' && <SheetView type="income" transactions={transactions} categories={config.categories} paymentMethods={config.paymentMethods} onAdd={addTransaction} onUpdate={updateTransaction} onDelete={deleteTransaction} currency={config.currency} />}
+                        {activeTab === 'receitas' && <SheetView type="income" transactions={transactions} categories={config.incomeCategories || DEFAULT_CONFIG.incomeCategories} paymentMethods={config.paymentMethods} onAdd={addTransaction} onUpdate={updateTransaction} onDelete={deleteTransaction} currency={config.currency} />}
 
                         {activeTab === 'despesas' && (
                             <div className="flex flex-col gap-4">
@@ -326,9 +326,9 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                                     </div>
                                 </div>
                                 {expenseSubTab === 'general' ? (
-                                    <SheetView type="expense" transactions={transactions} categories={config.categories} paymentMethods={config.paymentMethods} onAdd={addTransaction} onUpdate={updateTransaction} onDelete={deleteTransaction} currency={config.currency} />
+                                    <SheetView type="expense" transactions={transactions} categories={config.expenseCategories || DEFAULT_CONFIG.expenseCategories} paymentMethods={config.paymentMethods} onAdd={addTransaction} onUpdate={updateTransaction} onDelete={deleteTransaction} currency={config.currency} />
                                 ) : (
-                                    <CreditCardControl transactions={transactions} onDelete={deleteTransaction} onAdd={addTransaction} categories={config.categories} currency={config.currency} config={config} />
+                                    <CreditCardControl transactions={transactions} onDelete={deleteTransaction} onAdd={addTransaction} categories={config.expenseCategories || DEFAULT_CONFIG.expenseCategories} currency={config.currency} config={config} />
                                 )}
                             </div>
                         )}
@@ -336,7 +336,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                         {activeTab === 'dividas' && <Debts config={config} debts={debts} onAddDebt={addDebt} onDeleteDebt={deleteDebt} onNavigateToSettings={() => handleTabChange('config')} />}
                         {activeTab === 'metas' && <GoalsSheet goals={goals} onAdd={addGoal} onDelete={deleteGoal} onUpdate={updateGoalValue} currency={config.currency} />}
                         {activeTab === 'investimentos' && <Investments config={config} onNavigateToSettings={() => handleTabChange('config')} />}
-                        {activeTab === 'cursos' && <Courses config={config} onNavigateToSettings={() => handleTabChange('config')} />}
+                        {activeTab === 'cursos' && <Courses config={config} userEmail={userEmail} onNavigateToSettings={() => handleTabChange('config')} />}
                         {activeTab === 'config' && <Settings config={config} onUpdateConfig={updateConfig} transactions={transactions} />}
                         {activeTab === 'admin' && isAdmin && <AdminPanel />}
                     </div>
@@ -350,7 +350,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                     <Plus size={28} />
                 </button>
 
-                <nav className="md:hidden fixed bottom-0 w-full bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 z-40 flex justify-around items-center pb-safe pt-1 shadow-lg overflow-x-auto">
+                <nav className="md:hidden fixed bottom-0 w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 z-50 flex justify-around items-center pb-safe pt-1 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
                     {(['controle', 'receitas', 'despesas', 'cursos', 'config'] as Tab[]).map(t => (<button key={t} onClick={() => handleTabChange(t)} className={`flex flex-col items-center justify-center p-2 min-w-[70px] ${activeTab === t ? 'text-brand-blue dark:text-brand-gold' : 'text-slate-400'}`}>{TAB_METADATA[t].icon}<span className="text-[10px] mt-1 font-medium">{TAB_METADATA[t].label}</span></button>))}
                 </nav>
                 {toastMessage && <Toast message={toastMessage} onClose={() => setToastMessage(null)} actionLabel={toastAction?.label} onAction={toastAction?.fn} />}

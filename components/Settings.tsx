@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { AppConfig, Transaction, PurchaseRequest } from '../types';
-import { Trash2, Plus, FileSpreadsheet, Download, Bell, CreditCard, CheckCircle, Upload, Shield, Key, Lock, Moon, Sun, AlertTriangle, FileText, ArrowRight, DollarSign, Rocket, Star, ExternalLink, TableProperties, Info, Copy, Smartphone, Timer, QrCode, Loader2, Target, Scale, User, Edit2, Save, MessageCircle, Zap, Tag, Wallet, Calendar } from 'lucide-react';
+import { Trash2, Plus, FileSpreadsheet, Download, Bell, CreditCard, CheckCircle, Upload, Shield, Key, Lock, Moon, Sun, AlertTriangle, FileText, ArrowRight, DollarSign, Rocket, Star, ExternalLink, TableProperties, Info, Copy, Smartphone, Timer, QrCode, Loader2, Target, Scale, User, Edit2, Save, MessageCircle, Zap, Tag, Wallet, Calendar, TrendingUp } from 'lucide-react';
 import { exportToCSV, validateLicenseKey, generateId } from '../utils';
 import { DBService } from '../db';
 import { PrivacyModal } from './PrivacyModal';
@@ -14,7 +14,8 @@ interface SettingsProps {
 }
 
 export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, transactions }) => {
-    const [newCat, setNewCat] = useState('');
+    const [newIncomeCat, setNewIncomeCat] = useState('');
+    const [newExpenseCat, setNewExpenseCat] = useState('');
     const [newMethod, setNewMethod] = useState('');
     const [isRestoring, setIsRestoring] = useState(false);
     const [dueDate, setDueDate] = useState(config.creditCardDueDate || 10);
@@ -96,16 +97,31 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
     //     alert("PIX Copia e Cola copiado!");
     // }; // Removed as per instruction
 
-    const addCat = () => {
-        if (newCat && !config.categories.includes(newCat)) {
-            onUpdateConfig({ ...config, categories: [...config.categories, newCat] });
-            setNewCat('');
+    const addIncomeCat = () => {
+        const currentCats = config.incomeCategories || [];
+        if (newIncomeCat && !currentCats.includes(newIncomeCat)) {
+            onUpdateConfig({ ...config, incomeCategories: [...currentCats, newIncomeCat] });
+            setNewIncomeCat('');
         }
     };
 
-    const removeCat = (c: string) => {
-        if (window.confirm(`Deseja remover a categoria "${c}"?`)) {
-            onUpdateConfig({ ...config, categories: config.categories.filter(cat => cat !== c) });
+    const removeIncomeCat = (c: string) => {
+        if (window.confirm(`Deseja remover a categoria de receita "${c}"?`)) {
+            onUpdateConfig({ ...config, incomeCategories: (config.incomeCategories || []).filter(cat => cat !== c) });
+        }
+    };
+
+    const addExpenseCat = () => {
+        const currentCats = config.expenseCategories || [];
+        if (newExpenseCat && !currentCats.includes(newExpenseCat)) {
+            onUpdateConfig({ ...config, expenseCategories: [...currentCats, newExpenseCat] });
+            setNewExpenseCat('');
+        }
+    };
+
+    const removeExpenseCat = (c: string) => {
+        if (window.confirm(`Deseja remover a categoria de despesa "${c}"?`)) {
+            onUpdateConfig({ ...config, expenseCategories: (config.expenseCategories || []).filter(cat => cat !== c) });
         }
     };
 
@@ -353,25 +369,56 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {/* Categorias */}
-                    <div className="space-y-4">
-                        <label className="block text-xs font-black text-slate-400 uppercase tracking-widest">Minhas Categorias</label>
-                        <div className="flex gap-2">
-                            <input
-                                type="text"
-                                placeholder="Nova categoria..."
-                                value={newCat}
-                                onChange={(e) => setNewCat(e.target.value)}
-                                className="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-brand-gold"
-                            />
-                            <button onClick={addCat} className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 rounded-lg"><Plus size={18} /></button>
+                    {/* Categorias */}
+                    <div className="space-y-8">
+                        {/* Receitas */}
+                        <div className="space-y-4">
+                            <label className="block text-xs font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest flex items-center gap-2">
+                                <TrendingUp size={14} /> Categorias de Receitas
+                            </label>
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    placeholder="Nova receita..."
+                                    value={newIncomeCat}
+                                    onChange={(e) => setNewIncomeCat(e.target.value)}
+                                    className="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-brand-gold"
+                                />
+                                <button onClick={addIncomeCat} className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 rounded-lg"><Plus size={18} /></button>
+                            </div>
+                            <div className="flex flex-wrap gap-2 mt-2">
+                                {(config.incomeCategories || []).map(cat => (
+                                    <span key={cat} className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 border border-emerald-100 dark:border-emerald-800">
+                                        {cat}
+                                        <button onClick={() => removeIncomeCat(cat)} className="text-emerald-400 hover:text-rose-500"><Trash2 size={12} /></button>
+                                    </span>
+                                ))}
+                            </div>
                         </div>
-                        <div className="flex flex-wrap gap-2 mt-2">
-                            {config.categories.map(cat => (
-                                <span key={cat} className="bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 border border-slate-200 dark:border-slate-600">
-                                    {cat}
-                                    <button onClick={() => removeCat(cat)} className="text-slate-400 hover:text-rose-500"><Trash2 size={12} /></button>
-                                </span>
-                            ))}
+
+                        {/* Despesas */}
+                        <div className="space-y-4">
+                            <label className="block text-xs font-black text-rose-600 dark:text-rose-400 uppercase tracking-widest flex items-center gap-2">
+                                <CreditCard size={14} /> Categorias de Despesas
+                            </label>
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    placeholder="Nova despesa..."
+                                    value={newExpenseCat}
+                                    onChange={(e) => setNewExpenseCat(e.target.value)}
+                                    className="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-brand-gold"
+                                />
+                                <button onClick={addExpenseCat} className="bg-rose-600 hover:bg-rose-700 text-white px-3 rounded-lg"><Plus size={18} /></button>
+                            </div>
+                            <div className="flex flex-wrap gap-2 mt-2">
+                                {(config.expenseCategories || []).map(cat => (
+                                    <span key={cat} className="bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-300 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 border border-rose-100 dark:border-rose-800">
+                                        {cat}
+                                        <button onClick={() => removeExpenseCat(cat)} className="text-rose-400 hover:text-rose-500"><Trash2 size={12} /></button>
+                                    </span>
+                                ))}
+                            </div>
                         </div>
                     </div>
 

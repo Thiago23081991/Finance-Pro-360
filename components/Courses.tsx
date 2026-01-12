@@ -1,14 +1,20 @@
 import React, { useState } from 'react';
 import { Play, Lock, Clock, CheckCircle, GraduationCap } from 'lucide-react';
 import { AppConfig } from '../types';
+import { PremiumLock } from './PremiumLock';
 
 interface CoursesProps {
     config: AppConfig;
     onNavigateToSettings: () => void;
+    userEmail?: string;
 }
 
-export const Courses: React.FC<CoursesProps> = ({ config }) => {
+export const Courses: React.FC<CoursesProps> = ({ config, userEmail }) => {
     const [activeModule, setActiveModule] = useState<number | null>(null);
+
+    if (config.planType !== 'premium') {
+        return <PremiumLock config={config} userEmail={userEmail} userId={config.userId} />;
+    }
 
     const modules = [
         {

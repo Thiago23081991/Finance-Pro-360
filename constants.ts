@@ -19,20 +19,36 @@ export const PLANS_CONFIG = {
   }
 };
 
+export const DEFAULT_INCOME_CATEGORIES = [
+  "Salários",
+  "Vendas Diversas",
+  "Aluguel de Carro",
+  "Aluguel de Apartamento",
+  "Aluguel de Casa",
+  "Dividendos",
+  "Rendimentos",
+  "Aposentadoria",
+  "Outros"
+];
+
+export const DEFAULT_EXPENSE_CATEGORIES = [
+  "Alimentação",
+  "Transporte",
+  "Moradia",
+  "Saúde",
+  "Lazer",
+  "Educação",
+  "Investimentos",
+  "Outros"
+];
+
 export const DEFAULT_CONFIG: AppConfig = {
+  planType: 'basic',
   theme: 'light',
   currency: 'BRL',
-  categories: [
-    "Alimentação",
-    "Transporte",
-    "Moradia",
-    "Saúde",
-    "Lazer",
-    "Educação",
-    "Salário",
-    "Investimentos",
-    "Outros"
-  ],
+  categories: [], // Legacy empty
+  incomeCategories: DEFAULT_INCOME_CATEGORIES,
+  expenseCategories: DEFAULT_EXPENSE_CATEGORIES,
   paymentMethods: [
     "Débito",
     "Crédito",

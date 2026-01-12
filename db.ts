@@ -28,10 +28,13 @@ export class DBService {
         id: authData.user.id,
         email: user.username,
         username: user.name || user.username.split('@')[0],
-        categories: DEFAULT_CONFIG.categories,
+        categories: [], // Legacy
+        income_categories: DEFAULT_CONFIG.incomeCategories, // New
+        expense_categories: DEFAULT_CONFIG.expenseCategories, // New
         payment_methods: DEFAULT_CONFIG.paymentMethods,
         enable_reminders: true,
-        has_seen_tutorial: false
+        has_seen_tutorial: false,
+        plan_type: 'basic'
       });
 
       if (profileError) {
@@ -252,7 +255,9 @@ export class DBService {
       name: data.username,
       theme: data.theme || localConfig.theme || 'light',
       currency: data.currency || localConfig.currency || 'BRL',
-      categories: data.categories || DEFAULT_CONFIG.categories,
+      categories: data.categories || [], // Legacy
+      incomeCategories: data.income_categories || localConfig.incomeCategories || DEFAULT_CONFIG.incomeCategories,
+      expenseCategories: data.expense_categories || localConfig.expenseCategories || DEFAULT_CONFIG.expenseCategories,
       paymentMethods: data.payment_methods || DEFAULT_CONFIG.paymentMethods,
       enableReminders: data.enable_reminders ?? localConfig.enableReminders ?? true,
       reminderFrequency: data.reminder_frequency || localConfig.reminderFrequency,
@@ -260,6 +265,7 @@ export class DBService {
       hasSeenTutorial: data.has_seen_tutorial ?? localConfig.hasSeenTutorial ?? false,
       licenseKey: data.license_key || localConfig.licenseKey,
       licenseStatus: data.license_status || localConfig.licenseStatus,
+      planType: data.plan_type || localConfig.planType || 'basic',
       // Added createdAt to support lazy initialization check in App.tsx
       createdAt: data.created_at
     };
@@ -278,15 +284,17 @@ export class DBService {
       id: user.id,
       // Fixed: Map name back to username field in Supabase profiles table
       username: config.name,
-      categories: config.categories,
+      categories: config.categories, // Legacy
+      income_categories: config.incomeCategories,
+      expense_categories: config.expenseCategories,
       payment_methods: config.paymentMethods,
       enable_reminders: config.enableReminders,
       reminder_frequency: config.reminderFrequency,
       last_seen_goals: config.lastSeenGoals,
-      // Fix: property name was has_seen_tutorial but AppConfig uses hasSeenTutorial
       has_seen_tutorial: config.hasSeenTutorial,
       license_key: config.licenseKey,
-      license_status: config.licenseStatus
+      license_status: config.licenseStatus,
+      plan_type: config.planType
     };
 
     // Try a broad update first
@@ -318,7 +326,9 @@ export class DBService {
       id: userId,
       email: email,
       username: name,
-      categories: DEFAULT_CONFIG.categories,
+      categories: [], // Legacy
+      income_categories: DEFAULT_CONFIG.incomeCategories,
+      expense_categories: DEFAULT_CONFIG.expenseCategories,
       payment_methods: DEFAULT_CONFIG.paymentMethods,
       enable_reminders: true,
       has_seen_tutorial: false,
