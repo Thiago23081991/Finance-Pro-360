@@ -81,7 +81,8 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
             if (currentUser) {
                 setUserEmail(currentUser.email || '');
                 const adminEmails = ['admin@finance360.com', 'thiago@finance360.com', 'tsngti@gmail.com'];
-                if (currentUser.email && adminEmails.includes(currentUser.email)) setIsAdmin(true);
+                const isUserAdmin = currentUser.email && adminEmails.includes(currentUser.email);
+                if (isUserAdmin) setIsAdmin(true);
 
                 const cfg = await DBService.getConfig(user);
 
@@ -100,7 +101,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                     DBService.getGoals(user)
                 ]);
 
-                if (isAdmin) {
+                if (isUserAdmin) {
                     cfg.planType = 'premium';
                 }
 
