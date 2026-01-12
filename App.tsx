@@ -100,6 +100,10 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                     DBService.getGoals(user)
                 ]);
 
+                if (isAdmin) {
+                    cfg.planType = 'premium';
+                }
+
                 setTransactions(txs);
                 setGoals(gls);
                 setConfig({ ...DEFAULT_CONFIG, ...cfg, userId: user });
