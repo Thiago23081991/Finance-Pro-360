@@ -13,6 +13,8 @@ export interface Transaction {
   description: string;
   paymentMethod?: string; // Only for expenses
   type: TransactionType;
+  isRecurring?: boolean; // If true, this transaction is a template for future months
+  recurrenceDay?: number; // Day of month to repeat (1-31)
 }
 
 export interface Goal {

@@ -37,7 +37,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   handleReset = () => {
     // Clear all storage to recover from corrupted state
     localStorage.clear();
-    
+
     // Try to delete the DB if it exists (Advanced recovery)
     const DB_NAME = 'FinancePro360_EnterpriseDB';
     const req = indexedDB.deleteDatabase(DB_NAME);
@@ -64,11 +64,11 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
             <p className="text-slate-500 mb-6">
               O aplicativo encontrou um erro inesperado. Isso geralmente acontece devido a uma falha de conexão ou dados antigos incompatíveis.
             </p>
-            
+
             <div className="bg-slate-50 p-4 rounded-lg mb-6 text-left overflow-auto max-h-32">
-                <p className="text-xs font-mono text-rose-500 break-all">
-                    {this.state.error?.message || "Erro desconhecido"}
-                </p>
+              <p className="text-xs font-mono text-rose-500 break-all">
+                {this.state.error?.message || "Erro desconhecido"}
+              </p>
             </div>
 
             <button
@@ -100,11 +100,15 @@ if (!rootElement) {
   throw new Error("Could not find root element to mount to");
 }
 
+import { HelmetProvider } from 'react-helmet-async';
+
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <ErrorBoundary>
+    <HelmetProvider>
+      <ErrorBoundary>
         <App />
-    </ErrorBoundary>
+      </ErrorBoundary>
+    </HelmetProvider>
   </React.StrictMode>
 );

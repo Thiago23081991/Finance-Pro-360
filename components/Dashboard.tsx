@@ -178,6 +178,90 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
         };
     }, [transactions, filter, selectedTrendCategory]);
 
+    // --- LÓGICA DE PROJEÇÃO FUTURA (6 MESES) ---
+    const projectionData = useMemo(() => {
+        const data = [];
+        const today = new Date();
+        // Determine End of Current Month
+        // We want the baseline balance to be "Balance at the end of the currently filtered month"?
+        // OR "Balance as of TODAY"?
+        // Usually Projection starts from TODAY's actual balance (Total Global Balance).
+
+        // Let's Calculate Total Global Balance (All Transactions)
+        const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+        const totalExpense = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+        let currentBalance = totalIncome - totalExpense;
+
+        // However, "Total Global Balance" includes FUTURE transactions already recorded in DB (installments).
+        // If we want to show the evolution, we should probably start with (Balance <= Current Month End) and then add month by month?
+        // But "Future Balance" implies "Where will my money be?".
+        // If I have installments recorded for next 6 months, they are already subtracted from `currentBalance` if I sum everything.
+        // So `currentBalance` IS the projected balance at the end of time (of recorded transactions).
+
+        // BETTER APPROACH for Chart:
+        // 1. Calculate Balance up to TODAY (or End of Selected Month in Filter).
+        // Let's use End of Selected Filter Month as the starting point, assuming the user is looking at "Current Month".
+
+        const filterDateDetails = new Date(filter.year, filter.month + 1, 0); // Last day of filtered month
+
+        // Calculate Base Balance (All transactions <= filterDateDetails)
+        let runningBalance = transactions.reduce((acc, t) => {
+            const tDate = new Date(t.date + 'T12:00:00');
+            if (tDate <= filterDateDetails) {
+                return acc + (t.type === 'income' ? t.amount : -t.amount);
+            }
+            return acc;
+        }, 0);
+
+        // Identify Recurring Templates
+        const recurringTemplates = transactions.filter(t => t.isRecurring);
+
+        // Project next 6 months
+        for (let i = 1; i <= 6; i++) {
+            const targetDate = new Date(filter.year, filter.month + i, 1);
+            const targetMonth = targetDate.getMonth();
+            const targetYear = targetDate.getFullYear();
+            const targetMonthName = targetDate.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' }).toUpperCase().replace('.', '');
+
+            // 1. REAL Future Transactions (Installments/Scheduled) for this specific month
+            const realMonthTransactions = transactions.filter(t => {
+                const tDate = new Date(t.date + 'T12:00:00');
+                // Exclude the recurring templates themselves from being counted as monthly instances if they are in the past
+                // But wait, the Template IS a real transaction for its own month.
+                // Here we are looking for transactions occurring strictly IN totalMonth.
+                return tDate.getMonth() === targetMonth && tDate.getFullYear() === targetYear;
+            });
+
+            let monthlyIncome = realMonthTransactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+            let monthlyExpense = realMonthTransactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+
+            // 2. VIRTUAL Recurring Transactions
+            recurringTemplates.forEach(template => {
+                const tDate = new Date(template.date + 'T12:00:00');
+
+                // Only project if the template started BEFORE this target month
+                // (i.e. we don't project a recurring bill starting in July for June)
+                if (tDate < new Date(targetYear, targetMonth, 1)) {
+                    // It applies!
+                    if (template.type === 'income') monthlyIncome += template.amount;
+                    else monthlyExpense += template.amount;
+                }
+            });
+
+            runningBalance += (monthlyIncome - monthlyExpense);
+
+            data.push({
+                name: targetMonthName,
+                saldo: runningBalance,
+                receita: monthlyIncome,
+                despesa: monthlyExpense
+            });
+        }
+
+        return data;
+
+    }, [transactions, filter]);
+
     // --- LÓGICA DE TENDÊNCIA MENSAL GERAL (12 MESES) ---
     const monthlyTrendData = useMemo(() => {
         const data = [];
@@ -415,6 +499,41 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                             <p className="text-lg font-black text-slate-800 dark:text-white leading-tight">{formatCurrency(categoryTrendData.average, currency)}</p>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            {/* Projeção Futura */}
+            <div className="bg-white dark:bg-slate-800 p-4 md:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 animate-fade-in">
+                <h4 className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-6 flex items-center gap-2">
+                    <Target size={18} className="text-purple-500" /> Projeção de Saldo (Próximos 6 Meses)
+                </h4>
+                <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={projectionData}>
+                            <defs>
+                                <linearGradient id="colorSaldo" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.2} />
+                                    <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                                </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#94a3b8" strokeOpacity={0.1} />
+                            <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                            <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                            <Tooltip contentStyle={{ backgroundColor: 'var(--tooltip-bg)', border: 'none', borderRadius: '12px' }} formatter={(v: number) => formatCurrency(v, currency)} />
+                            <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 'bold' }} />
+                            <Area type="monotone" dataKey="saldo" name="Saldo Projetado" stroke="#8b5cf6" strokeWidth={3} fillOpacity={1} fill="url(#colorSaldo)" />
+                        </AreaChart>
+                    </ResponsiveContainer>
+                </div>
+                <div className="mt-4 flex gap-4 overflow-x-auto pb-2">
+                    {projectionData.map((d, i) => (
+                        <div key={i} className="min-w-[100px] p-3 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 flex flex-col items-center">
+                            <span className="text-[10px] uppercase font-bold text-slate-400 mb-1">{d.name}</span>
+                            <span className={`text-xs font-black ${d.saldo >= 0 ? 'text-slate-700 dark:text-slate-200' : 'text-rose-500'}`}>
+                                {formatCurrency(d.saldo, currency)}
+                            </span>
+                        </div>
+                    ))}
                 </div>
             </div>
         </div>
