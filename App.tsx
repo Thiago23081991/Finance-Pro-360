@@ -18,6 +18,7 @@ import { Tutorial } from './components/Tutorial';
 import { FilterBar } from './components/FilterBar';
 import { ResetPasswordModal } from './components/ResetPasswordModal';
 import { CalculatorModal } from './components/CalculatorModal';
+import { AIAdvisor } from './components/AIAdvisor';
 import { Logo } from './components/Logo';
 import { DBService } from './db';
 import { supabase } from './supabaseClient';
@@ -316,7 +317,6 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                                                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                                                 }`}
                                         >
-                                            <List size={14} />
                                             Lista Geral
                                         </button>
                                         <button
@@ -326,7 +326,6 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                                                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                                                 }`}
                                         >
-                                            <CreditCard size={14} />
                                             Controle de Cartão e Crédito
                                         </button>
                                     </div>

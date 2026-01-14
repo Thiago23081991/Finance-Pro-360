@@ -549,4 +549,55 @@ export class DBService {
     const { error } = await supabase.from('messages').update({ read: true }).eq('id', msgId);
     if (error) throw new Error(error.message);
   }
+
+  // --- AI CONTEXT OPERATIONS ---
+
+  static async getFinancialContext(userId: string): Promise<any> {
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+
+    const transactions = await this.getTransactions(userId);
+    const goals = await this.getGoals(userId);
+
+    // Filter for current month
+    const monthlyTxs = transactions.filter(t => {
+      const d = new Date(t.date);
+      return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+    });
+
+    const income = monthlyTxs
+      .filter(t => t.type === 'income')
+      .reduce((acc, t) => acc + t.amount, 0);
+
+    const expenses = monthlyTxs
+      .filter(t => t.type === 'expense')
+      .reduce((acc, t) => acc + t.amount, 0);
+
+    // Calculate top categories
+    const categoryTotals: Record<string, number> = {};
+    monthlyTxs
+      .filter(t => t.type === 'expense')
+      .forEach(t => {
+        categoryTotals[t.category] = (categoryTotals[t.category] || 0) + t.amount;
+      });
+
+    const topCategories = Object.entries(categoryTotals)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 3)
+      .map(([cat, amount]) => `${cat}: R$ ${amount.toFixed(2)}`)
+      .join(', ');
+
+    const activeGoals = goals
+      .filter(g => g.status === 'Em andamento')
+      .map(g => `${g.name} (Meta: R$ ${g.targetValue})`)
+      .join(', ');
+
+    return {
+      balance: (income - expenses).toFixed(2),
+      income: income.toFixed(2),
+      expenses: expenses.toFixed(2),
+      topCategories: topCategories || 'Nenhuma despesa este mês',
+      goal: activeGoals || 'Nenhuma meta definida'
+    };
+  }
 }
