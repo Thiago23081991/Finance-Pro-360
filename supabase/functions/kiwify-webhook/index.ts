@@ -34,7 +34,7 @@ serve(async (req) => {
         // Precisamos do SERVICE_ROLE_KEY para ignorar RLS e escrever no banco como admin
         const supabaseAdmin = createClient(
             Deno.env.get('SUPABASE_URL') ?? '',
-            Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+            Deno.env.get('SERVICE_ROLE_KEY') ?? ''
         )
 
         // 4. Lógica de Liberação

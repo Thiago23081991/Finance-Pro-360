@@ -11,6 +11,7 @@ import { Courses } from './components/Courses';
 import { Investments } from './components/Investments';
 import { Debts } from './components/Debts';
 import { Login } from './components/Login';
+import { Presell } from './components/Presell';
 import { Toast } from './components/Toast';
 import { Inbox } from './components/Inbox';
 import { Tutorial } from './components/Tutorial';
@@ -394,6 +395,10 @@ const App: React.FC = () => {
 
     if (loading) {
         return <div className="h-screen w-full flex items-center justify-center bg-[#f3f4f6] dark:bg-slate-950 transition-colors"><Loader2 className="animate-spin text-brand-blue" size={48} /></div>;
+    }
+
+    if (window.location.pathname === '/apresentacao') {
+        return <Presell />;
     }
 
     if (!user) {
