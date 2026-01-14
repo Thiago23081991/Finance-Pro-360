@@ -7,7 +7,7 @@ export const APP_DOMAIN = "financepro360.com.br";
 export const PLANS_CONFIG = {
   basic: {
     name: "Plano Essencial",
-    value: 47.00,
+    value: 47.90,
     checkoutUrl: "https://pay.kiwify.com.br/4A8FZ7I",
     features: ["Dashboard Completo", "Gestão de Receitas/Despesas", "Metas Financeiras", "Exportação de Planilhas"]
   },

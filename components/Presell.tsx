@@ -11,7 +11,7 @@ export const Presell: React.FC = () => {
         <div className="min-h-screen bg-white font-sans text-slate-900 overflow-x-hidden">
             {/* Top Attention Bar */}
             <div className="bg-orange-600 text-white text-center py-2 px-4 text-sm font-bold tracking-wide shadow-md relative z-20 animate-pulse">
-                🔥 OFERTA POR TEMPO LIMITADO: DE R$ 97,00 POR APENAS R$ 47,00
+                🔥 OFERTA POR TEMPO LIMITADO: DE R$ 97,00 POR APENAS R$ 47,90
             </div>
 
             {/* Header / Nav */}
@@ -146,7 +146,7 @@ export const Presell: React.FC = () => {
                     </h2>
                     <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 mb-10">
                         <div className="text-blue-300 line-through text-2xl font-bold">De R$ 97,00</div>
-                        <div className="text-white text-4xl md:text-6xl font-black">Por R$ 47,00</div>
+                        <div className="text-white text-4xl md:text-6xl font-black">Por R$ 47,90</div>
                     </div>
 
                     <button
