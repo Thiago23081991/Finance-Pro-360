@@ -59,11 +59,17 @@ export const AIAdvisor: React.FC<{ userId: string }> = ({ userId }) => {
             {!isOpen && (
                 <button
                     onClick={() => setIsOpen(true)}
-                    className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform duration-300 group"
+                    className="fixed bottom-6 right-6 z-50 hover:scale-110 transition-transform duration-300 group"
                 >
-                    <Bot size={28} className="group-hover:rotate-12 transition-transform" />
-                    <span className="absolute -top-2 -right-2 bg-red-500 w-4 h-4 rounded-full animate-ping"></span>
-                    <span className="absolute -top-2 -right-2 bg-red-500 w-4 h-4 rounded-full border-2 border-white"></span>
+                    <div className="relative">
+                        <img
+                            src="/ai-avatar.png"
+                            alt="IA Advisor"
+                            className="w-16 h-16 rounded-full border-4 border-white shadow-2xl object-cover"
+                        />
+                        <span className="absolute bottom-0 right-0 bg-green-500 w-4 h-4 rounded-full border-2 border-white"></span>
+                        <span className="absolute bottom-0 right-0 bg-green-500 w-4 h-4 rounded-full animate-ping opacity-75"></span>
+                    </div>
                 </button>
             )}
 
@@ -74,8 +80,13 @@ export const AIAdvisor: React.FC<{ userId: string }> = ({ userId }) => {
                     {/* Header */}
                     <div className="bg-gradient-to-r from-indigo-900 to-slate-900 p-4 flex justify-between items-center text-white">
                         <div className="flex items-center gap-3">
-                            <div className="bg-indigo-500/20 p-2 rounded-lg">
-                                <Sparkles size={20} className="text-yellow-400" />
+                            <div className="relative">
+                                <img
+                                    src="/ai-avatar.png"
+                                    alt="IA"
+                                    className="w-10 h-10 rounded-full border-2 border-white/20 object-cover"
+                                />
+                                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-400 border-2 border-slate-900 rounded-full"></span>
                             </div>
                             <div>
                                 <h3 className="font-bold text-lg">Finance AI</h3>
@@ -94,8 +105,8 @@ export const AIAdvisor: React.FC<{ userId: string }> = ({ userId }) => {
                         {messages.map((msg, idx) => (
                             <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                                 <div className={`max-w-[80%] rounded-2xl p-4 shadow-sm ${msg.role === 'user'
-                                        ? 'bg-indigo-600 text-white rounded-tr-none'
-                                        : 'bg-white text-slate-700 border border-slate-100 rounded-tl-none'
+                                    ? 'bg-indigo-600 text-white rounded-tr-none'
+                                    : 'bg-white text-slate-700 border border-slate-100 rounded-tl-none'
                                     }`}>
                                     <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</p>
                                 </div>
