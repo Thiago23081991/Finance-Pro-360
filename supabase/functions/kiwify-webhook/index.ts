@@ -20,8 +20,10 @@ serve(async (req) => {
 
         // Estrutura básica do payload da Kiwify:
         // { order_status: 'paid', Customer: { email: '...' }, ... }
-        const status = payload.order_status
-        const email = payload.Customer?.email
+        // Normalização para evitar erros de case-sensitivity ou variações da API
+        const status = payload.order_status || payload.status
+        const customer = payload.Customer || payload.customer || {}
+        const email = customer.email
 
         if (!email) {
             return new Response(JSON.stringify({ error: 'Email not found in payload' }), {
@@ -38,7 +40,8 @@ serve(async (req) => {
         )
 
         // 4. Lógica de Liberação
-        if (status === 'paid') {
+        // Aceita 'paid' ou 'approved' para maior robustez
+        if (status === 'paid' || status === 'approved') {
             // Buscar usuário pelo email
             const { data: profiles, error: findError } = await supabaseAdmin
                 .from('profiles')

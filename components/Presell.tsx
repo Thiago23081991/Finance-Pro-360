@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle2, ArrowRight, ShieldCheck, TrendingUp, DollarSign, Lock, XCircle, Activity, Sparkles, Target } from 'lucide-react';
+import { CheckCircle2, ArrowRight, ShieldCheck, TrendingUp, DollarSign, Lock, XCircle, Activity, Sparkles, Target, Check, Zap } from 'lucide-react';
 import { Logo } from './Logo';
 
 export const Presell: React.FC = () => {
@@ -138,27 +138,109 @@ export const Presell: React.FC = () => {
                 </div>
             </section>
 
-            {/* Final CTA Strip */}
-            <section className="py-20 bg-brand-blue relative overflow-hidden">
-                <div className="max-w-4xl mx-auto px-4 text-center relative z-10">
-                    <h2 className="text-3xl md:text-5xl font-black text-white mb-8">
-                        Quanto Vale a Sua Paz Financeira?
-                    </h2>
-                    <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 mb-10">
-                        <div className="text-blue-300 line-through text-2xl font-bold">De R$ 97,00</div>
-                        <div className="text-white text-4xl md:text-6xl font-black">Por R$ 47,90</div>
+            {/* Pricing Section */}
+            <section className="py-20 bg-slate-50 border-t border-slate-200" id="pricing">
+                <div className="max-w-5xl mx-auto px-4">
+                    <div className="text-center max-w-3xl mx-auto mb-16">
+                        <h2 className="text-3xl md:text-5xl font-black text-slate-900 mb-6">Escolha o Plano Ideal</h2>
+                        <p className="text-xl text-slate-600">
+                            Comece hoje a transformação da sua vida financeira. Acesso vitalício e garantia de 7 dias.
+                        </p>
                     </div>
 
-                    <button
-                        onClick={handleCtaClick}
-                        className="inline-flex items-center justify-center gap-3 bg-brand-gold hover:bg-yellow-400 text-brand-blue text-xl md:text-2xl font-black py-5 px-16 rounded-full shadow-[0_0_40px_rgba(255,215,0,0.4)] transition-all transform hover:scale-105 active:scale-95 border-b-4 border-yellow-600"
-                    >
-                        GARANTIR MEU ACESSO AGORA
-                        <ArrowRight strokeWidth={4} />
-                    </button>
-                    <p className="mt-8 text-blue-200 text-sm font-medium">
-                        Oferta única. Pagamento Único. Acesso Vitalício (Por enquanto).
-                    </p>
+                    <div className="grid md:grid-cols-2 gap-8 items-start max-w-4xl mx-auto">
+
+                        {/* Basic Plan */}
+                        <div className="bg-white p-8 rounded-3xl shadow-lg border-2 border-slate-100 hover:border-slate-200 transition-all card-hover">
+                            <h3 className="text-xl font-bold text-slate-500 uppercase tracking-wider mb-2">Essencial</h3>
+                            <div className="flex items-baseline gap-1 mb-6">
+                                <span className="text-4xl font-black text-slate-900">R$ 47,90</span>
+                            </div>
+                            <p className="text-slate-500 mb-8 min-h-[48px]">
+                                Perfeito para quem quer organizar as contas e sair do vermelho imediatamente.
+                            </p>
+
+                            <a
+                                href="https://pay.kiwify.com.br/4A8FZ7I"
+                                className="block w-full bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold py-4 rounded-xl text-center transition-colors mb-8"
+                            >
+                                COMEÇAR AGORA
+                            </a>
+
+                            <ul className="space-y-4">
+                                <li className="flex items-center gap-3 text-slate-700">
+                                    <Check className="text-emerald-500 shrink-0" size={20} />
+                                    <span>Dashboard Completo</span>
+                                </li>
+                                <li className="flex items-center gap-3 text-slate-700">
+                                    <Check className="text-emerald-500 shrink-0" size={20} />
+                                    <span>Controle de Receitas e Despesas</span>
+                                </li>
+                                <li className="flex items-center gap-3 text-slate-700">
+                                    <Check className="text-emerald-500 shrink-0" size={20} />
+                                    <span>Planejamento de Metas</span>
+                                </li>
+                                <li className="flex items-center gap-3 text-slate-700">
+                                    <Check className="text-emerald-500 shrink-0" size={20} />
+                                    <span>Suporte via Email</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        {/* Premium Plan */}
+                        <div className="bg-slate-900 text-white p-8 rounded-3xl shadow-xl border-2 border-brand-gold relative overflow-hidden transform scale-105 z-10">
+                            <div className="absolute top-0 right-0 bg-brand-gold text-brand-blue text-xs font-black px-4 py-2 rounded-bl-xl uppercase tracking-wider">
+                                Recomendado
+                            </div>
+
+                            <h3 className="text-xl font-bold text-brand-gold uppercase tracking-wider mb-2 flex items-center gap-2">
+                                <Sparkles size={18} /> Premium AI
+                            </h3>
+                            <div className="flex items-baseline gap-1 mb-6">
+                                <span className="text-4xl font-black text-white">R$ 97,00</span>
+                            </div>
+                            <p className="text-slate-300 mb-8 min-h-[48px]">
+                                Para quem quer ir além: IA, cursos exclusivos e ferramentas avançadas de investimento.
+                            </p>
+
+                            <button
+                                onClick={() => window.location.href = 'https://pay.kiwify.com.br/PZzs9Up'}
+                                className="block w-full bg-brand-gold hover:bg-yellow-400 text-brand-blue font-black py-4 rounded-xl text-center transition-colors mb-8 shadow-lg shadow-brand-gold/20"
+                            >
+                                QUERO ACESSO COMPLETO
+                            </button>
+
+                            <ul className="space-y-4">
+                                <li className="flex items-center gap-3">
+                                    <Zap className="text-brand-gold shrink-0 fill-brand-gold" size={20} />
+                                    <span className="font-bold">Tudo do Plano Essencial</span>
+                                </li>
+                                <li className="flex items-center gap-3 text-slate-300">
+                                    <Check className="text-brand-gold shrink-0" size={20} />
+                                    <span>Inteligência Artificial Financeira</span>
+                                </li>
+                                <li className="flex items-center gap-3 text-slate-300">
+                                    <Check className="text-brand-gold shrink-0" size={20} />
+                                    <span>Módulo Dívidas & Acordos</span>
+                                </li>
+                                <li className="flex items-center gap-3 text-slate-300">
+                                    <Check className="text-brand-gold shrink-0" size={20} />
+                                    <span>Simuladores de Investimento</span>
+                                </li>
+                                <li className="flex items-center gap-3 text-slate-300">
+                                    <Check className="text-brand-gold shrink-0" size={20} />
+                                    <span>Acesso aos Cursos Academy</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                    </div>
+
+                    <div className="text-center mt-12">
+                        <p className="text-slate-500 text-sm flex items-center justify-center gap-1 font-medium">
+                            <Lock size={14} className="text-emerald-600" /> Pagamento Único • Acesso Vitalício • Garantia Incondicional
+                        </p>
+                    </div>
                 </div>
             </section>
 
