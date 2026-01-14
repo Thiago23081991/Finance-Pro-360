@@ -4,7 +4,7 @@ import { Logo } from './Logo';
 
 export const Presell: React.FC = () => {
     const handleCtaClick = () => {
-        window.location.href = '/';
+        window.location.href = 'https://pay.kiwify.com.br/4A8FZ7I';
     };
 
     return (
