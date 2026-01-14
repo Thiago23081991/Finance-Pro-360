@@ -363,6 +363,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                 {showTrialModal && <TrialModal daysRemaining={daysRemaining} onClose={() => setShowTrialModal(false)} />}
                 <Inbox userId={user} isOpen={showInbox} onClose={() => setShowInbox(false)} onUpdateUnread={checkUnreadMessages} />
                 <CalculatorModal isOpen={showCalculatorModal} onClose={() => setShowCalculatorModal(false)} />
+                <AIAdvisor userId={user} />
             </main>
         </div>
     );
