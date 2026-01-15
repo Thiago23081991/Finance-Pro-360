@@ -152,12 +152,12 @@ export const Presell: React.FC = () => {
 
                         {/* Basic Plan */}
                         <div className="bg-white p-8 rounded-3xl shadow-lg border-2 border-slate-100 hover:border-slate-200 transition-all card-hover">
-                            <h3 className="text-xl font-bold text-slate-500 uppercase tracking-wider mb-2">Essencial</h3>
+                            <h3 className="text-xl font-bold text-slate-500 uppercase tracking-wider mb-2">Semestral (6 Meses)</h3>
                             <div className="flex items-baseline gap-1 mb-6">
                                 <span className="text-4xl font-black text-slate-900">R$ 47,90</span>
                             </div>
                             <p className="text-slate-500 mb-8 min-h-[48px]">
-                                Perfeito para quem quer organizar as contas e sair do vermelho imediatamente.
+                                Acesso total por 6 meses. Perfeito para organizar suas contas e sair do vermelho.
                             </p>
 
                             <a
@@ -170,6 +170,10 @@ export const Presell: React.FC = () => {
                             <ul className="space-y-4">
                                 <li className="flex items-center gap-3 text-slate-700">
                                     <Check className="text-emerald-500 shrink-0" size={20} />
+                                    <span>Renovação a cada 6 meses</span>
+                                </li>
+                                <li className="flex items-center gap-3 text-slate-700">
+                                    <Check className="text-emerald-500 shrink-0" size={20} />
                                     <span>Dashboard Completo</span>
                                 </li>
                                 <li className="flex items-center gap-3 text-slate-700">
@@ -179,10 +183,6 @@ export const Presell: React.FC = () => {
                                 <li className="flex items-center gap-3 text-slate-700">
                                     <Check className="text-emerald-500 shrink-0" size={20} />
                                     <span>Planejamento de Metas</span>
-                                </li>
-                                <li className="flex items-center gap-3 text-slate-700">
-                                    <Check className="text-emerald-500 shrink-0" size={20} />
-                                    <span>Suporte via Email</span>
                                 </li>
                             </ul>
                         </div>
@@ -194,13 +194,13 @@ export const Presell: React.FC = () => {
                             </div>
 
                             <h3 className="text-xl font-bold text-brand-gold uppercase tracking-wider mb-2 flex items-center gap-2">
-                                <Sparkles size={18} /> Premium AI
+                                <Sparkles size={18} /> Anual Premium
                             </h3>
                             <div className="flex items-baseline gap-1 mb-6">
                                 <span className="text-4xl font-black text-white">R$ 80,00</span>
                             </div>
                             <p className="text-slate-300 mb-8 min-h-[48px]">
-                                Para quem quer ir além: IA, cursos exclusivos e ferramentas avançadas de investimento.
+                                Acesso por 1 ano inteiro. O melhor custo-benefício para transformar sua vida financeira.
                             </p>
 
                             <button
