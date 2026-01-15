@@ -39,7 +39,11 @@ export interface Debt {
 export interface AppConfig {
   userId?: string;
   name?: string; // Nome do usuário para exibição
-  planType?: 'basic' | 'premium'; // Tipo do plano
+  // Subscription Fields
+  planType?: 'basic' | 'semiannual' | 'annual';
+  subscriptionStatus?: 'active' | 'inactive' | 'canceled' | 'past_due';
+  nextBillingDate?: string; // ISO Date for next payment
+  planCycle?: 'semiannual' | 'annual';
   theme?: 'light' | 'dark'; // New Theme Field
   currency?: 'BRL' | 'USD' | 'EUR' | 'GBP' | 'JPY'; // Currency Field
   categories: string[]; // Deprecated, kept for backward compat

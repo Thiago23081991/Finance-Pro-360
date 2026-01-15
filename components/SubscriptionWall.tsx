@@ -9,7 +9,7 @@ interface SubscriptionWallProps {
 }
 
 export const SubscriptionWall: React.FC<SubscriptionWallProps> = ({ userId, userEmail }) => {
-    const [selectedPlan, setSelectedPlan] = useState<'basic' | 'premium'>('basic');
+    const [selectedPlan, setSelectedPlan] = useState<'semiannual' | 'annual'>('annual');
     const [activating, setActivating] = useState(false);
     const [showKeyInput, setShowKeyInput] = useState(false);
     const [licenseKey, setLicenseKey] = useState('');
@@ -57,49 +57,49 @@ export const SubscriptionWall: React.FC<SubscriptionWallProps> = ({ userId, user
                 {/* Plans Grid */}
                 <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
 
-                    {/* Basic Plan */}
+                    {/* Semiannual Plan */}
                     <div
-                        onClick={() => setSelectedPlan('basic')}
-                        className={`relative p-8 rounded-3xl border-2 cursor-pointer transition-all duration-300 ${selectedPlan === 'basic'
+                        onClick={() => setSelectedPlan('semiannual')}
+                        className={`relative p-8 rounded-3xl border-2 cursor-pointer transition-all duration-300 ${selectedPlan === 'semiannual'
                             ? 'border-brand-gold bg-slate-800/80 shadow-2xl shadow-brand-gold/10 scale-105 z-10'
                             : 'border-slate-700 bg-slate-900/40 opacity-70 hover:opacity-100 hover:scale-[1.02]'
                             }`}
                     >
-                        {selectedPlan === 'basic' && (
+                        {selectedPlan === 'semiannual' && (
                             <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-gold text-brand-blue text-xs font-black px-4 py-1 rounded-full uppercase tracking-wider">
                                 Selecionado
                             </div>
                         )}
 
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Iniciante</p>
-                        <h2 className="text-3xl font-black mb-4">Essencial</h2>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Semestral</p>
+                        <h2 className="text-3xl font-black mb-4">Plano Semestral</h2>
                         <div className="flex items-baseline gap-1 mb-8">
                             <span className="text-lg font-bold text-slate-300">R$</span>
                             <span className="text-5xl font-black text-white">47</span>
-                            <span className="text-xl font-bold text-slate-500">,00</span>
+                            <span className="text-xl font-bold text-slate-500">,90</span>
                         </div>
-                        <p className="text-xs text-brand-gold font-bold uppercase mb-8 bg-brand-gold/10 inline-block px-3 py-1 rounded">Pagamento Único (Vitalício)</p>
+                        <p className="text-xs text-brand-gold font-bold uppercase mb-8 bg-brand-gold/10 inline-block px-3 py-1 rounded">Cobrado a cada 6 meses</p>
 
                         <ul className="space-y-4 mb-8">
                             <li className="flex items-center gap-3 text-sm text-slate-300">
                                 <Check size={18} className="text-emerald-400 shrink-0" />
-                                <span>Dashboard Completo</span>
+                                <span>Acesso Completo ao Sistema</span>
                             </li>
                             <li className="flex items-center gap-3 text-sm text-slate-300">
                                 <Check size={18} className="text-emerald-400 shrink-0" />
-                                <span>Controle de Receitas/Despesas</span>
+                                <span>Inteligência Artificial Ilimitada</span>
                             </li>
                             <li className="flex items-center gap-3 text-sm text-slate-300">
                                 <Check size={18} className="text-emerald-400 shrink-0" />
-                                <span>Gerenciador de Metas</span>
+                                <span>Todos os Cursos da Academy</span>
                             </li>
                         </ul>
                     </div>
 
-                    {/* Premium Plan */}
+                    {/* Annual Plan */}
                     <div
-                        onClick={() => setSelectedPlan('premium')}
-                        className={`relative p-8 rounded-3xl border-2 cursor-pointer transition-all duration-300 overflow-hidden ${selectedPlan === 'premium'
+                        onClick={() => setSelectedPlan('annual')}
+                        className={`relative p-8 rounded-3xl border-2 cursor-pointer transition-all duration-300 overflow-hidden ${selectedPlan === 'annual'
                             ? 'border-brand-gold bg-slate-800/80 shadow-2xl shadow-brand-gold/10 scale-105 z-10'
                             : 'border-slate-700 bg-slate-900/40 opacity-70 hover:opacity-100 hover:scale-[1.02]'
                             }`}
@@ -108,31 +108,31 @@ export const SubscriptionWall: React.FC<SubscriptionWallProps> = ({ userId, user
                             RECOMENDADO
                         </div>
 
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Profissional</p>
-                        <h2 className="text-3xl font-black mb-4">Premium AI</h2>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Anual</p>
+                        <h2 className="text-3xl font-black mb-4">Plano Anual</h2>
                         <div className="flex items-baseline gap-1 mb-8">
                             <span className="text-lg font-bold text-slate-300">R$</span>
-                            <span className="text-5xl font-black text-white">97</span>
+                            <span className="text-5xl font-black text-white">80</span>
                             <span className="text-xl font-bold text-slate-500">,00</span>
                         </div>
-                        <p className="text-xs text-brand-gold font-bold uppercase mb-8 bg-brand-gold/10 inline-block px-3 py-1 rounded">Pagamento Único (Vitalício)</p>
+                        <p className="text-xs text-brand-gold font-bold uppercase mb-8 bg-brand-gold/10 inline-block px-3 py-1 rounded">Cobrado Anualmente (Melhor Valor)</p>
 
                         <ul className="space-y-4 mb-8">
                             <li className="flex items-center gap-3 text-sm text-slate-300">
                                 <Zap size={18} className="text-brand-gold shrink-0 fill-brand-gold" />
-                                <span className="font-bold text-white">Todas as funções do Essencial</span>
+                                <span className="font-bold text-white">Tudo do Semestral</span>
                             </li>
                             <li className="flex items-center gap-3 text-sm text-slate-300">
                                 <Zap size={18} className="text-brand-gold shrink-0 fill-brand-gold" />
-                                <span>Insights com Inteligência Artificial</span>
-                            </li>
-                            <li className="flex items-center gap-3 text-sm text-slate-300">
-                                <Zap size={18} className="text-brand-gold shrink-0 fill-brand-gold" />
-                                <span>Acesso aos Cursos Academy</span>
+                                <span>Economia Garantida</span>
                             </li>
                             <li className="flex items-center gap-3 text-sm text-slate-300">
                                 <Zap size={18} className="text-brand-gold shrink-0 fill-brand-gold" />
                                 <span>Prioridade no Suporte</span>
+                            </li>
+                            <li className="flex items-center gap-3 text-sm text-slate-300">
+                                <Zap size={18} className="text-brand-gold shrink-0 fill-brand-gold" />
+                                <span>Acesso por 1 Ano</span>
                             </li>
                         </ul>
                     </div>

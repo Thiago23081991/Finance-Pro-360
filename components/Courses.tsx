@@ -12,7 +12,8 @@ interface CoursesProps {
 export const Courses: React.FC<CoursesProps> = ({ config, userEmail }) => {
     const [activeModule, setActiveModule] = useState<number | null>(null);
 
-    if (config.planType !== 'premium') {
+    // Check if license is active (covers premium, annual, semiannual)
+    if (config.licenseStatus !== 'active') {
         return <PremiumLock config={config} userEmail={userEmail} userId={config.userId} />;
     }
 

@@ -25,7 +25,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
     const [tempName, setTempName] = useState(config.name || '');
 
     // Upgrade
-    const [selectedPlan, setSelectedPlan] = useState<'basic' | 'premium'>('basic');
+    const [selectedPlan, setSelectedPlan] = useState<'semiannual' | 'annual'>('annual');
     const [inputLicenseKey, setInputLicenseKey] = useState('');
     const [licenseError, setLicenseError] = useState('');
     const [purchaseRequest, setPurchaseRequest] = useState<PurchaseRequest | null>(null);
@@ -248,31 +248,31 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                             <div className="space-y-6">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <button
-                                        onClick={() => setSelectedPlan('basic')}
-                                        className={`relative p-5 rounded-2xl border-2 text-left transition-all ${selectedPlan === 'basic' ? 'border-brand-gold bg-white/5 ring-4 ring-brand-gold/10' : 'border-slate-700 bg-black/20 hover:border-slate-500'}`}
+                                        onClick={() => setSelectedPlan('semiannual')}
+                                        className={`relative p-5 rounded-2xl border-2 text-left transition-all ${selectedPlan === 'semiannual' ? 'border-brand-gold bg-white/5 ring-4 ring-brand-gold/10' : 'border-slate-700 bg-black/20 hover:border-slate-500'}`}
                                     >
-                                        {selectedPlan === 'basic' && <CheckCircle className="absolute top-4 right-4 text-brand-gold" size={20} />}
-                                        <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Entrada</p>
-                                        <h4 className="text-white font-black text-lg">PLANO BÁSICO</h4>
-                                        <div className="mt-2 text-2xl font-black text-white">R$ {PLANS_CONFIG.basic.value.toFixed(2).replace('.', ',')}<span className="text-xs font-normal text-slate-400 ml-1">VITALÍCIO</span></div>
+                                        {selectedPlan === 'semiannual' && <CheckCircle className="absolute top-4 right-4 text-brand-gold" size={20} />}
+                                        <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Semestral</p>
+                                        <h4 className="text-white font-black text-lg">PLANO SEMESTRAL</h4>
+                                        <div className="mt-2 text-2xl font-black text-white">R$ {PLANS_CONFIG.semiannual.value.toFixed(2).replace('.', ',')}<span className="text-xs font-normal text-slate-400 ml-1">/6 MESES</span></div>
                                         <ul className="mt-4 space-y-2">
-                                            {PLANS_CONFIG.basic.features.slice(0, 3).map((f, i) => (
+                                            {PLANS_CONFIG.semiannual.features.slice(0, 3).map((f, i) => (
                                                 <li key={i} className="text-[11px] text-slate-400 flex items-center gap-2"><CheckCircle size={12} className="text-emerald-500" /> {f}</li>
                                             ))}
                                         </ul>
                                     </button>
 
                                     <button
-                                        onClick={() => setSelectedPlan('premium')}
-                                        className={`relative p-5 rounded-2xl border-2 text-left transition-all ${selectedPlan === 'premium' ? 'border-brand-gold bg-white/5 ring-4 ring-brand-gold/10' : 'border-slate-700 bg-black/20 hover:border-slate-500'}`}
+                                        onClick={() => setSelectedPlan('annual')}
+                                        className={`relative p-5 rounded-2xl border-2 text-left transition-all ${selectedPlan === 'annual' ? 'border-brand-gold bg-white/5 ring-4 ring-brand-gold/10' : 'border-slate-700 bg-black/20 hover:border-slate-500'}`}
                                     >
-                                        {selectedPlan === 'premium' && <CheckCircle className="absolute top-4 right-4 text-brand-gold" size={20} />}
-                                        <div className="absolute -top-3 left-4 bg-brand-gold text-brand-blue text-[9px] font-black px-2 py-0.5 rounded-full">O MAIS COMPLETO</div>
-                                        <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Profissional</p>
-                                        <h4 className="text-white font-black text-lg">PLANO PREMIUM</h4>
-                                        <div className="mt-2 text-2xl font-black text-white">R$ {PLANS_CONFIG.premium.value.toFixed(2).replace('.', ',')}<span className="text-xs font-normal text-slate-400 ml-1">VITALÍCIO</span></div>
+                                        {selectedPlan === 'annual' && <CheckCircle className="absolute top-4 right-4 text-brand-gold" size={20} />}
+                                        <div className="absolute -top-3 left-4 bg-brand-gold text-brand-blue text-[9px] font-black px-2 py-0.5 rounded-full">MELHOR VALOR</div>
+                                        <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Anual</p>
+                                        <h4 className="text-white font-black text-lg">PLANO ANUAL</h4>
+                                        <div className="mt-2 text-2xl font-black text-white">R$ {PLANS_CONFIG.annual.value.toFixed(2).replace('.', ',')}<span className="text-xs font-normal text-slate-400 ml-1">/ANO</span></div>
                                         <ul className="mt-4 space-y-2">
-                                            {PLANS_CONFIG.premium.features.slice(1, 4).map((f, i) => (
+                                            {PLANS_CONFIG.annual.features.slice(1, 4).map((f, i) => (
                                                 <li key={i} className="text-[11px] text-slate-400 flex items-center gap-2"><Zap size={12} className="text-brand-gold fill-current" /> {f}</li>
                                             ))}
                                         </ul>
@@ -287,8 +287,8 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                                                 <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest">Plano Selecionado: {PLANS_CONFIG[selectedPlan].name}</p>
                                                 <h4 className="text-white font-bold text-lg">Total a pagar: R$ {PLANS_CONFIG[selectedPlan].value.toFixed(2)}</h4>
                                                 <p className="text-xs text-slate-400 mt-2">
-                                                    Pagamento único e vitalício. Processado de forma segura pela <strong>Kiwify</strong>.
-                                                    <br />Liberação automática em segundos.
+                                                    Assinatura com renovação automática. Cancele a qualquer momento.
+                                                    <br />Pagamento seguro via <strong>Kiwify</strong>. Liberação imediata.
                                                 </p>
                                             </div>
                                         </div>
@@ -304,11 +304,11 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                                         className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-black py-4 rounded-xl shadow-lg transition-all transform hover:scale-[1.02] flex items-center justify-center gap-3"
                                     >
                                         <CreditCard size={24} />
-                                        COMPRAR AGORA E DESBLOQUEAR
+                                        ASSINAR AGORA E DESBLOQUEAR
                                     </button>
 
                                     <div className="flex items-center justify-center gap-2 text-[10px] text-slate-500">
-                                        <Lock size={12} /> Pagamento 100% Seguro
+                                        <Lock size={12} /> Assinatura Segura e Flexível
                                     </div>
                                 </div>
                             </div>

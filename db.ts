@@ -458,7 +458,9 @@ export class DBService {
         .from('profiles')
         .upsert({
           id: req.userId,
-          license_status: 'active'
+          license_status: 'active',
+          plan_type: 'annual',
+          plan_cycle: 'annual'
         }, { onConflict: 'id' });
 
       if (profileError) console.error("Erro ao ativar licença no perfil:", profileError);
@@ -466,7 +468,12 @@ export class DBService {
   }
 
   static async updateUserLicense(userId: string, status: 'active' | 'inactive'): Promise<void> {
-    const { error } = await supabase.from('profiles').update({ license_status: status }).eq('id', userId);
+    const updates: any = { license_status: status };
+    if (status === 'active') {
+      updates.plan_type = 'annual';
+      updates.plan_cycle = 'annual';
+    }
+    const { error } = await supabase.from('profiles').update(updates).eq('id', userId);
     if (error) throw new Error(error.message);
   }
 

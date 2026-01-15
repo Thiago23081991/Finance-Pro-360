@@ -11,7 +11,7 @@ interface PremiumLockProps {
 export const PremiumLock: React.FC<PremiumLockProps> = ({ config, userEmail, userId }) => {
 
     const handleUpgrade = () => {
-        const link = PLANS_CONFIG.premium.checkoutUrl;
+        const link = PLANS_CONFIG.annual.checkoutUrl;
         const finalLink = `${link}?email=${userEmail || ''}&custom_id=${userId || ''}`;
         window.open(finalLink, '_blank');
     };

@@ -55,13 +55,43 @@ serve(async (req) => {
             }
 
             if (profiles && profiles.length > 0) {
+                // 4.1 Detectar Plano pelo Valor Pago
+                // Kiwify payload geralmente tem 'order_total_amount' em centavos (ex: 4790) ou 'commissions.charge_amount'
+                // Vamos tentar ser robustos e checar algumas variações comuns
+                const amount = payload.order_total_amount || 0 // Default to 0
+
+                let planType = 'semiannual' // Default Fallback
+                let planCycle = 'semiannual'
+                let monthsToAdd = 6
+
+                // Lógica de Preço
+                // 80.00 (8000 cents) = Anual
+                if (amount === 8000 || amount === 80.00) {
+                    planType = 'annual'
+                    planCycle = 'annual'
+                    monthsToAdd = 12
+                }
+                // 47.90 (4790 cents) = Semestral
+                else if (amount === 4790 || amount === 47.90) {
+                    planType = 'semiannual'
+                    planCycle = 'semiannual'
+                    monthsToAdd = 6
+                }
+
+                // Calcular Próxima Cobrança
+                const nextBillingDate = new Date()
+                nextBillingDate.setMonth(nextBillingDate.getMonth() + monthsToAdd)
+
                 // Usuário existe, atualizar status
                 const userId = profiles[0].id
                 const { error: updateError } = await supabaseAdmin
                     .from('profiles')
                     .update({
                         license_status: 'active',
-                        license_key: 'KIWIFY-AUTO' // Flag para indicar origem
+                        license_key: 'KIWIFY-AUTO',
+                        plan_type: planType,
+                        plan_cycle: planCycle,
+                        next_billing_date: nextBillingDate.toISOString()
                     })
                     .eq('id', userId)
 
@@ -87,6 +117,25 @@ serve(async (req) => {
                 console.log(`Convite enviado. ID gerado: ${newUserId}. Ativando licença...`)
 
                 // Opcional: Aguardar um pouco para garantir que triggers de criação de perfil rodem (se existirem)
+                // 4.1 Detectar Plano (Mesma lógica acima)
+                const amount = payload.order_total_amount || 0
+                let planType = 'semiannual'
+                let planCycle = 'semiannual'
+                let monthsToAdd = 6
+
+                if (amount === 8000 || amount === 80.00) {
+                    planType = 'annual'
+                    planCycle = 'annual'
+                    monthsToAdd = 12
+                } else if (amount === 4790 || amount === 47.90) {
+                    planType = 'semiannual'
+                    planCycle = 'semiannual'
+                    monthsToAdd = 6
+                }
+
+                const nextBillingDate = new Date()
+                nextBillingDate.setMonth(nextBillingDate.getMonth() + monthsToAdd)
+
                 // Usamos upsert para garantir que o registro exista com a licença correta
                 const { error: upsertError } = await supabaseAdmin
                     .from('profiles')
@@ -94,6 +143,9 @@ serve(async (req) => {
                         id: newUserId,
                         email: email,
                         license_status: 'active',
+                        plan_type: planType,
+                        plan_cycle: planCycle,
+                        next_billing_date: nextBillingDate.toISOString(),
                         license_key: 'KIWIFY-AUTO-INVITE'
                     })
 
