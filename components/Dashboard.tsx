@@ -523,13 +523,21 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                         </AreaChart>
                     </ResponsiveContainer>
                 </div>
-                <div className="mt-4 flex gap-4 overflow-x-auto pb-2">
+                <div className="mt-4 flex gap-4 overflow-x-auto pb-2 custom-scrollbar">
                     {projectionData.map((d, i) => (
-                        <div key={i} className="min-w-[100px] p-3 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 flex flex-col items-center">
-                            <span className="text-[10px] uppercase font-bold text-slate-400 mb-1">{d.name}</span>
-                            <span className={`text-xs font-black ${d.saldo >= 0 ? 'text-slate-700 dark:text-slate-200' : 'text-rose-500'}`}>
-                                {formatCurrency(d.saldo, currency)}
-                            </span>
+                        <div key={i} className="min-w-[140px] p-3 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 flex flex-col gap-2">
+                            <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-1 mb-1">
+                                <span className="text-[10px] uppercase font-bold text-slate-400">{d.name}</span>
+                                <span className={`text-[10px] font-black ${d.saldo >= 0 ? 'text-blue-600' : 'text-rose-600'}`}>{formatCurrency(d.saldo, currency)}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-[9px] text-slate-400">Entr.</span>
+                                <span className="text-[10px] font-bold text-emerald-600">{formatCurrency(d.receita, currency)}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-[9px] text-slate-400">Saída</span>
+                                <span className="text-[10px] font-bold text-rose-500">{formatCurrency(d.despesa, currency)}</span>
+                            </div>
                         </div>
                     ))}
                 </div>
