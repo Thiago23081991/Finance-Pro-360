@@ -103,7 +103,8 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                 ]);
 
                 if (isUserAdmin) {
-                    cfg.planType = 'premium';
+                    cfg.planType = 'annual';
+                    cfg.licenseStatus = 'active';
                 }
 
                 setTransactions(txs);
