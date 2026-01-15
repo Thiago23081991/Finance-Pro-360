@@ -18,7 +18,6 @@ import { Tutorial } from './components/Tutorial';
 import { FilterBar } from './components/FilterBar';
 import { ResetPasswordModal } from './components/ResetPasswordModal';
 import { CalculatorModal } from './components/CalculatorModal';
-import { AIAdvisor } from './components/AIAdvisor';
 import { Logo } from './components/Logo';
 import { DBService } from './db';
 import { supabase } from './supabaseClient';
@@ -363,7 +362,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                 {showTrialModal && <TrialModal daysRemaining={daysRemaining} onClose={() => setShowTrialModal(false)} />}
                 <Inbox userId={user} isOpen={showInbox} onClose={() => setShowInbox(false)} onUpdateUnread={checkUnreadMessages} />
                 <CalculatorModal isOpen={showCalculatorModal} onClose={() => setShowCalculatorModal(false)} />
-                <AIAdvisor userId={user} />
+
             </main>
         </div>
     );
