@@ -160,9 +160,7 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
         for (let i = 1; i <= months; i++) {
             current = current * (1 + monthlyRate) + monthly;
             totalInv += monthly;
-            if (i % 12 === 0 || i === 1) {
-                data.push({ name: `Ano ${Math.ceil(i / 12)}`, Investido: Math.round(totalInv), Total: Math.round(current) });
-            }
+            data.push({ name: `${i}º Mês`, Investido: Math.round(totalInv), Total: Math.round(current) });
         }
         setProjResult({ data, totalInvested: totalInv, totalInterest: current - totalInv, totalAmount: current });
     };
