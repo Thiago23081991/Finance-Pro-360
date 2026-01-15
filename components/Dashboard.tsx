@@ -182,9 +182,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
     const projectionData = useMemo(() => {
         const data = [];
 
-        // 1. Calculate historical average (Last 3 months) to use as smart fallback
-        // This makes the chart "alive" even if the user hasn't added recurring transactions yet.
-        const last3MonthsBalance: number[] = [];
+        // 1. Calculate historical averages (Last 3 months)
+        let totalInc = 0;
+        let totalExp = 0;
+        let count = 0;
+
         for (let i = 1; i <= 3; i++) {
             const d = new Date(filter.year, filter.month - i, 1);
             const m = d.getMonth();
@@ -193,10 +195,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
             const monthInc = transactions.filter(t => t.type === 'income' && new Date(t.date + 'T12:00:00').getMonth() === m && new Date(t.date + 'T12:00:00').getFullYear() === y).reduce((acc, t) => acc + t.amount, 0);
             const monthExp = transactions.filter(t => t.type === 'expense' && new Date(t.date + 'T12:00:00').getMonth() === m && new Date(t.date + 'T12:00:00').getFullYear() === y).reduce((acc, t) => acc + t.amount, 0);
 
-            last3MonthsBalance.push(monthInc - monthExp);
+            if (monthInc > 0 || monthExp > 0) {
+                totalInc += monthInc;
+                totalExp += monthExp;
+                count++;
+            }
         }
-        const avgMonthlyResult = last3MonthsBalance.reduce((a, b) => a + b, 0) / (last3MonthsBalance.length || 1);
 
+        const avgIncome = count > 0 ? totalInc / count : 0;
+        const avgExpense = count > 0 ? totalExp / count : 0;
 
         const filterDateDetails = new Date(filter.year, filter.month + 1, 0); // Last day of filtered month
 
@@ -222,37 +229,36 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
             // 1. REAL Future Transactions (Installments/Scheduled) for this specific month
             const realMonthTransactions = transactions.filter(t => {
                 const tDate = new Date(t.date + 'T12:00:00');
-                // Exclude the recurring templates themselves from being counted as monthly instances if they are in the past
                 return tDate.getMonth() === targetMonth && tDate.getFullYear() === targetYear;
             });
 
-            let monthlyIncome = realMonthTransactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
-            let monthlyExpense = realMonthTransactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+            let explicitIncome = realMonthTransactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+            let explicitExpense = realMonthTransactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
 
             // 2. VIRTUAL Recurring Transactions
-            let hasRecurring = false;
             recurringTemplates.forEach(template => {
                 const tDate = new Date(template.date + 'T12:00:00');
                 if (tDate < new Date(targetYear, targetMonth, 1)) {
-                    hasRecurring = true;
-                    if (template.type === 'income') monthlyIncome += template.amount;
-                    else monthlyExpense += template.amount;
+                    if (template.type === 'income') explicitIncome += template.amount;
+                    else explicitExpense += template.amount;
                 }
             });
 
-            // 3. SMART FALLBACK: If no explicit data (no recurring, no installments), use historical average
-            // This prevents a flat line and gives a realistic "trend"
-            if (monthlyIncome === 0 && monthlyExpense === 0 && avgMonthlyResult !== 0) {
-                runningBalance += avgMonthlyResult;
-            } else {
-                runningBalance += (monthlyIncome - monthlyExpense);
-            }
+            // 3. SMART PROJECTION: 
+            // If explicit data is greater than average, use explicit (Unusual month).
+            // If explicit data is lower (e.g. just a small installment), assume average lifestyle fills the gap.
+            // Exception: If explicit income is 0, we strictly use average income (assuming salary).
+
+            const projectedIncome = Math.max(explicitIncome, avgIncome);
+            const projectedExpense = Math.max(explicitExpense, avgExpense);
+
+            runningBalance += (projectedIncome - projectedExpense);
 
             data.push({
                 name: targetMonthName,
                 saldo: runningBalance,
-                receita: monthlyIncome || (monthlyIncome === 0 && monthlyExpense === 0 ? (avgMonthlyResult > 0 ? avgMonthlyResult : 0) : 0), // Just for tooltip context
-                despesa: monthlyExpense
+                receita: projectedIncome,
+                despesa: projectedExpense
             });
         }
 
