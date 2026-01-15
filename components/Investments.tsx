@@ -70,57 +70,87 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
             return x - Math.floor(x);
         };
 
-        const banks = ['Banco Master', 'Banco Pine', 'Sofisa Direto', 'C6 Bank', 'BTG Pactual'];
-        const fiis = ['MXRF11', 'HGLG11', 'XPML11', 'BTLG11', 'VISC11'];
-        const stocks = ['VALE3', 'PETR4', 'WEGE3', 'ITUB4', 'BBAS3'];
+        const banks = ['Banco Master', 'Banco Pine', 'Sofisa Direto', 'C6 Bank', 'BTG Pactual', 'Daycoval', 'Inter', 'Banco Bari', 'Digio', 'PagBank'];
+        const fiis = ['MXRF11', 'HGLG11', 'XPML11', 'BTLG11', 'VISC11', 'KNCR11', 'VGHF11', 'TRXF11', 'HGRU11', 'CPTS11', 'RECR11'];
+        const stocks = ['VALE3', 'PETR4', 'WEGE3', 'ITUB4', 'BBAS3', 'PRIO3', 'RADL3', 'RENT3', 'B3SA3', 'RAIL3', 'CSAN3'];
+        const etfs = ['IVVB11', 'WRLD11', 'NASD11', 'HASH11', 'SMAL11', 'BOVA11'];
 
         const dailyOps: Opportunity[] = [
             {
                 type: 'CDB Pos-Fixado',
                 title: `CDB ${banks[Math.floor(seededRandom(1) * banks.length)]}`,
-                rate: `${(110 + Math.floor(seededRandom(2) * 15))}% CDI`,
+                rate: `${(110 + Math.floor(seededRandom(2) * 20))}% CDI`, // Aumentei um pouco o teto
                 min: 1000,
                 risk: 'Baixo',
                 profile: ['Conservador', 'Moderado', 'Arrojado'],
-                why: "Excelente para reserva de emergência e liquidez."
+                why: "Excelente para reserva de emergência e liquidez diária com rentabilidade acima da poupança."
             },
             {
-                type: 'LCI Isenta',
+                type: 'CDB Prefixado',
+                title: `CDB Pre ${banks[Math.floor(seededRandom(13) * banks.length)]}`,
+                rate: `${(11.5 + seededRandom(14) * 3).toFixed(2)}% a.a.`,
+                min: 500,
+                risk: 'Baixo',
+                profile: ['Conservador', 'Moderado'],
+                why: "Garanta uma taxa fixa alta agora, independente da oscilação futura dos juros."
+            },
+            {
+                type: 'LCI/LCA Isenta',
                 title: `LCI IPCA+ ${banks[Math.floor(seededRandom(3) * banks.length)]}`,
-                rate: `IPCA + ${(4.5 + seededRandom(4) * 2).toFixed(1)}%`,
+                rate: `IPCA + ${(4.5 + seededRandom(4) * 2.5).toFixed(1)}%`,
                 min: 5000,
                 risk: 'Baixo',
                 profile: ['Conservador', 'Moderado'],
-                why: "Rentabilidade real sem abocanhar seu lucro no IR."
+                why: "Rentabilidade real (acima da inflação) totalmente isenta de Imposto de Renda."
             },
             {
                 type: 'Tesouro Direto',
-                title: `Tesouro IPCA+ ${2029 + Math.floor(seededRandom(5) * 10)}`,
-                rate: `IPCA + ${(6.1 + seededRandom(6) * 0.5).toFixed(2)}%`,
+                title: `Tesouro IPCA+ ${2029 + Math.floor(seededRandom(5) * 16)}`, // Até 2045
+                rate: `IPCA + ${(6.0 + seededRandom(6) * 0.6).toFixed(2)}%`,
                 min: 35,
                 risk: 'Médio',
                 profile: ['Moderado', 'Arrojado'],
-                why: "Proteção contra inflação no longo prazo com garantia soberana."
+                why: "A segurança do governo com garantia de poder de compra no longo prazo."
             },
             {
                 type: 'Fundo Imobiliário',
                 title: fiis[Math.floor(seededRandom(7) * fiis.length)],
-                rate: `DY ${(10.2 + seededRandom(8) * 3).toFixed(2)}% a.a.`,
-                min: 100,
+                rate: `DY ${(10.5 + seededRandom(8) * 3.5).toFixed(2)}% a.a.`,
+                min: 10, // Cotas de FII base 10 ou 100
                 risk: 'Médio',
                 profile: ['Moderado', 'Arrojado'],
-                change: (seededRandom(9) - 0.4) * 1.5,
-                why: "Renda mensal isenta de IR com ativos físicos reais."
+                change: (seededRandom(9) - 0.4) * 1.8,
+                why: "Receba 'aluguéis' mensais na sua conta sem a burocracia de imóveis físicos."
             },
             {
-                type: 'Ação Recomendada',
-                title: stocks[Math.floor(seededRandom(10) * stocks.length)],
-                rate: `Potencial +${(15 + Math.floor(seededRandom(11) * 15))}%`,
+                type: 'Fiagro (Agronegócio)',
+                title: 'SNAG11', // Exemplo fixo ou lista curta
+                rate: `DY ${(12.0 + seededRandom(15) * 3).toFixed(2)}% a.a.`,
                 min: 10,
+                risk: 'Médio',
+                profile: ['Moderado', 'Arrojado'],
+                change: (seededRandom(16) - 0.3) * 1.5,
+                why: "Invista no setor mais forte do Brasil (Agro) com pagamentos mensais e isenção de IR."
+            },
+            {
+                type: 'Ação Valor',
+                title: stocks[Math.floor(seededRandom(10) * stocks.length)],
+                rate: `Potencial +${(15 + Math.floor(seededRandom(11) * 25))}%`,
+                min: 20,
                 risk: 'Alto',
                 profile: ['Arrojado'],
-                change: (seededRandom(12) - 0.5) * 4,
-                why: "Empresa com fundamentos sólidos e potencial de valorização cíclica."
+                change: (seededRandom(12) - 0.5) * 5,
+                why: "Empresa líder em seu setor com fundamentos sólidos e descotada pelo mercado."
+            },
+            {
+                type: 'ETF Internacional',
+                title: etfs[Math.floor(seededRandom(17) * etfs.length)],
+                rate: 'Dolarizado',
+                min: 100,
+                risk: 'Alto',
+                profile: ['Arrojado', 'Moderado'],
+                change: (seededRandom(18) - 0.45) * 3,
+                why: "Diversificação global para proteger seu patrimônio do risco-Brasil."
             }
         ];
         setOpportunities(dailyOps);
