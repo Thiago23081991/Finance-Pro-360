@@ -1,106 +1,120 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Finance Pro 360 | Gestão Financeira de Alta Performance</title>
-    <meta name="description" content="A plataforma definitiva para controle de gastos, investimentos e metas financeiras. Simplicidade de planilha com poder de dashboard.">
-    <meta property="og:title" content="Finance Pro 360">
-    <meta property="og:description" content="Organize sua vida financeira com o Finance Pro 360.">
-    <meta property="og:url" content="https://www.financepro360.com.br">
-    <link rel="canonical" href="https://www.financepro360.com.br" />
-    
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Tailwind CSS via CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        darkMode: 'class',
-        theme: {
-          extend: {
-            colors: {
-              slate: {
-                750: '#2d3748',
-                850: '#1a202c',
-                950: '#020617',
-              },
-              brand: {
-                blue: '#051b35',   // Deep Blue form image
-                gold: '#d4af37',   // Gold from image
-                light: '#e2e8f0',
-                accent: '#38bdf8'  // Light blue accent
-              }
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Finance Pro 360 | Gestão Financeira de Alta Performance (v2.2)</title>
+  <meta name="description"
+    content="A plataforma definitiva para controle de gastos, investimentos e metas financeiras. Simplicidade de planilha com poder de dashboard.">
+  <meta property="og:title" content="Finance Pro 360">
+  <meta property="og:description" content="Organize sua vida financeira com o Finance Pro 360.">
+  <meta property="og:url" content="https://www.financepro360.com.br">
+  <link rel="canonical" href="https://www.financepro360.com.br" />
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            slate: {
+              750: '#2d3748',
+              850: '#1a202c',
+              950: '#020617',
             },
-            fontFamily: {
-              sans: ['Inter', 'sans-serif'],
+            brand: {
+              blue: '#051b35',   // Deep Blue form image
+              gold: '#d4af37',   // Gold from image
+              light: '#e2e8f0',
+              accent: '#38bdf8'  // Light blue accent
             }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
           }
         }
       }
-    </script>
+    }
+  </script>
 
-    <!-- Global Styles -->
-    <style>
-      :root {
-        --tooltip-bg: #ffffff;
-        --tooltip-border: #e2e8f0;
-        --tooltip-text: #1e293b;
+  <!-- Global Styles -->
+  <style>
+    :root {
+      --tooltip-bg: #ffffff;
+      --tooltip-border: #e2e8f0;
+      --tooltip-text: #1e293b;
+    }
+
+    html.dark {
+      --tooltip-bg: #1e293b;
+      --tooltip-border: #334155;
+      --tooltip-text: #f8fafc;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f3f4f6;
+    }
+
+    html.dark body {
+      background-color: #020617;
+    }
+
+    /* Custom Scrollbar */
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 4px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
+
+    /* Dark mode scrollbar */
+    html.dark .custom-scrollbar::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+
+    html.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #334155;
+    }
+
+    html.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
       }
 
-      html.dark {
-        --tooltip-bg: #1e293b;
-        --tooltip-border: #334155;
-        --tooltip-text: #f8fafc;
+      to {
+        opacity: 1;
+        transform: translateY(0);
       }
+    }
 
-      body {
-        font-family: 'Inter', sans-serif;
-        background-color: #f3f4f6;
-      }
-
-      html.dark body {
-        background-color: #020617;
-      }
-
-      /* Custom Scrollbar */
-      .custom-scrollbar::-webkit-scrollbar {
-          width: 8px;
-          height: 8px;
-      }
-      .custom-scrollbar::-webkit-scrollbar-track {
-          background: #f1f1f1; 
-      }
-      .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #c1c1c1; 
-          border-radius: 4px;
-      }
-      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #a8a8a8; 
-      }
-
-      /* Dark mode scrollbar */
-      html.dark .custom-scrollbar::-webkit-scrollbar-track {
-          background: #0f172a; 
-      }
-      html.dark .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #334155; 
-      }
-      html.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #475569; 
-      }
-
-      /* Animations */
-      @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-      .animate-fade-in {
-        animation: fadeIn 0.5s ease-out forwards;
-      }
-    </style>
-    <script type="importmap">
+    .animate-fade-in {
+      animation: fadeIn 0.5s ease-out forwards;
+    }
+  </style>
+  <script type="importmap">
 {
   "imports": {
     "react": "https://esm.sh/react@18.3.1",
@@ -119,8 +133,10 @@
 }
 </script>
 </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
-  </body>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+
 </html>
