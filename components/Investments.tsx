@@ -4,7 +4,7 @@ import { AppConfig } from '../types';
 import { Lock, Crown, CheckCircle, TrendingUp, BarChart4, PieChart, Calculator, Landmark, ArrowRight, AlertTriangle, AlertCircle, Calendar, RefreshCw, Sparkles, BrainCircuit, Wallet, ArrowUpRight, PiggyBank, Info, ChevronRight } from 'lucide-react';
 import { formatCurrency } from '../utils';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Cell, BarChart, Bar } from 'recharts';
-import { GoogleGenAI } from "@google/genai";
+
 
 interface InvestmentsProps {
     config: AppConfig;
@@ -40,7 +40,7 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
     const [projMonthly, setProjMonthly] = useState(500);
     const [projYears, setProjYears] = useState(10);
     const [projRate, setProjRate] = useState(10);
-    const [projResult, setProjResult] = useState<{data: any[], totalInvested: number, totalInterest: number, totalAmount: number} | null>(null);
+    const [projResult, setProjResult] = useState<{ data: any[], totalInvested: number, totalInterest: number, totalAmount: number } | null>(null);
 
     // Nubank Simulator States
     const [nuInitial, setNuInitial] = useState(1000);
@@ -71,49 +71,49 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
         const stocks = ['VALE3', 'PETR4', 'WEGE3', 'ITUB4', 'BBAS3'];
 
         const dailyOps: Opportunity[] = [
-            { 
-                type: 'CDB Pos-Fixado', 
-                title: `CDB ${banks[Math.floor(seededRandom(1) * banks.length)]}`, 
-                rate: `${(110 + Math.floor(seededRandom(2) * 15))}% CDI`, 
-                min: 1000, 
-                risk: 'Baixo', 
+            {
+                type: 'CDB Pos-Fixado',
+                title: `CDB ${banks[Math.floor(seededRandom(1) * banks.length)]}`,
+                rate: `${(110 + Math.floor(seededRandom(2) * 15))}% CDI`,
+                min: 1000,
+                risk: 'Baixo',
                 profile: ['Conservador', 'Moderado', 'Arrojado'],
                 why: "Excelente para reserva de emergência e liquidez."
             },
-            { 
-                type: 'LCI Isenta', 
-                title: `LCI IPCA+ ${banks[Math.floor(seededRandom(3) * banks.length)]}`, 
-                rate: `IPCA + ${(4.5 + seededRandom(4) * 2).toFixed(1)}%`, 
-                min: 5000, 
-                risk: 'Baixo', 
+            {
+                type: 'LCI Isenta',
+                title: `LCI IPCA+ ${banks[Math.floor(seededRandom(3) * banks.length)]}`,
+                rate: `IPCA + ${(4.5 + seededRandom(4) * 2).toFixed(1)}%`,
+                min: 5000,
+                risk: 'Baixo',
                 profile: ['Conservador', 'Moderado'],
                 why: "Rentabilidade real sem abocanhar seu lucro no IR."
             },
-            { 
-                type: 'Tesouro Direto', 
-                title: `Tesouro IPCA+ ${2029 + Math.floor(seededRandom(5) * 10)}`, 
-                rate: `IPCA + ${(6.1 + seededRandom(6) * 0.5).toFixed(2)}%`, 
-                min: 35, 
-                risk: 'Médio', 
+            {
+                type: 'Tesouro Direto',
+                title: `Tesouro IPCA+ ${2029 + Math.floor(seededRandom(5) * 10)}`,
+                rate: `IPCA + ${(6.1 + seededRandom(6) * 0.5).toFixed(2)}%`,
+                min: 35,
+                risk: 'Médio',
                 profile: ['Moderado', 'Arrojado'],
                 why: "Proteção contra inflação no longo prazo com garantia soberana."
             },
-            { 
-                type: 'Fundo Imobiliário', 
-                title: fiis[Math.floor(seededRandom(7) * fiis.length)], 
-                rate: `DY ${(10.2 + seededRandom(8) * 3).toFixed(2)}% a.a.`, 
-                min: 100, 
-                risk: 'Médio', 
+            {
+                type: 'Fundo Imobiliário',
+                title: fiis[Math.floor(seededRandom(7) * fiis.length)],
+                rate: `DY ${(10.2 + seededRandom(8) * 3).toFixed(2)}% a.a.`,
+                min: 100,
+                risk: 'Médio',
                 profile: ['Moderado', 'Arrojado'],
                 change: (seededRandom(9) - 0.4) * 1.5,
                 why: "Renda mensal isenta de IR com ativos físicos reais."
             },
-            { 
-                type: 'Ação Recomendada', 
-                title: stocks[Math.floor(seededRandom(10) * stocks.length)], 
-                rate: `Potencial +${(15 + Math.floor(seededRandom(11) * 15))}%`, 
-                min: 10, 
-                risk: 'Alto', 
+            {
+                type: 'Ação Recomendada',
+                title: stocks[Math.floor(seededRandom(10) * stocks.length)],
+                rate: `Potencial +${(15 + Math.floor(seededRandom(11) * 15))}%`,
+                min: 10,
+                risk: 'Alto',
                 profile: ['Arrojado'],
                 change: (seededRandom(12) - 0.5) * 4,
                 why: "Empresa com fundamentos sólidos e potencial de valorização cíclica."
@@ -124,19 +124,11 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
 
     const fetchAiInsight = async () => {
         setIsLoadingAi(true);
-        try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-            const prompt = `Como um consultor financeiro sênior, dê um breve insight (3 frases) sobre o mercado atual no Brasil em ${lastUpdateDate} para um perfil ${profile || 'Geral'}. Fale sobre Selic, Inflação e por que investir hoje.`;
-            const response = await ai.models.generateContent({
-                model: 'gemini-3-flash-preview',
-                contents: prompt,
-            });
-            setAiInsight(response.text || 'O cenário atual exige cautela e foco em rentabilidade real.');
-        } catch (error) {
+        // Fallback estático seguro enquanto migramos para o backend via Edge Function
+        setTimeout(() => {
             setAiInsight("O mercado segue em volatilidade, priorize ativos de renda fixa pós-fixados para capturar a taxa Selic alta.");
-        } finally {
             setIsLoadingAi(false);
-        }
+        }, 1000);
     };
 
     useEffect(() => {
@@ -165,7 +157,7 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
             current = current * (1 + monthlyRate) + monthly;
             totalInv += monthly;
             if (i % 12 === 0 || i === 1) {
-                data.push({ name: `Ano ${Math.ceil(i/12)}`, Investido: Math.round(totalInv), Total: Math.round(current) });
+                data.push({ name: `Ano ${Math.ceil(i / 12)}`, Investido: Math.round(totalInv), Total: Math.round(current) });
             }
         }
         setProjResult({ data, totalInvested: totalInv, totalInterest: current - totalInv, totalAmount: current });
@@ -196,14 +188,14 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
         // 2. Atualizar os estados do simulador
         setProjInitial(opt.min);
         setProjRate(Number(estimatedRate.toFixed(2)));
-        
+
         // 3. Mudar de aba
         setSubTab('projection');
 
         // 4. Executar o cálculo imediatamente com os novos valores
         // (Como o estado do React é assíncrono, passamos os valores diretos aqui)
         performProjectionCalculation(opt.min, projMonthly, projYears, estimatedRate);
-        
+
         // Scroll para o topo para o usuário ver a mudança
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
@@ -213,14 +205,14 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
         const monthlyRate = Math.pow(1 + (nuCDI / 100), 1 / 12) - 1;
         let totalGross = nuInitial;
         let totalInvested = nuInitial;
-        
+
         for (let i = 0; i < nuMonths; i++) {
             totalGross = totalGross * (1 + monthlyRate) + nuMonthly;
             totalInvested += nuMonthly;
         }
 
         const totalInterest = totalGross - totalInvested;
-        
+
         // Tabela Regressiva IR
         let irRate = 0.225;
         const days = nuMonths * 30;
@@ -271,7 +263,7 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                             </div>
                             <h3 className="font-black text-slate-800 dark:text-white">Caixinhas do Nubank</h3>
                         </div>
-                        
+
                         <div>
                             <label className="text-[10px] font-black uppercase text-slate-400">Quanto você tem hoje?</label>
                             <div className="relative mt-1">
@@ -311,7 +303,7 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                             <div className="relative z-10">
                                 <p className="text-purple-200 text-xs font-bold uppercase tracking-widest mb-2">Resultado Líquido Estimado</p>
                                 <h2 className="text-5xl font-black mb-6">{formatCurrency(nuResult.totalNet, currency)}</h2>
-                                
+
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                                     <div>
                                         <p className="text-purple-300 text-[10px] font-bold uppercase">Total Guardado</p>
@@ -322,7 +314,7 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                                         <p className="text-lg font-bold text-emerald-300">+{formatCurrency(nuResult.totalInterest, currency)}</p>
                                     </div>
                                     <div className="col-span-2 md:col-span-1 border-t md:border-t-0 md:border-l border-white/10 pt-4 md:pt-0 md:pl-6">
-                                        <p className="text-purple-300 text-[10px] font-bold uppercase flex items-center gap-1">Imposto de Renda <Info size={10}/></p>
+                                        <p className="text-purple-300 text-[10px] font-bold uppercase flex items-center gap-1">Imposto de Renda <Info size={10} /></p>
                                         <p className="text-lg font-bold text-rose-300">-{formatCurrency(nuResult.irValue, currency)}</p>
                                         <span className="text-[9px] font-bold bg-white/10 px-1.5 rounded">Alíquota de {nuResult.irRatePercent}%</span>
                                     </div>
@@ -342,10 +334,10 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                                         { name: 'Bruto', valor: nuResult.totalInvested + nuResult.totalInterest, color: '#c084fc' },
                                         { name: 'Líquido', valor: nuResult.totalNet, color: '#820ad1' }
                                     ]}>
-                                        <XAxis dataKey="name" tick={{fontSize: 10}} axisLine={false} tickLine={false} />
+                                        <XAxis dataKey="name" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
                                         <Tooltip formatter={(v: any) => formatCurrency(v, currency)} />
                                         <Bar dataKey="valor" radius={[6, 6, 0, 0]}>
-                                            {[0,1,2].map((entry, index) => (
+                                            {[0, 1, 2].map((entry, index) => (
                                                 <Cell key={`cell-${index}`} fill={index === 0 ? '#94a3b8' : index === 1 ? '#c084fc' : '#820ad1'} />
                                             ))}
                                         </Bar>
@@ -411,7 +403,7 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                                 <BarChart4 size={20} />
                             </div>
                         </div>
-                         <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center justify-between transition-colors hover:shadow-md">
+                        <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center justify-between transition-colors hover:shadow-md">
                             <div>
                                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">IPCA (12m)</p>
                                 <p className="text-lg font-black text-slate-800 dark:text-white">4.50%</p>
@@ -420,7 +412,7 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                                 <AlertTriangle size={20} />
                             </div>
                         </div>
-                         <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center justify-between transition-colors hover:shadow-md">
+                        <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center justify-between transition-colors hover:shadow-md">
                             <div>
                                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Poupança</p>
                                 <p className="text-lg font-black text-slate-800 dark:text-white">6.17% + TR</p>
@@ -432,10 +424,10 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                     </div>
 
                     <div className="flex items-center justify-between">
-                         <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                             <Landmark className="text-emerald-500" size={20} /> Oportunidades do Dia <span className="text-xs font-normal text-slate-400">({lastUpdateDate})</span>
-                         </h3>
-                         <button onClick={generateDailyOpportunities} className="text-blue-600 hover:text-blue-700 text-xs font-bold flex items-center gap-1"><RefreshCw size={12}/> Atualizar</button>
+                        <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                            <Landmark className="text-emerald-500" size={20} /> Oportunidades do Dia <span className="text-xs font-normal text-slate-400">({lastUpdateDate})</span>
+                        </h3>
+                        <button onClick={generateDailyOpportunities} className="text-blue-600 hover:text-blue-700 text-xs font-bold flex items-center gap-1"><RefreshCw size={12} /> Atualizar</button>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -445,7 +437,7 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                                     <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 text-[9px] font-black text-slate-500 dark:text-slate-400 rounded uppercase tracking-tighter border border-slate-200 dark:border-slate-600">{opt.type}</span>
                                     {opt.change !== undefined && (
                                         <div className={`flex items-center gap-1 text-[10px] font-bold ${opt.change >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                                            <TrendingUp size={10} className={opt.change < 0 ? 'rotate-180' : ''}/>
+                                            <TrendingUp size={10} className={opt.change < 0 ? 'rotate-180' : ''} />
                                             {opt.change > 0 ? '+' : ''}{opt.change.toFixed(2)}%
                                         </div>
                                     )}
@@ -463,7 +455,7 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                                         <span className={`text-[10px] font-bold ${opt.risk === 'Baixo' ? 'text-emerald-500' : opt.risk === 'Médio' ? 'text-amber-500' : 'text-rose-500'}`}>{opt.risk}</span>
                                     </div>
                                 </div>
-                                <button 
+                                <button
                                     onClick={() => handleSimulateOpportunity(opt)}
                                     className="w-full mt-5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 py-2 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center justify-center gap-2 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 transition-all"
                                 >
@@ -476,22 +468,22 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
             )}
 
             {subTab === 'suitability' && (
-                 <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm animate-fade-in">
+                <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm animate-fade-in">
                     {!profile || showQuiz ? (
                         <div className="max-w-2xl mx-auto">
                             <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-2">Qual seu perfil de investidor?</h3>
                             <p className="text-slate-500 mb-8">Descubra como você lida com risco e rentabilidade.</p>
                             <div className="space-y-8">
                                 {[
-                                    {id: 1, t: "Objetivo Principal?", o: [{l: "Preservação", p: 1}, {l: "Crescimento Moderado", p: 2}, {l: "Máxima Rentabilidade", p: 3}]},
-                                    {id: 2, t: "Tempo de Investimento?", o: [{l: "Até 1 ano", p: 1}, {l: "1 a 5 anos", p: 2}, {l: "Mais de 5 anos", p: 3}]},
-                                    {id: 3, t: "Reação a quedas de 20%?", o: [{l: "Venderia tudo", p: 1}, {l: "Aguardaria", p: 2}, {l: "Compraria mais", p: 3}]}
+                                    { id: 1, t: "Objetivo Principal?", o: [{ l: "Preservação", p: 1 }, { l: "Crescimento Moderado", p: 2 }, { l: "Máxima Rentabilidade", p: 3 }] },
+                                    { id: 2, t: "Tempo de Investimento?", o: [{ l: "Até 1 ano", p: 1 }, { l: "1 a 5 anos", p: 2 }, { l: "Mais de 5 anos", p: 3 }] },
+                                    { id: 3, t: "Reação a quedas de 20%?", o: [{ l: "Venderia tudo", p: 1 }, { l: "Aguardaria", p: 2 }, { l: "Compraria mais", p: 3 }] }
                                 ].map(q => (
                                     <div key={q.id}>
                                         <p className="font-bold text-slate-700 dark:text-slate-200 mb-4">{q.id}. {q.t}</p>
                                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                             {q.o.map((opt, i) => (
-                                                <button key={i} onClick={() => setAnswers({...answers, [q.id]: opt.p})} className={`p-4 rounded-xl border-2 text-sm font-bold transition-all ${answers[q.id] === opt.p ? 'border-blue-600 bg-blue-50 text-blue-700 dark:bg-blue-900/20' : 'border-slate-100 dark:border-slate-700 hover:border-blue-200 dark:hover:border-blue-800'}`}>
+                                                <button key={i} onClick={() => setAnswers({ ...answers, [q.id]: opt.p })} className={`p-4 rounded-xl border-2 text-sm font-bold transition-all ${answers[q.id] === opt.p ? 'border-blue-600 bg-blue-50 text-blue-700 dark:bg-blue-900/20' : 'border-slate-100 dark:border-slate-700 hover:border-blue-200 dark:hover:border-blue-800'}`}>
                                                     {opt.l}
                                                 </button>
                                             ))}
@@ -512,7 +504,7 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                             <button onClick={() => setShowQuiz(true)} className="text-slate-400 hover:text-blue-600 font-bold text-sm">Refazer Teste de Suitability</button>
                         </div>
                     )}
-                 </div>
+                </div>
             )}
 
             {subTab === 'projection' && (
@@ -533,7 +525,7 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                                     <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-100 dark:border-emerald-800"><p className="text-[10px] font-bold text-emerald-500 uppercase">Juros</p><p className="text-sm font-black text-emerald-600">{formatCurrency(projResult.totalInterest, currency)}</p></div>
                                     <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800 col-span-2 sm:col-span-1"><p className="text-[10px] font-bold text-blue-500 uppercase">Final</p><p className="text-lg font-black text-blue-700 dark:text-blue-400">{formatCurrency(projResult.totalAmount, currency)}</p></div>
                                 </div>
-                                <div className="flex-1"><ResponsiveContainer width="100%" height="100%"><AreaChart data={projResult.data}><CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1} /><XAxis dataKey="name" tick={{fontSize: 10}} /><YAxis hide /><Tooltip formatter={(v: any) => formatCurrency(v, currency)} /><Area type="monotone" dataKey="Total" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.1} strokeWidth={3} /><Area type="monotone" dataKey="Investido" stroke="#94a3b8" fill="#94a3b8" fillOpacity={0.05} strokeWidth={2} /></AreaChart></ResponsiveContainer></div>
+                                <div className="flex-1"><ResponsiveContainer width="100%" height="100%"><AreaChart data={projResult.data}><CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1} /><XAxis dataKey="name" tick={{ fontSize: 10 }} /><YAxis hide /><Tooltip formatter={(v: any) => formatCurrency(v, currency)} /><Area type="monotone" dataKey="Total" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.1} strokeWidth={3} /><Area type="monotone" dataKey="Investido" stroke="#94a3b8" fill="#94a3b8" fillOpacity={0.05} strokeWidth={2} /></AreaChart></ResponsiveContainer></div>
                             </>
                         ) : (
                             <div className="h-full flex flex-col items-center justify-center text-slate-300"><TrendingUp size={48} className="opacity-20 mb-4" /><p className="font-bold">Aperte em Simular para ver a projeção</p></div>
