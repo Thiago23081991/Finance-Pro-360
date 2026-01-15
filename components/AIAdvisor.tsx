@@ -42,10 +42,7 @@ export const AIAdvisor: React.FC<{ userId: string }> = ({ userId }) => {
                 body: { message: userMsg, context: context }
             });
 
-            if (error) throw error;
-
             setMessages(prev => [...prev, { role: 'assistant', text: data.reply }]);
-        } catch (error) {
         } catch (error: any) {
             console.error(error);
             let msg = 'Erro desconhecido.';
