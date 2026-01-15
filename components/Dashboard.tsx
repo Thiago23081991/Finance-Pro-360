@@ -181,26 +181,22 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
     // --- LÓGICA DE PROJEÇÃO FUTURA (6 MESES) ---
     const projectionData = useMemo(() => {
         const data = [];
-        const today = new Date();
-        // Determine End of Current Month
-        // We want the baseline balance to be "Balance at the end of the currently filtered month"?
-        // OR "Balance as of TODAY"?
-        // Usually Projection starts from TODAY's actual balance (Total Global Balance).
 
-        // Let's Calculate Total Global Balance (All Transactions)
-        const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
-        const totalExpense = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
-        let currentBalance = totalIncome - totalExpense;
+        // 1. Calculate historical average (Last 3 months) to use as smart fallback
+        // This makes the chart "alive" even if the user hasn't added recurring transactions yet.
+        const last3MonthsBalance: number[] = [];
+        for (let i = 1; i <= 3; i++) {
+            const d = new Date(filter.year, filter.month - i, 1);
+            const m = d.getMonth();
+            const y = d.getFullYear();
 
-        // However, "Total Global Balance" includes FUTURE transactions already recorded in DB (installments).
-        // If we want to show the evolution, we should probably start with (Balance <= Current Month End) and then add month by month?
-        // But "Future Balance" implies "Where will my money be?".
-        // If I have installments recorded for next 6 months, they are already subtracted from `currentBalance` if I sum everything.
-        // So `currentBalance` IS the projected balance at the end of time (of recorded transactions).
+            const monthInc = transactions.filter(t => t.type === 'income' && new Date(t.date + 'T12:00:00').getMonth() === m && new Date(t.date + 'T12:00:00').getFullYear() === y).reduce((acc, t) => acc + t.amount, 0);
+            const monthExp = transactions.filter(t => t.type === 'expense' && new Date(t.date + 'T12:00:00').getMonth() === m && new Date(t.date + 'T12:00:00').getFullYear() === y).reduce((acc, t) => acc + t.amount, 0);
 
-        // BETTER APPROACH for Chart:
-        // 1. Calculate Balance up to TODAY (or End of Selected Month in Filter).
-        // Let's use End of Selected Filter Month as the starting point, assuming the user is looking at "Current Month".
+            last3MonthsBalance.push(monthInc - monthExp);
+        }
+        const avgMonthlyResult = last3MonthsBalance.reduce((a, b) => a + b, 0) / (last3MonthsBalance.length || 1);
+
 
         const filterDateDetails = new Date(filter.year, filter.month + 1, 0); // Last day of filtered month
 
@@ -227,8 +223,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
             const realMonthTransactions = transactions.filter(t => {
                 const tDate = new Date(t.date + 'T12:00:00');
                 // Exclude the recurring templates themselves from being counted as monthly instances if they are in the past
-                // But wait, the Template IS a real transaction for its own month.
-                // Here we are looking for transactions occurring strictly IN totalMonth.
                 return tDate.getMonth() === targetMonth && tDate.getFullYear() === targetYear;
             });
 
@@ -236,24 +230,28 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
             let monthlyExpense = realMonthTransactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
 
             // 2. VIRTUAL Recurring Transactions
+            let hasRecurring = false;
             recurringTemplates.forEach(template => {
                 const tDate = new Date(template.date + 'T12:00:00');
-
-                // Only project if the template started BEFORE this target month
-                // (i.e. we don't project a recurring bill starting in July for June)
                 if (tDate < new Date(targetYear, targetMonth, 1)) {
-                    // It applies!
+                    hasRecurring = true;
                     if (template.type === 'income') monthlyIncome += template.amount;
                     else monthlyExpense += template.amount;
                 }
             });
 
-            runningBalance += (monthlyIncome - monthlyExpense);
+            // 3. SMART FALLBACK: If no explicit data (no recurring, no installments), use historical average
+            // This prevents a flat line and gives a realistic "trend"
+            if (monthlyIncome === 0 && monthlyExpense === 0 && avgMonthlyResult !== 0) {
+                runningBalance += avgMonthlyResult;
+            } else {
+                runningBalance += (monthlyIncome - monthlyExpense);
+            }
 
             data.push({
                 name: targetMonthName,
                 saldo: runningBalance,
-                receita: monthlyIncome,
+                receita: monthlyIncome || (monthlyIncome === 0 && monthlyExpense === 0 ? (avgMonthlyResult > 0 ? avgMonthlyResult : 0) : 0), // Just for tooltip context
                 despesa: monthlyExpense
             });
         }
