@@ -1,11 +1,8 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { google } from "npm:@google/genai"
+import { GoogleGenerativeAI } from "npm:@google/generative-ai"
 
 const geminiApiKey = Deno.env.get('GEMINI_API_KEY') || '';
-
-// Initialize Gemini
-const gl = new google.GenAI({ apiKey: geminiApiKey });
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -22,10 +19,20 @@ serve(async (req) => {
         const { message, context } = await req.json();
 
         if (!message) {
-            return new Response('Missing message', { status: 400, headers: corsHeaders });
+            return new Response(JSON.stringify({ error: 'Missing message' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
         }
 
-        const model = "gemini-1.5-flash";
+        if (!geminiApiKey) {
+            console.error("GEMINI_API_KEY is missing in Edge Function environment.");
+            return new Response(JSON.stringify({ error: 'Server Configuration Error: API Key missing' }), {
+                status: 500,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+        }
+
+        // Initialize Gemini with the stable SDK
+        const genAI = new GoogleGenerativeAI(geminiApiKey);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
         // Construct the prompt with financial context
         const financialContext = context ? `
@@ -61,25 +68,17 @@ serve(async (req) => {
     `;
 
         // Generate content
-        const result = await gl.models.generateContent({
-            model: model,
-            contents: [
-                {
-                    role: 'user',
-                    parts: [{ text: fullPrompt }]
-                }
-            ],
-        });
-
-        const responseText = result.response.candidates[0].content.parts[0].text;
+        const result = await model.generateContent(fullPrompt);
+        const response = await result.response;
+        const responseText = response.text();
 
         return new Response(JSON.stringify({ reply: responseText }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
 
     } catch (error: any) {
-        console.error(error);
-        return new Response(JSON.stringify({ error: error.message }), {
+        console.error("Edge Function Error:", error);
+        return new Response(JSON.stringify({ error: error.message || 'Unknown error', details: error.toString() }), {
             status: 500,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });

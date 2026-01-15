@@ -46,8 +46,23 @@ export const AIAdvisor: React.FC<{ userId: string }> = ({ userId }) => {
 
             setMessages(prev => [...prev, { role: 'assistant', text: data.reply }]);
         } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            setMessages(prev => [...prev, { role: 'assistant', text: 'Desculpe, tive um erro ao conectar com a IA. Tente novamente.' }]);
+            let msg = 'Erro desconhecido.';
+            if (typeof error === 'string') msg = error;
+            else if (error?.message) msg = error.message;
+            else msg = JSON.stringify(error);
+
+            // Tenta ler o corpo da resposta se for um erro de função do Supabase
+            if (error?.context && typeof error.context.json === 'function') {
+                try {
+                    const body = await error.context.json();
+                    if (body.error) msg = body.error;
+                    if (body.details) msg += ` (${body.details})`;
+                } catch (e) { }
+            }
+
+            setMessages(prev => [...prev, { role: 'assistant', text: `⚠️ ${msg}` }]);
         } finally {
             setIsLoading(false);
         }
