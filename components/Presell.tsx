@@ -11,7 +11,7 @@ export const Presell: React.FC = () => {
         <div className="min-h-screen bg-white font-sans text-slate-900 overflow-x-hidden">
             {/* Top Attention Bar */}
             <div className="bg-orange-600 text-white text-center py-2 px-4 text-sm font-bold tracking-wide shadow-md relative z-20 animate-pulse">
-                🔥 OFERTA POR TEMPO LIMITADO: DE R$ 97,00 POR APENAS R$ 47,90
+                🔥 OFERTA POR TEMPO LIMITADO: PLANO SEMESTRAL POR R$ 47,90 OU ANUAL POR R$ 80,00
             </div>
 
             {/* Header / Nav */}
@@ -197,7 +197,7 @@ export const Presell: React.FC = () => {
                                 <Sparkles size={18} /> Premium AI
                             </h3>
                             <div className="flex items-baseline gap-1 mb-6">
-                                <span className="text-4xl font-black text-white">R$ 97,00</span>
+                                <span className="text-4xl font-black text-white">R$ 80,00</span>
                             </div>
                             <p className="text-slate-300 mb-8 min-h-[48px]">
                                 Para quem quer ir além: IA, cursos exclusivos e ferramentas avançadas de investimento.
