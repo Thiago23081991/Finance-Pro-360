@@ -57,12 +57,16 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
         generateDailyOpportunities();
     }, [config.userId]);
 
-    const generateDailyOpportunities = () => {
+    const generateDailyOpportunities = (forceRefresh = false) => {
         const today = new Date();
         setLastUpdateDate(today.toLocaleDateString('pt-BR'));
-        const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+
+        // Se for refresh manual (forceRefresh), usa um número aleatório. Se não, usa a data do dia.
+        const baseSeed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+        const seedText = forceRefresh ? Math.random() * 10000 : baseSeed;
+
         const seededRandom = (modifier: number) => {
-            const x = Math.sin(seed + modifier) * 10000;
+            const x = Math.sin(seedText + modifier) * 10000;
             return x - Math.floor(x);
         };
 
@@ -427,7 +431,7 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                         <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
                             <Landmark className="text-emerald-500" size={20} /> Oportunidades do Dia <span className="text-xs font-normal text-slate-400">({lastUpdateDate})</span>
                         </h3>
-                        <button onClick={generateDailyOpportunities} className="text-blue-600 hover:text-blue-700 text-xs font-bold flex items-center gap-1"><RefreshCw size={12} /> Atualizar</button>
+                        <button onClick={() => generateDailyOpportunities(true)} className="text-blue-600 hover:text-blue-700 text-xs font-bold flex items-center gap-1"><RefreshCw size={12} /> Atualizar</button>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
