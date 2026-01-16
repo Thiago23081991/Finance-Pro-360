@@ -27,6 +27,7 @@ interface Opportunity {
 
 export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSettings }) => {
     const [subTab, setSubTab] = useState<SubTab>('opportunities');
+    const [categoryTab, setCategoryTab] = useState<'all' | 'fixa' | 'variavel' | 'fundos'>('all');
     const [profile, setProfile] = useState<ProfileType>(null);
     const [answers, setAnswers] = useState<Record<number, number>>({});
     const [showQuiz, setShowQuiz] = useState(false);
@@ -74,103 +75,33 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
         const fiis = ['MXRF11', 'HGLG11', 'XPML11', 'BTLG11', 'VISC11', 'KNCR11', 'VGHF11', 'TRXF11', 'HGRU11', 'CPTS11', 'RECR11'];
         const stocks = ['VALE3', 'PETR4', 'WEGE3', 'ITUB4', 'BBAS3', 'PRIO3', 'RADL3', 'RENT3', 'B3SA3', 'RAIL3', 'CSAN3'];
         const etfs = ['IVVB11', 'WRLD11', 'NASD11', 'HASH11', 'SMAL11', 'BOVA11'];
+        const bdrs = ['AAPL34', 'MSFT34', 'GOGL34', 'AMZO34', 'TSLA34', 'NFLX34'];
+        const funds = ['Alaska Black', 'Verde AM', 'Dynamo Cougar', 'Occam Retorno', 'Kinea Chronos', 'Legacy Capital'];
 
         const dailyOps: Opportunity[] = [
-            {
-                type: 'CDB Pos-Fixado',
-                title: `CDB ${banks[Math.floor(seededRandom(1) * banks.length)]}`,
-                rate: `${(110 + Math.floor(seededRandom(2) * 20))}% CDI`, // Aumentei um pouco o teto
-                min: 1000,
-                risk: 'Baixo',
-                profile: ['Conservador', 'Moderado', 'Arrojado'],
-                why: "Excelente para reserva de emergência e liquidez diária com rentabilidade acima da poupança."
-            },
-            {
-                type: 'CDB Promo',
-                title: `CDB Turbo ${banks[Math.floor(seededRandom(20) * banks.length)]}`,
-                rate: `${(120 + Math.floor(seededRandom(21) * 15))}% CDI`,
-                min: 5000,
-                risk: 'Baixo',
-                profile: ['Conservador', 'Moderado', 'Arrojado'],
-                why: "Taxa promocional por tempo limitado para novos investidores."
-            },
-            {
-                type: 'CDB Prefixado',
-                title: `CDB Pre ${banks[Math.floor(seededRandom(13) * banks.length)]}`,
-                rate: `${(11.5 + seededRandom(14) * 3).toFixed(2)}% a.a.`,
-                min: 500,
-                risk: 'Baixo',
-                profile: ['Conservador', 'Moderado'],
-                why: "Garanta uma taxa fixa alta agora, independente da oscilação futura dos juros."
-            },
-            {
-                type: 'LCI/LCA Isenta',
-                title: `LCI IPCA+ ${banks[Math.floor(seededRandom(3) * banks.length)]}`,
-                rate: `IPCA + ${(4.5 + seededRandom(4) * 2.5).toFixed(1)}%`,
-                min: 5000,
-                risk: 'Baixo',
-                profile: ['Conservador', 'Moderado'],
-                why: "Rentabilidade real (acima da inflação) totalmente isenta de Imposto de Renda."
-            },
-            {
-                type: 'LCA Agronegócio',
-                title: `LCA ${banks[Math.floor(seededRandom(22) * banks.length)]}`,
-                rate: `${(90 + Math.floor(seededRandom(23) * 10))}% CDI`,
-                min: 1000,
-                risk: 'Baixo',
-                profile: ['Conservador', 'Moderado'],
-                why: "Isento de IR. Equivalente a um CDB de 115% do CDI (gross up)."
-            },
-            {
-                type: 'Tesouro Direto',
-                title: `Tesouro IPCA+ ${2029 + Math.floor(seededRandom(5) * 16)}`, // Até 2045
-                rate: `IPCA + ${(6.0 + seededRandom(6) * 0.6).toFixed(2)}%`,
-                min: 35,
-                risk: 'Baixo', // Reclassificado para Baixo (Sovereign risk)
-                profile: ['Conservador', 'Moderado', 'Arrojado'], // Aberto para conservador
-                why: "A segurança do governo com garantia de poder de compra no longo prazo."
-            },
-            {
-                type: 'Fundo Imobiliário',
-                title: fiis[Math.floor(seededRandom(7) * fiis.length)],
-                rate: `DY ${(10.5 + seededRandom(8) * 3.5).toFixed(2)}% a.a.`,
-                min: 10, // Cotas de FII base 10 ou 100
-                risk: 'Médio',
-                profile: ['Moderado', 'Arrojado'],
-                change: (seededRandom(9) - 0.4) * 1.8,
-                why: "Receba 'aluguéis' mensais na sua conta sem a burocracia de imóveis físicos."
-            },
-            {
-                type: 'Fiagro (Agronegócio)',
-                title: 'SNAG11', // Exemplo fixo ou lista curta
-                rate: `DY ${(12.0 + seededRandom(15) * 3).toFixed(2)}% a.a.`,
-                min: 10,
-                risk: 'Médio',
-                profile: ['Moderado', 'Arrojado'],
-                change: (seededRandom(16) - 0.3) * 1.5,
-                why: "Invista no setor mais forte do Brasil (Agro) com pagamentos mensais e isenção de IR."
-            },
-            {
-                type: 'Ação Valor',
-                title: stocks[Math.floor(seededRandom(10) * stocks.length)],
-                rate: `Potencial +${(15 + Math.floor(seededRandom(11) * 25))}%`,
-                min: 20,
-                risk: 'Alto',
-                profile: ['Arrojado'],
-                change: (seededRandom(12) - 0.5) * 5,
-                why: "Empresa líder em seu setor com fundamentos sólidos e descotada pelo mercado."
-            },
-            {
-                type: 'ETF Internacional',
-                title: etfs[Math.floor(seededRandom(17) * etfs.length)],
-                rate: 'Dolarizado',
-                min: 100,
-                risk: 'Alto',
-                profile: ['Arrojado', 'Moderado'],
-                change: (seededRandom(18) - 0.45) * 3,
-                why: "Diversificação global para proteger seu patrimônio do risco-Brasil."
-            }
+            // --- RENDA FIXA ---
+            { type: 'Poupança', title: 'Poupança (Regra Nova)', rate: '6.17% a.a. + TR', min: 0, risk: 'Baixo', profile: ['Conservador'], why: 'Liquidez imediata e isenção de IR, mas com rendimento baixo.' },
+            { type: 'Tesouro Direto', title: `Tesouro IPCA+ ${2029 + Math.floor(seededRandom(5) * 16)}`, rate: `IPCA + ${(6.0 + seededRandom(6) * 0.6).toFixed(2)}%`, min: 35, risk: 'Baixo', profile: ['Conservador', 'Moderado'], why: 'Segurança do governo com proteção contra inflação.' },
+            { type: 'CDB', title: `CDB ${banks[Math.floor(seededRandom(1) * banks.length)]}`, rate: `${(110 + Math.floor(seededRandom(2) * 20))}% CDI`, min: 1000, risk: 'Baixo', profile: ['Conservador', 'Moderado'], why: 'Rentabilidade acima da poupança com garantia do FGC.' },
+            { type: 'LCI', title: `LCI IPCA+ ${banks[Math.floor(seededRandom(3) * banks.length)]}`, rate: `IPCA + ${(4.5 + seededRandom(4) * 2.5).toFixed(1)}%`, min: 5000, risk: 'Baixo', profile: ['Conservador', 'Moderado'], why: 'Isento de IR para pessoa física e garantia do FGC.' },
+            { type: 'LCA', title: `LCA ${banks[Math.floor(seededRandom(22) * banks.length)]}`, rate: `${(90 + Math.floor(seededRandom(23) * 10))}% CDI`, min: 1000, risk: 'Baixo', profile: ['Conservador', 'Moderado'], why: 'Invista no agronegócio com isenção de imposto de renda.' },
+            { type: 'CRI', title: 'CRI Pulverizado', rate: `IPCA + ${(7.0 + seededRandom(24) * 2).toFixed(1)}%`, min: 1000, risk: 'Médio', profile: ['Moderado', 'Arrojado'], why: 'Isento de IR, lastro em créditos imobiliários. Sem FGC.' },
+            { type: 'CRA', title: 'CRA Corporativo', rate: `CDI + ${(3.0 + seededRandom(25) * 2).toFixed(1)}%`, min: 1000, risk: 'Médio', profile: ['Moderado', 'Arrojado'], why: 'Isento de IR, lastro no agronegócio. Sem FGC.' },
+            { type: 'LC', title: `LC ${banks[Math.floor(seededRandom(26) * banks.length)]}`, rate: `${(118 + Math.floor(seededRandom(27) * 10))}% CDI`, min: 5000, risk: 'Baixo', profile: ['Moderado'], why: 'Similar ao CDB, emitido por financeiras. Garantia FGC.' },
+            { type: 'Debêntures', title: 'Debênture Incentivada Vale', rate: `IPCA + ${(6.5 + seededRandom(28) * 1.5).toFixed(1)}%`, min: 1000, risk: 'Médio', profile: ['Moderado', 'Arrojado'], why: 'Isento de IR, dívida de grandes empresas. Sem FGC.' },
+            { type: 'LF', title: `LF ${banks[Math.floor(seededRandom(29) * banks.length)]}`, rate: `${(112 + Math.floor(seededRandom(30) * 5))}% CDI`, min: 50000, risk: 'Baixo', profile: ['Conservador', 'Moderado'], why: 'Letra Financeira, prazo mais longo (min 2 anos), menor alíquota de IR.' },
+
+            // --- RENDA VARIÁVEL ---
+            { type: 'Ações', title: stocks[Math.floor(seededRandom(10) * stocks.length)], rate: `Potencial +${(15 + Math.floor(seededRandom(11) * 25))}%`, min: 20, risk: 'Alto', profile: ['Arrojado'], change: (seededRandom(12) - 0.5) * 5, why: 'Torne-se sócio de grandes empresas listadas na bolsa.' },
+            { type: 'BDRs', title: bdrs[Math.floor(seededRandom(31) * bdrs.length)], rate: 'Dolarizado', min: 50, risk: 'Alto', profile: ['Arrojado'], change: (seededRandom(32) - 0.5) * 4, why: 'Invista em empresas americanas diretamente pela B3.' },
+            { type: 'FIIs', title: fiis[Math.floor(seededRandom(7) * fiis.length)], rate: `DY ${(10.5 + seededRandom(8) * 3.5).toFixed(2)}% a.a.`, min: 10, risk: 'Médio', profile: ['Moderado', 'Arrojado'], change: (seededRandom(9) - 0.4) * 1.8, why: 'Renda mensal isenta de IR com imóveis.' },
+            { type: 'ETFs', title: etfs[Math.floor(seededRandom(17) * etfs.length)], rate: 'Variação do Índice', min: 100, risk: 'Alto', profile: ['Arrojado', 'Moderado'], change: (seededRandom(18) - 0.45) * 3, why: 'Diversificação instantânea em uma cesta de ativos.' },
+
+            // --- FUNDOS ---
+            { type: 'Fundo Invest', title: funds[Math.floor(seededRandom(33) * funds.length)], rate: 'Hist. 140% CDI', min: 500, risk: 'Médio', profile: ['Moderado', 'Arrojado'], change: (seededRandom(34) - 0.2) * 2, why: 'Gestão profissional para alocar seu patrimônio.' },
+            { type: 'Fundo Imobiliário', title: fiis[Math.floor(seededRandom(35) * fiis.length)], rate: `DY ${(9.5 + seededRandom(36) * 3.0).toFixed(2)}% a.a.`, min: 10, risk: 'Médio', profile: ['Moderado', 'Arrojado'], change: (seededRandom(37) - 0.4) * 1.8, why: 'Receba aluguéis mensais.' }
         ];
+
         setOpportunities(dailyOps);
     };
 
@@ -480,8 +411,31 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                         <button onClick={() => generateDailyOpportunities(true)} className="text-blue-600 hover:text-blue-700 text-xs font-bold flex items-center gap-1"><RefreshCw size={12} /> Atualizar</button>
                     </div>
 
+
+                    <div className="flex gap-2 overflow-x-auto pb-2 mb-4 custom-scrollbar">
+                        {(['all', 'fixa', 'variavel', 'fundos'] as const).map(cat => (
+                            <button
+                                key={cat}
+                                onClick={() => setCategoryTab(cat)}
+                                className={`px-4 py-2 rounded-full text-xs font-bold transition-all whitespace-nowrap ${categoryTab === cat
+                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30'
+                                    : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-700'
+                                    }`}
+                            >
+                                {cat === 'all' ? 'Todos' : cat === 'fixa' ? 'Renda Fixa' : cat === 'variavel' ? 'Renda Variável' : 'Fundos'}
+                            </button>
+                        ))}
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {opportunities.filter(o => !profile || o.profile.includes(profile)).map((opt, i) => (
+                        {opportunities.filter(o => {
+                            if (profile && !o.profile.includes(profile)) return false;
+                            if (categoryTab === 'all') return true;
+                            if (categoryTab === 'fixa') return ['Poupança', 'Tesouro Direto', 'CDB', 'LCI', 'LCA', 'CRI', 'CRA', 'LC', 'Debêntures', 'LF'].includes(o.type);
+                            if (categoryTab === 'variavel') return ['Ações', 'BDRs', 'FIIs', 'ETFs'].includes(o.type);
+                            if (categoryTab === 'fundos') return ['Fundo Invest', 'Fundo Imobiliário'].includes(o.type);
+                            return true;
+                        }).map((opt, i) => (
                             <div key={i} className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-all group">
                                 <div className="flex justify-between items-start mb-4">
                                     <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 text-[9px] font-black text-slate-500 dark:text-slate-400 rounded uppercase tracking-tighter border border-slate-200 dark:border-slate-600">{opt.type}</span>
