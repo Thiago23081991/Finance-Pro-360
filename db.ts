@@ -29,8 +29,6 @@ export class DBService {
         email: user.username,
         username: user.name || user.username.split('@')[0],
         categories: [], // Legacy
-        income_categories: DEFAULT_CONFIG.incomeCategories, // New
-        expense_categories: DEFAULT_CONFIG.expenseCategories, // New
         payment_methods: DEFAULT_CONFIG.paymentMethods,
         enable_reminders: true,
         has_seen_tutorial: false,
@@ -285,8 +283,6 @@ export class DBService {
       // Fixed: Map name back to username field in Supabase profiles table
       username: config.name,
       categories: config.categories, // Legacy
-      income_categories: config.incomeCategories,
-      expense_categories: config.expenseCategories,
       payment_methods: config.paymentMethods,
       enable_reminders: config.enableReminders,
       reminder_frequency: config.reminderFrequency,
@@ -327,8 +323,6 @@ export class DBService {
       email: email,
       username: name,
       categories: [], // Legacy
-      income_categories: DEFAULT_CONFIG.incomeCategories,
-      expense_categories: DEFAULT_CONFIG.expenseCategories,
       payment_methods: DEFAULT_CONFIG.paymentMethods,
       enable_reminders: true,
       has_seen_tutorial: false,

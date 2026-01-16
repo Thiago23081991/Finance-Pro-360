@@ -86,6 +86,15 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                 why: "Excelente para reserva de emergência e liquidez diária com rentabilidade acima da poupança."
             },
             {
+                type: 'CDB Promo',
+                title: `CDB Turbo ${banks[Math.floor(seededRandom(20) * banks.length)]}`,
+                rate: `${(120 + Math.floor(seededRandom(21) * 15))}% CDI`,
+                min: 5000,
+                risk: 'Baixo',
+                profile: ['Conservador', 'Moderado', 'Arrojado'],
+                why: "Taxa promocional por tempo limitado para novos investidores."
+            },
+            {
                 type: 'CDB Prefixado',
                 title: `CDB Pre ${banks[Math.floor(seededRandom(13) * banks.length)]}`,
                 rate: `${(11.5 + seededRandom(14) * 3).toFixed(2)}% a.a.`,
@@ -104,12 +113,21 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                 why: "Rentabilidade real (acima da inflação) totalmente isenta de Imposto de Renda."
             },
             {
+                type: 'LCA Agronegócio',
+                title: `LCA ${banks[Math.floor(seededRandom(22) * banks.length)]}`,
+                rate: `${(90 + Math.floor(seededRandom(23) * 10))}% CDI`,
+                min: 1000,
+                risk: 'Baixo',
+                profile: ['Conservador', 'Moderado'],
+                why: "Isento de IR. Equivalente a um CDB de 115% do CDI (gross up)."
+            },
+            {
                 type: 'Tesouro Direto',
                 title: `Tesouro IPCA+ ${2029 + Math.floor(seededRandom(5) * 16)}`, // Até 2045
                 rate: `IPCA + ${(6.0 + seededRandom(6) * 0.6).toFixed(2)}%`,
                 min: 35,
-                risk: 'Médio',
-                profile: ['Moderado', 'Arrojado'],
+                risk: 'Baixo', // Reclassificado para Baixo (Sovereign risk)
+                profile: ['Conservador', 'Moderado', 'Arrojado'], // Aberto para conservador
                 why: "A segurança do governo com garantia de poder de compra no longo prazo."
             },
             {
