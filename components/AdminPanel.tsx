@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { PurchaseRequest, AdminMessage, SystemStats, UserProfile } from '../types';
 import { DBService } from '../db';
-import { Check, X, ShieldAlert, User, MessageSquare, Send, FileText, Mail, Eye, EyeOff, RefreshCw, Key, Copy, Smartphone, Lock, Loader2, Users, BarChart3, Wallet, Database, ShieldOff, ShieldCheck, Wrench, UserPlus, AlertTriangle, Megaphone } from 'lucide-react';
+import { Check, X, ShieldAlert, User, MessageSquare, Send, FileText, Mail, Eye, EyeOff, RefreshCw, Key, Copy, Smartphone, Lock, Loader2, Users, BarChart3, Wallet, Database, ShieldOff, ShieldCheck, Wrench, UserPlus, AlertTriangle, Megaphone, Search } from 'lucide-react';
 import { generateId, generateLicenseKey, formatCurrency } from '../utils';
 
 type AdminTab = 'overview' | 'users' | 'requests' | 'messages' | 'generator';
@@ -35,6 +35,15 @@ export const AdminPanel: React.FC = () => {
     const [manualEmail, setManualEmail] = useState('');
     const [manualName, setManualName] = useState('');
     const [manualLoading, setManualLoading] = useState(false);
+
+    // Search State
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const filteredProfiles = profiles.filter(p =>
+        p.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.username.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     const fetchData = async () => {
         setLoading(true);
@@ -357,70 +366,93 @@ export const AdminPanel: React.FC = () => {
             )}
 
             {activeTab === 'users' && (
-                <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden animate-fade-in transition-colors">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
-                            <thead className="bg-slate-50 dark:bg-slate-900">
-                                <tr>
-                                    <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Usuário</th>
-                                    <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Licença</th>
-                                    <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 text-center">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                {profiles.length === 0 ? (
+                <div className="space-y-4 animate-fade-in">
+                    {/* Search Bar */}
+                    <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex items-center gap-3">
+                        <Search className="text-slate-400" size={20} />
+                        <input
+                            type="text"
+                            placeholder="Buscar usuário por nome, email ou ID..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="bg-transparent border-none focus:ring-0 text-slate-700 dark:text-white w-full text-sm outline-none placeholder:text-slate-400"
+                        />
+                        {searchTerm && (
+                            <button onClick={() => setSearchTerm('')} className="text-slate-400 hover:text-slate-600">
+                                <X size={16} />
+                            </button>
+                        )}
+                    </div>
+
+                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden transition-colors">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse">
+                                <thead className="bg-slate-50 dark:bg-slate-900">
                                     <tr>
-                                        <td colSpan={3} className="py-12 text-center text-slate-400 dark:text-slate-500">
-                                            Nenhum usuário encontrado.
-                                        </td>
+                                        <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Usuário</th>
+                                        <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Cadastro</th>
+                                        <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Licença</th>
+                                        <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 text-center">Ações</th>
                                     </tr>
-                                ) : (
-                                    profiles.map(profile => (
-                                        <tr key={profile.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
-                                            <td className="py-4 px-6">
-                                                <div className="flex flex-col">
-                                                    <span className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                                                        {profile.name || 'Sem nome'}
-                                                        {profile.isGhost && <span className="text-[9px] bg-amber-100 text-amber-700 px-1 rounded uppercase">Pendente</span>}
-                                                    </span>
-                                                    <span className="text-xs text-slate-500 dark:text-slate-400">{profile.email}</span>
-                                                    <span className="text-[9px] text-slate-300 dark:text-slate-600 font-mono mt-0.5 truncate max-w-[150px]" title={profile.id}>ID: {profile.id.substring(0, 8)}...</span>
-                                                </div>
-                                            </td>
-                                            <td className="py-4 px-6">
-                                                <span className={`px-2 py-1 rounded-full text-xs font-bold uppercase ${profile.licenseStatus === 'active'
-                                                    ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
-                                                    : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
-                                                    }`}>
-                                                    {profile.licenseStatus === 'active' ? 'Premium' : 'Gratuito'}
-                                                </span>
-                                            </td>
-                                            <td className="py-4 px-6 text-center">
-                                                <div className="flex items-center justify-center">
-                                                    <button
-                                                        onClick={() => handleToggleLicense(profile)}
-                                                        className={`p-2 rounded transition-colors mr-2 ${profile.licenseStatus === 'active'
-                                                            ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 hover:bg-rose-200 dark:hover:bg-rose-800'
-                                                            : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-800'
-                                                            }`}
-                                                        title={profile.licenseStatus === 'active' ? "Remover Premium" : "Ativar Premium"}
-                                                    >
-                                                        {profile.licenseStatus === 'active' ? <ShieldOff size={16} /> : <ShieldCheck size={16} />}
-                                                    </button>
-                                                    <button
-                                                        onClick={() => openMessageModal(profile.id)}
-                                                        className="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
-                                                        title="Enviar Mensagem"
-                                                    >
-                                                        <Mail size={16} />
-                                                    </button>
-                                                </div>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                                    {filteredProfiles.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={4} className="py-12 text-center text-slate-400 dark:text-slate-500">
+                                                {searchTerm ? 'Nenhum usuário encontrado para a busca.' : 'Nenhum usuário encontrado.'}
                                             </td>
                                         </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
+                                    ) : (
+                                        filteredProfiles.map(profile => (
+                                            <tr key={profile.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                                                <td className="py-4 px-6">
+                                                    <div className="flex flex-col">
+                                                        <span className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                                                            {profile.name || 'Sem nome'}
+                                                            {profile.isGhost && <span className="text-[9px] bg-amber-100 text-amber-700 px-1 rounded uppercase">Pendente</span>}
+                                                        </span>
+                                                        <span className="text-xs text-slate-500 dark:text-slate-400">{profile.email}</span>
+                                                        <span className="text-[9px] text-slate-300 dark:text-slate-600 font-mono mt-0.5 truncate max-w-[150px]" title={profile.id}>ID: {profile.id.substring(0, 8)}...</span>
+                                                    </div>
+                                                </td>
+                                                <td className="py-4 px-6 text-sm text-slate-600 dark:text-slate-400">
+                                                    {profile.createdAt ? new Date(profile.createdAt).toLocaleDateString() : '-'}
+                                                </td>
+                                                <td className="py-4 px-6">
+                                                    <span className={`px-2 py-1 rounded-full text-xs font-bold uppercase ${profile.licenseStatus === 'active'
+                                                        ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
+                                                        : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
+                                                        }`}>
+                                                        {profile.licenseStatus === 'active' ? 'Premium' : 'Gratuito'}
+                                                    </span>
+                                                </td>
+                                                <td className="py-4 px-6 text-center">
+                                                    <div className="flex items-center justify-center">
+                                                        <button
+                                                            onClick={() => handleToggleLicense(profile)}
+                                                            className={`p-2 rounded transition-colors mr-2 ${profile.licenseStatus === 'active'
+                                                                ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 hover:bg-rose-200 dark:hover:bg-rose-800'
+                                                                : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-800'
+                                                                }`}
+                                                            title={profile.licenseStatus === 'active' ? "Remover Premium" : "Ativar Premium"}
+                                                        >
+                                                            {profile.licenseStatus === 'active' ? <ShieldOff size={16} /> : <ShieldCheck size={16} />}
+                                                        </button>
+                                                        <button
+                                                            onClick={() => openMessageModal(profile.id)}
+                                                            className="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
+                                                            title="Enviar Mensagem"
+                                                        >
+                                                            <Mail size={16} />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             )}
