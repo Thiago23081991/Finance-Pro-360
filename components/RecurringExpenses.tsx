@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Bot, Wallet, AlertTriangle, ArrowRight, CheckCircle, X, Loader2, Sparkles, Plus, Save } from 'lucide-react';
+import { Calendar, Bot, Wallet, AlertTriangle, ArrowRight, CheckCircle, X, Loader2, Sparkles, Plus, Save, Trash2, TrendingUp } from 'lucide-react';
 import { Transaction, AppConfig } from '../types';
 import { DBService } from '../db';
 import { formatCurrency, generateId } from '../utils';
@@ -30,7 +30,9 @@ export const RecurringExpenses: React.FC<RecurringExpensesProps> = ({ config, on
     const loadRecurring = async () => {
         try {
             const allTxs = await DBService.getTransactions(config.userId!);
-            const recurring = allTxs.filter(t => t.type === 'expense' && t.isRecurring);
+            const recurring = allTxs
+                .filter(t => t.type === 'expense' && t.isRecurring)
+                .sort((a, b) => (a.recurrenceDay || 1) - (b.recurrenceDay || 1));
             setRecurringTxs(recurring);
         } catch (error) {
             console.error("Failed to load recurring expenses", error);
@@ -77,6 +79,18 @@ export const RecurringExpenses: React.FC<RecurringExpensesProps> = ({ config, on
         }
     };
 
+    const handleDelete = async (id: string, name: string) => {
+        if (window.confirm(`Tem certeza que deseja remover "${name}" das recorrências?`)) {
+            try {
+                await DBService.deleteTransaction(id);
+                loadRecurring();
+            } catch (error) {
+                console.error(error);
+                alert("Erro ao remover despesa.");
+            }
+        }
+    };
+
     const handleAnalyze = async () => {
         if (recurringTxs.length === 0) {
             alert("Adicione despesas recorrentes primeiro para analisar.");
@@ -111,10 +125,11 @@ export const RecurringExpenses: React.FC<RecurringExpensesProps> = ({ config, on
     };
 
     const totalMonthly = recurringTxs.reduce((acc, t) => acc + t.amount, 0);
+    const totalYearly = totalMonthly * 12;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="bg-white dark:bg-slate-900 w-full max-w-3xl rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[90vh]">
 
                 {/* Header */}
                 <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-6 text-white flex justify-between items-center sticky top-0 z-10">
@@ -135,32 +150,46 @@ export const RecurringExpenses: React.FC<RecurringExpensesProps> = ({ config, on
                 <div className="flex-1 overflow-y-auto p-6 space-y-8">
 
                     {/* Summary Cards */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div className="bg-blue-50 dark:bg-blue-900/10 p-4 rounded-xl border border-blue-100 dark:border-blue-800 flex items-center gap-4">
                             <div className="p-3 bg-blue-100 dark:bg-blue-800 rounded-full text-blue-600 dark:text-blue-400">
                                 <Wallet size={24} />
                             </div>
                             <div>
-                                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Total Mensal Recorrente</p>
-                                <p className="text-2xl font-black text-slate-800 dark:text-white">
+                                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase">Mensal</p>
+                                <p className="text-xl font-black text-slate-800 dark:text-white">
                                     {formatCurrency(totalMonthly, config.currency || 'BRL')}
                                 </p>
                             </div>
                         </div>
 
+                        <div className="bg-emerald-50 dark:bg-emerald-900/10 p-4 rounded-xl border border-emerald-100 dark:border-emerald-800 flex items-center gap-4">
+                            <div className="p-3 bg-emerald-100 dark:bg-emerald-800 rounded-full text-emerald-600 dark:text-emerald-400">
+                                <TrendingUp size={24} />
+                            </div>
+                            <div>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase">Custo Anual</p>
+                                <p className="text-xl font-black text-emerald-700 dark:text-emerald-400">
+                                    {formatCurrency(totalYearly, config.currency || 'BRL')}
+                                </p>
+                            </div>
+                        </div>
+
                         <div className="bg-indigo-50 dark:bg-indigo-900/10 p-4 rounded-xl border border-indigo-100 dark:border-indigo-800 flex items-center justify-between cursor-pointer hover:bg-indigo-100 dark:hover:bg-indigo-900/20 transition-colors" onClick={handleAnalyze}>
-                            <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-3">
                                 <div className="p-3 bg-indigo-100 dark:bg-indigo-800 rounded-full text-indigo-600 dark:text-indigo-400">
                                     {isAnalyzing ? <Loader2 size={24} className="animate-spin" /> : <Sparkles size={24} />}
                                 </div>
-                                <div>
-                                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Análise Inteligente</p>
-                                    <p className="text-sm font-bold text-indigo-600 dark:text-indigo-400">
-                                        {isAnalyzing ? 'Analisando...' : 'Identificar Gastos Desnecessários'}
+                                <div className="flex-1">
+                                    <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400">
+                                        {isAnalyzing ? 'Analisando...' : 'Análise IA'}
+                                    </p>
+                                    <p className="text-[10px] text-slate-500 leading-tight">
+                                        Identificar cortes
                                     </p>
                                 </div>
                             </div>
-                            {!isAnalyzing && <ArrowRight size={18} className="text-indigo-400" />}
+                            {!isAnalyzing && <ArrowRight size={16} className="text-indigo-400" />}
                         </div>
                     </div>
 
@@ -240,19 +269,29 @@ export const RecurringExpenses: React.FC<RecurringExpensesProps> = ({ config, on
                     ) : recurringTxs.length > 0 ? (
                         <div className="space-y-3">
                             {recurringTxs.map(t => (
-                                <div key={t.id} className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 flex justify-between items-center group hover:border-blue-200 transition-all">
+                                <div key={t.id} className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 flex justify-between items-center group hover:border-slate-300 dark:hover:border-slate-600 transition-all">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-700 flex items-center justify-center font-bold text-slate-400 text-xs">
-                                            {t.recurrenceDay || '10'}
+                                        <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-700 flex flex-col items-center justify-center font-bold text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-600">
+                                            <span className="text-[10px] uppercase">DIA</span>
+                                            <span className="text-lg leading-none">{t.recurrenceDay || '10'}</span>
                                         </div>
                                         <div>
-                                            <p className="font-bold text-slate-800 dark:text-white">{t.description}</p>
+                                            <p className="font-bold text-slate-800 dark:text-white text-base">{t.description}</p>
                                             <p className="text-xs text-slate-500">{t.category}</p>
                                         </div>
                                     </div>
-                                    <div className="text-right">
-                                        <p className="font-bold text-slate-800 dark:text-white">{formatCurrency(t.amount, config.currency || 'BRL')}</p>
-                                        <p className="text-[10px] text-slate-400 uppercase font-bold">Mensal</p>
+                                    <div className="flex items-center gap-6">
+                                        <div className="text-right">
+                                            <p className="font-bold text-slate-800 dark:text-white">{formatCurrency(t.amount, config.currency || 'BRL')}</p>
+                                            <p className="text-[10px] text-slate-400 uppercase font-bold">Mensal</p>
+                                        </div>
+                                        <button
+                                            onClick={() => handleDelete(t.id, t.description)}
+                                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                                            title="Remover Assinatura"
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
                                     </div>
                                 </div>
                             ))}
