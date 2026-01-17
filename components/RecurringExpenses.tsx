@@ -73,9 +73,9 @@ export const RecurringExpenses: React.FC<RecurringExpensesProps> = ({ config, on
             setIsAdding(false);
             setNewName('');
             setNewAmount('');
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            alert("Erro ao adicionar assinatura.");
+            alert("Erro ao adicionar assinatura: " + (error.message || "Erro desconhecido"));
         }
     };
 
@@ -84,9 +84,9 @@ export const RecurringExpenses: React.FC<RecurringExpensesProps> = ({ config, on
             try {
                 await DBService.deleteTransaction(id);
                 loadRecurring();
-            } catch (error) {
+            } catch (error: any) {
                 console.error(error);
-                alert("Erro ao remover despesa.");
+                alert("Erro ao remover despesa: " + (error.message || "Erro desconhecido"));
             }
         }
     };
