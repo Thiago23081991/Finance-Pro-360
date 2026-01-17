@@ -463,54 +463,54 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                 {/* Coluna 1: KPIs Principais (Receita, Despesa, Saldo) */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-3 content-start">
                     {/* Receita */}
-                    <div className="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex justify-between items-center relative overflow-hidden group hover:shadow-md transition-all">
+                    <div className="bg-white dark:bg-slate-800 p-4 md:p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex justify-between items-center relative overflow-hidden group hover:shadow-md transition-all">
                         <div className="z-10">
                             <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Receitas</p>
-                            <h3 className="text-2xl font-black text-emerald-600 dark:text-emerald-400">{formatCurrency(kpiData.income, currency)}</h3>
+                            <h3 className="text-xl md:text-2xl font-black text-emerald-600 dark:text-emerald-400">{formatCurrency(kpiData.income, currency)}</h3>
                             <div className="flex items-center gap-1 mt-1">
                                 <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5 ${momComparison.incomePct >= 0 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/30'}`}>
                                     {momComparison.incomePct >= 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
                                     {Math.abs(momComparison.incomePct).toFixed(0)}%
                                 </span>
-                                <span className="text-[9px] text-slate-400">vs. mês anterior</span>
+                                <span className="text-[9px] text-slate-400 hidden sm:inline">vs. mês anterior</span>
                             </div>
                         </div>
-                        <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-full text-emerald-500 dark:text-emerald-400">
-                            <TrendingUp size={24} />
+                        <div className="p-2 md:p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-full text-emerald-500 dark:text-emerald-400">
+                            <TrendingUp size={20} className="md:w-6 md:h-6" />
                         </div>
                     </div>
 
                     {/* Despesa */}
-                    <div className="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex justify-between items-center relative overflow-hidden group hover:shadow-md transition-all">
+                    <div className="bg-white dark:bg-slate-800 p-4 md:p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex justify-between items-center relative overflow-hidden group hover:shadow-md transition-all">
                         <div className="z-10">
                             <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Despesas</p>
-                            <h3 className="text-2xl font-black text-rose-600 dark:text-rose-400">{formatCurrency(kpiData.expense, currency)}</h3>
+                            <h3 className="text-xl md:text-2xl font-black text-rose-600 dark:text-rose-400">{formatCurrency(kpiData.expense, currency)}</h3>
                             <div className="flex items-center gap-1 mt-1">
                                 <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5 ${momComparison.expensePct <= 0 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/30'}`}>
                                     {momComparison.expensePct > 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
                                     {Math.abs(momComparison.expensePct).toFixed(0)}%
                                 </span>
-                                <span className="text-[9px] text-slate-400">vs. mês anterior</span>
+                                <span className="text-[9px] text-slate-400 hidden sm:inline">vs. mês anterior</span>
                             </div>
                         </div>
-                        <div className="p-3 bg-rose-50 dark:bg-rose-900/20 rounded-full text-rose-500 dark:text-rose-400">
-                            <TrendingDown size={24} />
+                        <div className="p-2 md:p-3 bg-rose-50 dark:bg-rose-900/20 rounded-full text-rose-500 dark:text-rose-400">
+                            <TrendingDown size={20} className="md:w-6 md:h-6" />
                         </div>
                     </div>
 
                     {/* Saldo */}
-                    <div className="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex justify-between items-center relative overflow-hidden group hover:shadow-md transition-all">
+                    <div className="bg-white dark:bg-slate-800 p-4 md:p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex justify-between items-center relative overflow-hidden group hover:shadow-md transition-all">
                         <div className="z-10">
                             <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Saldo Líquido</p>
-                            <h3 className={`text-2xl font-black ${kpiData.balance >= 0 ? 'text-slate-800 dark:text-white' : 'text-rose-600 dark:text-rose-400'}`}>
+                            <h3 className={`text-xl md:text-2xl font-black ${kpiData.balance >= 0 ? 'text-slate-800 dark:text-white' : 'text-rose-600 dark:text-rose-400'}`}>
                                 {formatCurrency(kpiData.balance, currency)}
                             </h3>
                             <p className="text-[10px] text-slate-400 mt-1">
-                                {kpiData.balance >= 0 ? 'Parabéns, saldo positivo!' : 'Cuidado, você gastou mais que ganhou.'}
+                                {kpiData.balance >= 0 ? 'Parabéns!' : 'Cuidado.'}
                             </p>
                         </div>
-                        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-full text-blue-500 dark:text-blue-400">
-                            <DollarSign size={24} />
+                        <div className="p-2 md:p-3 bg-blue-50 dark:bg-blue-900/20 rounded-full text-blue-500 dark:text-blue-400">
+                            <DollarSign size={20} className="md:w-6 md:h-6" />
                         </div>
                     </div>
                 </div>
@@ -518,30 +518,30 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                 {/* Coluna 2: Destaques & Gamificação */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3 content-start">
                     {/* Score de Saúde Financeira */}
-                    <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-5 text-white shadow-lg relative overflow-hidden">
+                    <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-4 md:p-5 text-white shadow-lg relative overflow-hidden">
                         <div className="absolute top-0 right-0 p-4 opacity-10">
-                            <Target size={100} />
+                            <Target size={80} className="md:w-[100px] md:h-[100px]" />
                         </div>
                         <div className="relative z-10 flex items-center justify-between">
                             <div>
                                 <h4 className="text-xs font-bold uppercase tracking-widest opacity-80 mb-2">Saúde Financeira</h4>
                                 <div className="flex items-end gap-2">
-                                    <span className="text-4xl font-black">{financialHealthScore}</span>
-                                    <span className="text-sm font-medium opacity-80 mb-1">/ 100</span>
+                                    <span className="text-3xl md:text-4xl font-black">{financialHealthScore}</span>
+                                    <span className="text-xs md:text-sm font-medium opacity-80 mb-1">/ 100</span>
                                 </div>
                                 <p className="text-xs mt-2 font-medium bg-white/20 inline-block px-2 py-1 rounded">
                                     {financialHealthScore >= 80 ? 'Excelente! 🏆' : financialHealthScore >= 50 ? 'No Caminho Certo 👍' : 'Requer Atenção ⚠️'}
                                 </p>
                             </div>
-                            <div className="h-16 w-16 rounded-full border-4 border-white/30 flex items-center justify-center">
-                                <HeartPulse size={24} className="animate-pulse" />
+                            <div className="h-12 w-12 md:h-16 md:w-16 rounded-full border-4 border-white/30 flex items-center justify-center">
+                                <HeartPulse size={20} className="md:w-6 md:h-6 animate-pulse" />
                             </div>
                         </div>
                     </div>
 
                     {/* Resumo de Investimentos (NOVO) */}
                     {totalInvested > 0 && (
-                        <div className="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between group hover:shadow-md transition-all">
+                        <div className="bg-white dark:bg-slate-800 p-4 md:p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between group hover:shadow-md transition-all">
                             <div className="flex justify-between items-start mb-2">
                                 <div>
                                     <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Patrimônio</h4>
@@ -552,7 +552,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                                 </div>
                             </div>
                             <div>
-                                <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-1">{formatCurrency(totalInvested, currency)}</h3>
+                                <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white mb-1">{formatCurrency(totalInvested, currency)}</h3>
                                 <p className="text-[10px] text-emerald-600 font-bold bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded-full inline-block">
                                     Ver minha carteira
                                 </p>
@@ -561,7 +561,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                     )}
 
                     {/* Resumo de Renda Livre (Custos Fixos) */}
-                    <div className="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between">
+                    <div className="bg-white dark:bg-slate-800 p-4 md:p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between">
                         <div className="flex justify-between items-start mb-4">
                             <div>
                                 <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Comprometimento</h4>
@@ -598,7 +598,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                 {/* Coluna 3: Meta em Destaque e Atalhos */}
                 <div className="grid grid-cols-1 gap-3 content-start">
                     {/* Meta Principal */}
-                    <div className="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 min-h-[160px] flex flex-col">
+                    <div className="bg-white dark:bg-slate-800 p-4 md:p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 min-h-[160px] flex flex-col">
                         <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                             <Target size={14} /> Foco Principal
                         </h4>

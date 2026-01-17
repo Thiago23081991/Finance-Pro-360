@@ -19,12 +19,15 @@ import { FilterBar } from './components/FilterBar';
 import { ResetPasswordModal } from './components/ResetPasswordModal';
 import { CalculatorModal } from './components/CalculatorModal';
 import { RecurringExpenses } from './components/RecurringExpenses';
+import { MonthlyReportModal } from './components/MonthlyReportModal';
+import { Notifications } from './components/Notifications';
+import { StatementImportModal } from './components/StatementImportModal';
 import { Logo } from './components/Logo';
 import { DBService } from './db';
 import { supabase } from './supabaseClient';
 import { SubscriptionWall } from './components/SubscriptionWall';
 import { TrialModal } from './components/TrialModal';
-import { LayoutDashboard, CreditCard, TrendingUp, Target, Settings as SettingsIcon, Menu, Filter, LogOut, Loader2, ShieldCheck, Mail, Sun, Moon, X, BarChart4, GraduationCap, Scale, Calculator, List, TableProperties, AlertTriangle, RefreshCw, Plus, User, Receipt } from 'lucide-react';
+import { LayoutDashboard, CreditCard, TrendingUp, Target, Settings as SettingsIcon, Menu, Filter, LogOut, Loader2, ShieldCheck, Mail, Sun, Moon, X, BarChart4, GraduationCap, Scale, Calculator, List, TableProperties, AlertTriangle, RefreshCw, Plus, User, Receipt, Upload } from 'lucide-react';
 
 const TAB_METADATA: Record<Tab, { label: string; pageTitle: string; icon: React.ReactNode }> = {
     controle: { label: 'Controle', pageTitle: 'Painel de Controle', icon: <LayoutDashboard size={20} /> },
@@ -67,6 +70,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
     // Trial State
     const [isTrialExpired, setIsTrialExpired] = useState(false);
     const [showTrialModal, setShowTrialModal] = useState(false);
+    const [showImportModal, setShowImportModal] = useState(false);
     const [daysRemaining, setDaysRemaining] = useState(0);
 
     const [filter, setFilter] = useState<FilterState>({
@@ -155,54 +159,11 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
         else document.documentElement.classList.remove('dark');
     }, [config.theme]);
 
-    // Checagem de Mensagens e Vencimento da Fatura
+    // Checagem de Mensagens
     useEffect(() => {
         const checkInterval = setInterval(checkUnreadMessages, 15000);
-
-        // Verificar vencimento da fatura (Lógica Robusta)
-        if (config.creditCardDueDate) {
-            const today = new Date();
-            const currentYear = today.getFullYear();
-            const currentMonth = today.getMonth();
-            const dueDay = config.creditCardDueDate;
-
-            // Define a data de vencimento deste mês
-            let nextDueDate = new Date(currentYear, currentMonth, dueDay);
-
-            // Se hoje já passou do dia de vencimento deste mês, o próximo vencimento é mês que vem
-            // (Usamos setHours(0,0,0,0) para comparar apenas as datas)
-            const todayZero = new Date(today);
-            todayZero.setHours(0, 0, 0, 0);
-
-            if (todayZero > nextDueDate) {
-                nextDueDate = new Date(currentYear, currentMonth + 1, dueDay);
-            }
-
-            // Calcula a diferença em dias
-            const diffTime = nextDueDate.getTime() - todayZero.getTime();
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-            // Alerta se faltar 3 dias ou menos (incluindo o dia, que é 0)
-            if (diffDays >= 0 && diffDays <= 3) {
-                const msg = diffDays === 0
-                    ? "⚠️ Atenção: Sua fatura do cartão vence HOJE!"
-                    : `📅 Lembrete: Sua fatura vence em ${diffDays} dias (Dia ${dueDay}).`;
-
-                setTimeout(() => {
-                    setToastMessage(msg);
-                    setToastAction({
-                        label: "VER FATURA",
-                        fn: () => {
-                            handleTabChange('despesas');
-                            setExpenseSubTab('cards');
-                        }
-                    });
-                }, 3000);
-            }
-        }
-
         return () => clearInterval(checkInterval);
-    }, [user, config.creditCardDueDate]);
+    }, [user]);
 
     const checkUnreadMessages = async () => {
         try {
@@ -302,6 +263,8 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                     <div className="flex items-center gap-2 sm:gap-4">
                         <div className="hidden sm:block"><FilterBar filter={filter} setFilter={setFilter} activeTab={activeTab} config={config} /></div>
                         <button onClick={() => updateConfig({ ...config, theme: config.theme === 'dark' ? 'light' : 'dark' })} className="p-2 text-slate-500 dark:hover:bg-slate-800 rounded-full transition-colors">{config.theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}</button>
+                        <Notifications transactions={transactions} goals={goals} debts={debts} config={config} onNavigate={(tab) => { handleTabChange(tab as Tab); if (tab === 'despesas') setExpenseSubTab('cards'); }} />
+                        <button onClick={() => setShowImportModal(true)} className="p-2 text-slate-500 dark:hover:bg-slate-800 rounded-full transition-colors" title="Importar Extrato"><Upload size={20} /></button>
                         <button onClick={() => setShowRecurringExpenses(true)} className="p-2 text-slate-500 dark:hover:bg-slate-800 rounded-full transition-colors" title="Organizador de Assinaturas"><Receipt size={20} /></button>
                         <button onClick={() => setShowCalculatorModal(true)} className="p-2 text-slate-500 dark:hover:bg-slate-800 rounded-full transition-colors"><Calculator size={20} /></button>
                         <button onClick={() => setShowInbox(true)} className="relative p-2 text-slate-500 dark:hover:bg-slate-800 rounded-full transition-colors"><Mail size={20} />{unreadMessages > 0 && <span className="absolute top-1 right-1 w-3 h-3 bg-brand-gold rounded-full border-2 border-white dark:border-slate-900 animate-pulse"></span>}</button>

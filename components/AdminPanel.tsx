@@ -232,23 +232,24 @@ export const AdminPanel: React.FC = () => {
     return (
         <div className="max-w-6xl mx-auto animate-fade-in space-y-6 relative pb-10">
             <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
                     <div className="flex items-center gap-3">
-                        <div className="bg-indigo-100 dark:bg-indigo-900/30 p-3 rounded-lg text-indigo-600 dark:text-indigo-400">
+                        <div className="bg-indigo-100 dark:bg-indigo-900/30 p-3 rounded-lg text-indigo-600 dark:text-indigo-400 shrink-0">
                             <ShieldAlert size={24} />
                         </div>
                         <div>
-                            <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Painel Administrativo</h2>
-                            <p className="text-slate-500 dark:text-slate-400">Gestão global do sistema Finance Pro 360.</p>
+                            <h2 className="text-xl md:text-2xl font-bold text-slate-800 dark:text-white">Painel Administrativo</h2>
+                            <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400">Gestão global do sistema.</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 self-end md:self-auto">
                         <button
                             onClick={() => openMessageModal('', true)}
-                            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md transition-all active:scale-95"
+                            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 md:px-4 md:py-2 rounded-lg text-xs md:text-sm font-bold shadow-md transition-all active:scale-95"
                         >
-                            <Megaphone size={18} />
-                            Comunicado Geral
+                            <Megaphone size={16} className="md:w-[18px] md:h-[18px]" />
+                            <span className="hidden sm:inline">Comunicado Geral</span>
+                            <span className="sm:hidden">Comunicar Todos</span>
                         </button>
                         <button
                             onClick={fetchData}
