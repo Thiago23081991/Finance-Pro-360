@@ -3,7 +3,7 @@ import { Transaction, Goal, FilterState } from '../types';
 import { formatCurrency } from '../utils';
 import { MONTH_NAMES } from '../constants';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, Cell, LineChart, Line, Legend } from 'recharts';
-import { TrendingUp, TrendingDown, DollarSign, History, Utensils, Car, Home, HeartPulse, PartyPopper, GraduationCap, Banknote, ShoppingBag, Zap, CircleDollarSign, AlertTriangle, Lightbulb, Siren, Target, CheckCircle2, BarChart4, PieChart, LineChart as LineChartIcon, ArrowRightLeft } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, History, Utensils, Car, Home, HeartPulse, PartyPopper, GraduationCap, Banknote, ShoppingBag, Zap, CircleDollarSign, AlertTriangle, Lightbulb, Siren, Target, CheckCircle2, BarChart4, PieChart, LineChart as LineChartIcon, ArrowRightLeft, Lock } from 'lucide-react';
 
 interface DashboardProps {
     transactions: Transaction[];
@@ -45,6 +45,91 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
         const balance = income - expense;
         return { income, expense, balance };
     }, [filteredTransactions]);
+
+    // --- NOVAS METRICAS: MÊS ANTERIOR (MoM) ---
+    const momComparison = useMemo(() => {
+        const prevMonthDate = new Date(filter.year, filter.month - 1, 1);
+        const prevMonth = prevMonthDate.getMonth();
+        const prevYear = prevMonthDate.getFullYear();
+
+        const prevTxs = transactions.filter(t => {
+            const d = new Date(t.date + 'T12:00:00');
+            return d.getMonth() === prevMonth && d.getFullYear() === prevYear;
+        });
+
+        const prevIncome = prevTxs.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+        const prevExpense = prevTxs.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+
+        const getPctChange = (current: number, previous: number) => {
+            if (previous === 0) return current > 0 ? 100 : 0;
+            return ((current - previous) / previous) * 100;
+        };
+
+        return {
+            incomePct: getPctChange(kpiData.income, prevIncome),
+            expensePct: getPctChange(kpiData.expense, prevExpense),
+            prevIncome,
+            prevExpense
+        };
+    }, [transactions, filter, kpiData]);
+
+    // --- NOVAS METRICAS: CUSTO FIXO E RENDA LIVRE ---
+    const fixedCostStats = useMemo(() => {
+        // Considera recorrentes ativas (aquelas marcadas como isRecurring)
+        // Uma abordagem simplificada: soma todas as despesas marcadas como isRecurring
+        // Idealmente, filtraria apenas as únicas (agrupadas por descrição), mas vamos somar o que aparecer no mês ou média.
+        // Melhor: Pegar todas as transações ÚNICAS marcadas como recurring no DB e somar seus valores mais recentes.
+
+        // Vamos usar a lista filtrada do mês atual para ver o "realizado" de fixo, 
+        // ou pegar todas as recorrentes "ativas" baseadas na última ocorrência?
+        // Para simplificar e ser consistente com o organizador, vamos pegar a lista de templates (última tx de cada recorrente).
+
+        const uniqueRecurring = new Map<string, number>();
+        transactions
+            .filter(t => t.type === 'expense' && t.isRecurring)
+            .forEach(t => {
+                // Usa descrição como chave para identificar "assinatura única"
+                // Se já existe, atualiza apenas se a data for mais recente (embora aqui não estamos ordenando, assumimos ordem do DB)
+                if (!uniqueRecurring.has(t.description)) {
+                    uniqueRecurring.set(t.description, t.amount);
+                }
+            });
+
+        const totalFixed = Array.from(uniqueRecurring.values()).reduce((acc, val) => acc + val, 0);
+        const income = kpiData.income || 1; // Evitar divisão por zero
+        const commitedPct = (totalFixed / income) * 100;
+        const freeIncome = Math.max(0, kpiData.income - totalFixed);
+
+        return { totalFixed, commitedPct, freeIncome };
+    }, [transactions, kpiData.income]);
+
+    // --- NOVAS METRICAS: SCORE DE SAÚDE FINANCEIRA ---
+    const financialHealthScore = useMemo(() => {
+        let score = 50; // Base start
+
+        // 1. Orçamento (Gastar menos que ganha)
+        if (kpiData.income >= kpiData.expense && kpiData.income > 0) score += 20;
+
+        // 2. Capacidade de Poupança (> 15%)
+        const savingsRate = kpiData.income > 0 ? (kpiData.income - kpiData.expense) / kpiData.income : 0;
+        if (savingsRate > 0.15) score += 10;
+        if (savingsRate > 0.30) score += 10; // Bonus master
+
+        // 3. Metas Ativas
+        const hasActiveGoal = goals.some(g => g.status === 'Em andamento');
+        if (hasActiveGoal) score += 10;
+
+        // 4. Sem Alertas Críticos (dívidas/estouro)
+        // Vamos checar se saldo é negativo
+        if (kpiData.balance < 0) score -= 20;
+
+        return Math.max(0, Math.min(100, score));
+    }, [kpiData, goals]);
+
+    // --- NOVA META EM DESTAQUE ---
+    const featuredGoal = useMemo(() => {
+        return goals.find(g => g.status === 'Em andamento') || null;
+    }, [goals]);
 
     const availableCategories = useMemo(() => {
         const cats = new Set<string>();
@@ -335,35 +420,156 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
     return (
         <div className="space-y-6 animate-fade-in pb-20 md:pb-10">
 
-            {/* KPI Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-                <div className="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between transition-all hover:shadow-md">
-                    <div>
-                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Receitas</p>
-                        <h3 className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{formatCurrency(kpiData.income, currency)}</h3>
+            {/* KPI Cards & Highlights */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+                {/* Coluna 1: KPIs Principais (Receita, Despesa, Saldo) */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-3 content-start">
+                    {/* Receita */}
+                    <div className="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex justify-between items-center relative overflow-hidden group hover:shadow-md transition-all">
+                        <div className="z-10">
+                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Receitas</p>
+                            <h3 className="text-2xl font-black text-emerald-600 dark:text-emerald-400">{formatCurrency(kpiData.income, currency)}</h3>
+                            <div className="flex items-center gap-1 mt-1">
+                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5 ${momComparison.incomePct >= 0 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/30'}`}>
+                                    {momComparison.incomePct >= 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
+                                    {Math.abs(momComparison.incomePct).toFixed(0)}%
+                                </span>
+                                <span className="text-[9px] text-slate-400">vs. mês anterior</span>
+                            </div>
+                        </div>
+                        <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-full text-emerald-500 dark:text-emerald-400">
+                            <TrendingUp size={24} />
+                        </div>
                     </div>
-                    <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg text-emerald-600 dark:text-emerald-400 self-end -mt-8">
-                        <TrendingUp size={20} />
+
+                    {/* Despesa */}
+                    <div className="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex justify-between items-center relative overflow-hidden group hover:shadow-md transition-all">
+                        <div className="z-10">
+                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Despesas</p>
+                            <h3 className="text-2xl font-black text-rose-600 dark:text-rose-400">{formatCurrency(kpiData.expense, currency)}</h3>
+                            <div className="flex items-center gap-1 mt-1">
+                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5 ${momComparison.expensePct <= 0 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/30'}`}>
+                                    {momComparison.expensePct > 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
+                                    {Math.abs(momComparison.expensePct).toFixed(0)}%
+                                </span>
+                                <span className="text-[9px] text-slate-400">vs. mês anterior</span>
+                            </div>
+                        </div>
+                        <div className="p-3 bg-rose-50 dark:bg-rose-900/20 rounded-full text-rose-500 dark:text-rose-400">
+                            <TrendingDown size={24} />
+                        </div>
+                    </div>
+
+                    {/* Saldo */}
+                    <div className="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex justify-between items-center relative overflow-hidden group hover:shadow-md transition-all">
+                        <div className="z-10">
+                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Saldo Líquido</p>
+                            <h3 className={`text-2xl font-black ${kpiData.balance >= 0 ? 'text-slate-800 dark:text-white' : 'text-rose-600 dark:text-rose-400'}`}>
+                                {formatCurrency(kpiData.balance, currency)}
+                            </h3>
+                            <p className="text-[10px] text-slate-400 mt-1">
+                                {kpiData.balance >= 0 ? 'Parabéns, saldo positivo!' : 'Cuidado, você gastou mais que ganhou.'}
+                            </p>
+                        </div>
+                        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-full text-blue-500 dark:text-blue-400">
+                            <DollarSign size={24} />
+                        </div>
                     </div>
                 </div>
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between transition-all hover:shadow-md">
-                    <div>
-                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Despesas</p>
-                        <h3 className="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">{formatCurrency(kpiData.expense, currency)}</h3>
+
+                {/* Coluna 2: Destaques & Gamificação */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3 content-start">
+                    {/* Score de Saúde Financeira */}
+                    <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-5 text-white shadow-lg relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-4 opacity-10">
+                            <Target size={100} />
+                        </div>
+                        <div className="relative z-10 flex items-center justify-between">
+                            <div>
+                                <h4 className="text-xs font-bold uppercase tracking-widest opacity-80 mb-2">Saúde Financeira</h4>
+                                <div className="flex items-end gap-2">
+                                    <span className="text-4xl font-black">{financialHealthScore}</span>
+                                    <span className="text-sm font-medium opacity-80 mb-1">/ 100</span>
+                                </div>
+                                <p className="text-xs mt-2 font-medium bg-white/20 inline-block px-2 py-1 rounded">
+                                    {financialHealthScore >= 80 ? 'Excelente! 🏆' : financialHealthScore >= 50 ? 'No Caminho Certo 👍' : 'Requer Atenção ⚠️'}
+                                </p>
+                            </div>
+                            <div className="h-16 w-16 rounded-full border-4 border-white/30 flex items-center justify-center">
+                                <HeartPulse size={24} className="animate-pulse" />
+                            </div>
+                        </div>
                     </div>
-                    <div className="p-2 bg-rose-100 dark:bg-rose-900/30 rounded-lg text-rose-600 dark:text-rose-400 self-end -mt-8">
-                        <TrendingDown size={20} />
+
+                    {/* Resumo de Renda Livre (Custos Fixos) */}
+                    <div className="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between">
+                        <div className="flex justify-between items-start mb-4">
+                            <div>
+                                <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Comprometimento</h4>
+                                <p className="text-xs text-slate-400">Renda vs. Custos Fixos</p>
+                            </div>
+                            <div className="p-2 bg-amber-50 dark:bg-amber-900/20 rounded-lg text-amber-600 dark:text-amber-400">
+                                <Lock size={18} />
+                            </div>
+                        </div>
+
+                        <div className="space-y-3">
+                            <div>
+                                <div className="flex justify-between text-xs mb-1">
+                                    <span className="font-bold text-slate-700 dark:text-slate-300">Custo Fixo Total</span>
+                                    <span className="font-bold text-slate-700 dark:text-slate-300">{formatCurrency(fixedCostStats.totalFixed, currency)}</span>
+                                </div>
+                                <div className="w-full bg-slate-100 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+                                    <div
+                                        className={`h-full rounded-full ${fixedCostStats.commitedPct > 50 ? 'bg-rose-500' : 'bg-amber-500'}`}
+                                        style={{ width: `${Math.min(fixedCostStats.commitedPct, 100)}%` }}
+                                    ></div>
+                                </div>
+                                <p className="text-[10px] text-slate-400 mt-1 text-right">{fixedCostStats.commitedPct.toFixed(0)}% da renda comprometida</p>
+                            </div>
+
+                            <div className="pt-3 border-t border-slate-100 dark:border-slate-700">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase">Renda Livre Estimada</p>
+                                <p className="text-lg font-black text-emerald-600 dark:text-emerald-400">{formatCurrency(fixedCostStats.freeIncome, currency)}</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between transition-all hover:shadow-md">
-                    <div>
-                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Saldo</p>
-                        <h3 className={`text-2xl font-black mt-1 ${kpiData.balance >= 0 ? 'text-slate-800 dark:text-white' : 'text-rose-600 dark:text-rose-400'}`}>
-                            {formatCurrency(kpiData.balance, currency)}
-                        </h3>
-                    </div>
-                    <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400 self-end -mt-8">
-                        <DollarSign size={20} />
+
+                {/* Coluna 3: Meta em Destaque e Atalhos */}
+                <div className="grid grid-cols-1 gap-3 content-start">
+                    {/* Meta Principal */}
+                    <div className="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 min-h-[160px] flex flex-col">
+                        <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                            <Target size={14} /> Foco Principal
+                        </h4>
+
+                        {featuredGoal ? (
+                            <div className="flex-1 flex flex-col justify-center">
+                                <div className="flex justify-between items-end mb-2">
+                                    <span className="font-bold text-slate-800 dark:text-white truncate max-w-[150px]">{featuredGoal.name}</span>
+                                    <span className="text-xs font-bold text-blue-600 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded-full">
+                                        {Math.min(100, Math.round((featuredGoal.currentValue / featuredGoal.targetValue) * 100))}%
+                                    </span>
+                                </div>
+                                <div className="w-full bg-slate-100 dark:bg-slate-700 h-3 rounded-full overflow-hidden mb-2">
+                                    <div
+                                        className="h-full bg-blue-500 rounded-full transition-all duration-1000"
+                                        style={{ width: `${Math.min(100, (featuredGoal.currentValue / featuredGoal.targetValue) * 100)}%` }}
+                                    ></div>
+                                </div>
+                                <div className="flex justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                                    <span>{formatCurrency(featuredGoal.currentValue, currency)}</span>
+                                    <span>{formatCurrency(featuredGoal.targetValue, currency)}</span>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="flex-1 flex flex-col items-center justify-center text-center py-4 border-2 border-dashed border-slate-100 dark:border-slate-700 rounded-lg">
+                                <p className="text-xs text-slate-400 mb-2">Nenhuma meta ativa</p>
+                                <span className="text-[10px] font-bold text-blue-500">Defina um objetivo!</span>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
