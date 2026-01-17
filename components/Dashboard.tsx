@@ -1,10 +1,10 @@
-import React, { useMemo, useState } from 'react';
 import { Transaction, Goal, AppConfig, Investment, FilterState } from '../types';
 import { formatCurrency } from '../utils';
 import { MONTH_NAMES } from '../constants';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, Cell, LineChart, Line, Legend } from 'recharts';
-import { TrendingUp, TrendingDown, DollarSign, History, Utensils, Car, Home, HeartPulse, PartyPopper, GraduationCap, Banknote, ShoppingBag, Zap, CircleDollarSign, AlertTriangle, Lightbulb, Siren, Target, CheckCircle2, BarChart4, PieChart, LineChart as LineChartIcon, ArrowRightLeft, Lock, Landmark } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, History, Utensils, Car, Home, HeartPulse, PartyPopper, GraduationCap, Banknote, ShoppingBag, Zap, CircleDollarSign, AlertTriangle, Lightbulb, Siren, Target, CheckCircle2, BarChart4, PieChart, LineChart as LineChartIcon, ArrowRightLeft, Lock, Landmark, FileText, Printer } from 'lucide-react';
 import { DBService } from '../db';
+import { MonthlyReportModal } from './MonthlyReportModal';
 
 interface DashboardProps {
     transactions: Transaction[];
@@ -49,6 +49,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
 
     // --- INVESTIMENTOS ---
     const [investments, setInvestments] = useState<Investment[]>([]);
+    const [showReportModal, setShowReportModal] = useState(false);
 
     React.useEffect(() => {
         // Assume userId is available from first transaction or passed as prop (ideally prop)
@@ -440,6 +441,22 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
     return (
         <div className="space-y-6 animate-fade-in pb-20 md:pb-10">
 
+            {/* Action Bar / Header */}
+            <div className="flex justify-between items-center bg-gradient-to-r from-slate-50 to-white dark:from-slate-800 dark:to-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                <div>
+                    <h3 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                        Dashboard <span className="text-sm font-normal text-slate-500 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded-full">{MONTH_NAMES[filter.month]} {filter.year}</span>
+                    </h3>
+                </div>
+                <button
+                    onClick={() => setShowReportModal(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-700 dark:text-white font-bold text-sm rounded-lg border border-slate-200 dark:border-slate-600 shadow-sm transition-all"
+                >
+                    <FileText size={16} className="text-blue-600" />
+                    <span className="hidden sm:inline">Relatório Mensal</span>
+                </button>
+            </div>
+
             {/* KPI Cards & Highlights */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
@@ -795,6 +812,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                     ))}
                 </div>
             </div>
+
+            <MonthlyReportModal
+                isOpen={showReportModal}
+                onClose={() => setShowReportModal(false)}
+                currentMonth={filter.month}
+                currentYear={filter.year}
+                userId={transactions[0]?.userId || ''}
+                currency={currency}
+            />
         </div>
     );
 };
