@@ -429,7 +429,9 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {opportunities.filter(o => {
-                            if (profile && !o.profile.includes(profile)) return false;
+                            // Removido filtro estrito de perfil para permitir visualização de todas as categorias
+                            // if (profile && !o.profile.includes(profile)) return false;
+
                             if (categoryTab === 'all') return true;
                             if (categoryTab === 'fixa') return ['Poupança', 'Tesouro Direto', 'CDB', 'LCI', 'LCA', 'CRI', 'CRA', 'LC', 'Debêntures', 'LF'].includes(o.type);
                             if (categoryTab === 'variavel') return ['Ações', 'BDRs', 'FIIs', 'ETFs'].includes(o.type);

@@ -112,7 +112,9 @@ export class DBService {
       category: t.category,
       description: t.description,
       paymentMethod: t.payment_method,
-      type: t.type
+      type: t.type,
+      isRecurring: t.is_recurring,
+      recurrenceDay: t.recurrence_day
     }));
   }
 
@@ -128,7 +130,9 @@ export class DBService {
       category: t.category,
       description: t.description,
       payment_method: t.paymentMethod,
-      type: t.type
+      type: t.type,
+      is_recurring: t.isRecurring,
+      recurrence_day: t.recurrenceDay
     };
 
     const { error } = await supabase.from('transactions').upsert(payload);
@@ -593,12 +597,19 @@ export class DBService {
       .map(g => `${g.name} (Meta: R$ ${g.targetValue})`)
       .join(', ');
 
+    // Recurring Expenses for AI Context
+    const recurringTxs = transactions.filter(t => t.type === 'expense' && t.isRecurring);
+    const recurringList = recurringTxs.map(t => `${t.description} (R$ ${t.amount})`).join(', ');
+    const totalRecurring = recurringTxs.reduce((acc, t) => acc + t.amount, 0);
+
     return {
       balance: (income - expenses).toFixed(2),
       income: income.toFixed(2),
       expenses: expenses.toFixed(2),
       topCategories: topCategories || 'Nenhuma despesa este mês',
-      goal: activeGoals || 'Nenhuma meta definida'
+      goal: activeGoals || 'Nenhuma meta definida',
+      recurringExpenses: recurringList || 'Nenhuma assinatura/conta fixa identificada',
+      totalRecurring: totalRecurring.toFixed(2)
     };
   }
 }
