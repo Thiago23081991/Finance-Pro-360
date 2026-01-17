@@ -1,5 +1,5 @@
 
-import { Transaction, Goal, Debt, AppConfig, UserAccount, PurchaseRequest, AdminMessage, SystemStats, UserProfile } from "./types";
+import { Transaction, Goal, Debt, AppConfig, UserAccount, PurchaseRequest, AdminMessage, SystemStats, UserProfile, Investment } from "./types";
 import { DEFAULT_CONFIG } from "./constants";
 import { supabase } from "./supabaseClient";
 import { generateId, validateLicenseKey } from "./utils";
@@ -233,6 +233,69 @@ export class DBService {
         const currentDebts = await this.getDebts(user.id);
         const filtered = currentDebts.filter(d => d.id !== id);
         localStorage.setItem(`fp360_debts_${user.id}`, JSON.stringify(filtered));
+      }
+    }
+  }
+
+  // --- INVESTMENT OPERATIONS ---
+
+  static async getInvestments(userId: string): Promise<Investment[]> {
+    const { data, error } = await supabase.from('investments').select('*').order('date', { ascending: false });
+
+    if (error) {
+      // Fallback to LocalStorage if table doesn't exist yet
+      const localData = localStorage.getItem(`fp360_investments_${userId}`);
+      if (localData) return JSON.parse(localData);
+      return [];
+    }
+
+    return data.map((i: any) => ({
+      id: i.id,
+      userId: i.user_id,
+      name: i.name,
+      type: i.type,
+      amount: parseFloat(i.amount),
+      currentValue: i.current_value ? parseFloat(i.current_value) : parseFloat(i.amount),
+      date: i.date,
+      rate: i.rate
+    }));
+  }
+
+  static async saveInvestment(inv: Investment): Promise<void> {
+    const user = await this.getCurrentUser();
+    if (!user) throw new Error("Usuário não autenticado");
+
+    const payload = {
+      id: inv.id,
+      user_id: user.id,
+      name: inv.name,
+      type: inv.type,
+      amount: inv.amount,
+      current_value: inv.currentValue,
+      date: inv.date,
+      rate: inv.rate
+    };
+
+    const { error } = await supabase.from('investments').upsert(payload);
+
+    if (error) {
+      // Fallback to LocalStorage
+      const current = await this.getInvestments(user.id);
+      const index = current.findIndex(x => x.id === inv.id);
+      if (index >= 0) current[index] = inv;
+      else current.push(inv);
+      localStorage.setItem(`fp360_investments_${user.id}`, JSON.stringify(current));
+    }
+  }
+
+  static async deleteInvestment(id: string): Promise<void> {
+    const { error } = await supabase.from('investments').delete().eq('id', id);
+    if (error) {
+      const user = await this.getCurrentUser();
+      if (user) {
+        const current = await this.getInvestments(user.id);
+        const filtered = current.filter(i => i.id !== id);
+        localStorage.setItem(`fp360_investments_${user.id}`, JSON.stringify(filtered));
       }
     }
   }

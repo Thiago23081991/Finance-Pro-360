@@ -1,9 +1,10 @@
 import React, { useMemo, useState } from 'react';
-import { Transaction, Goal, FilterState } from '../types';
+import { Transaction, Goal, AppConfig, Investment, FilterState } from '../types';
 import { formatCurrency } from '../utils';
 import { MONTH_NAMES } from '../constants';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, Cell, LineChart, Line, Legend } from 'recharts';
-import { TrendingUp, TrendingDown, DollarSign, History, Utensils, Car, Home, HeartPulse, PartyPopper, GraduationCap, Banknote, ShoppingBag, Zap, CircleDollarSign, AlertTriangle, Lightbulb, Siren, Target, CheckCircle2, BarChart4, PieChart, LineChart as LineChartIcon, ArrowRightLeft, Lock } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, History, Utensils, Car, Home, HeartPulse, PartyPopper, GraduationCap, Banknote, ShoppingBag, Zap, CircleDollarSign, AlertTriangle, Lightbulb, Siren, Target, CheckCircle2, BarChart4, PieChart, LineChart as LineChartIcon, ArrowRightLeft, Lock, Landmark } from 'lucide-react';
+import { DBService } from '../db';
 
 interface DashboardProps {
     transactions: Transaction[];
@@ -45,6 +46,25 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
         const balance = income - expense;
         return { income, expense, balance };
     }, [filteredTransactions]);
+
+    // --- INVESTIMENTOS ---
+    const [investments, setInvestments] = useState<Investment[]>([]);
+
+    React.useEffect(() => {
+        // Assume userId is available from first transaction or passed as prop (ideally prop)
+        // For now, simpler: retrieve from local storage if prop is missing or rely on DBService finding current user
+        if (transactions.length > 0) {
+            DBService.getInvestments(transactions[0].userId).then(setInvestments).catch(console.error);
+        } else {
+            DBService.getCurrentUser().then(u => {
+                if (u) DBService.getInvestments(u.id).then(setInvestments);
+            });
+        }
+    }, [transactions.length]); // Re-fetch only if txs length changes significantly or on mount
+
+    const totalInvested = useMemo(() => {
+        return investments.reduce((acc, curr) => acc + (curr.currentValue || curr.amount), 0);
+    }, [investments]);
 
     // --- NOVAS METRICAS: MÊS ANTERIOR (MoM) ---
     const momComparison = useMemo(() => {
@@ -501,6 +521,27 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                             </div>
                         </div>
                     </div>
+
+                    {/* Resumo de Investimentos (NOVO) */}
+                    {totalInvested > 0 && (
+                        <div className="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between group hover:shadow-md transition-all">
+                            <div className="flex justify-between items-start mb-2">
+                                <div>
+                                    <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Patrimônio</h4>
+                                    <p className="text-xs text-slate-400">Total Investido</p>
+                                </div>
+                                <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-blue-600 dark:text-blue-400">
+                                    <Landmark size={18} />
+                                </div>
+                            </div>
+                            <div>
+                                <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-1">{formatCurrency(totalInvested, currency)}</h3>
+                                <p className="text-[10px] text-emerald-600 font-bold bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded-full inline-block">
+                                    Ver minha carteira
+                                </p>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Resumo de Renda Livre (Custos Fixos) */}
                     <div className="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between">

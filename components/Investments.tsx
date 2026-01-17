@@ -1,9 +1,10 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { AppConfig } from '../types';
-import { Lock, Crown, CheckCircle, TrendingUp, BarChart4, PieChart, Calculator, Landmark, ArrowRight, AlertTriangle, AlertCircle, Calendar, RefreshCw, Sparkles, BrainCircuit, Wallet, ArrowUpRight, PiggyBank, Info, ChevronRight } from 'lucide-react';
-import { formatCurrency } from '../utils';
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Cell, BarChart, Bar } from 'recharts';
+import { AppConfig, Investment, InvestmentType } from '../types';
+import { Lock, Crown, CheckCircle, TrendingUp, BarChart4, PieChart, Calculator, Landmark, ArrowRight, AlertTriangle, AlertCircle, Calendar, RefreshCw, Sparkles, BrainCircuit, Wallet, ArrowUpRight, PiggyBank, Info, ChevronRight, Plus, Trash2, X } from 'lucide-react';
+import { formatCurrency, generateId } from '../utils';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Cell, BarChart, Bar, Pie } from 'recharts';
+import { DBService } from '../db';
 
 
 interface InvestmentsProps {
@@ -11,7 +12,7 @@ interface InvestmentsProps {
     onNavigateToSettings: () => void;
 }
 
-type SubTab = 'suitability' | 'opportunities' | 'projection' | 'nubank';
+type SubTab = 'portfolio' | 'suitability' | 'opportunities' | 'projection' | 'nubank';
 type ProfileType = 'Conservador' | 'Moderado' | 'Arrojado' | null;
 
 interface Opportunity {
@@ -26,8 +27,14 @@ interface Opportunity {
 }
 
 export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSettings }) => {
-    const [subTab, setSubTab] = useState<SubTab>('opportunities');
+    const [subTab, setSubTab] = useState<SubTab>('portfolio');
     const [categoryTab, setCategoryTab] = useState<'all' | 'fixa' | 'variavel' | 'fundos'>('all');
+
+    // Portfolio States
+    const [myInvestments, setMyInvestments] = useState<Investment[]>([]);
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [newInv, setNewInv] = useState<Partial<Investment>>({ type: 'fixed', date: new Date().toISOString().split('T')[0] });
+
     const [profile, setProfile] = useState<ProfileType>(null);
     const [answers, setAnswers] = useState<Record<number, number>>({});
     const [showQuiz, setShowQuiz] = useState(false);
@@ -56,7 +63,63 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
         const savedProfile = localStorage.getItem(`fp360_investor_profile_${config.userId}`);
         if (savedProfile) setProfile(savedProfile as ProfileType);
         generateDailyOpportunities();
+        loadInvestments();
     }, [config.userId]);
+
+    const loadInvestments = async () => {
+        if (!config.userId) return;
+        const data = await DBService.getInvestments(config.userId);
+        setMyInvestments(data);
+        if (data.length === 0) setSubTab('opportunities'); // Se vazio, mostra oportunidades primeiro
+    };
+
+    const handleAddInvestment = async () => {
+        if (!newInv.name || !newInv.amount || !config.userId) return;
+
+        const investment: Investment = {
+            id: generateId(),
+            userId: config.userId,
+            name: newInv.name,
+            type: newInv.type as InvestmentType,
+            amount: Number(newInv.amount),
+            currentValue: Number(newInv.currentValue || newInv.amount),
+            date: newInv.date || new Date().toISOString(),
+            rate: newInv.rate
+        };
+
+        try {
+            await DBService.saveInvestment(investment);
+            setMyInvestments(prev => [investment, ...prev]);
+            setShowAddModal(false);
+            setNewInv({ type: 'fixed', date: new Date().toISOString().split('T')[0], name: '', amount: 0, currentValue: 0, rate: '' });
+        } catch (error) {
+            alert('Erro ao salvar investimento');
+        }
+    };
+
+    const handleDeleteInvestment = async (id: string) => {
+        if (confirm('Tem certeza que deseja excluir este investimento?')) {
+            await DBService.deleteInvestment(id);
+            setMyInvestments(prev => prev.filter(i => i.id !== id));
+        }
+    };
+
+    const portfolioStats = useMemo(() => {
+        const totalInvested = myInvestments.reduce((sum, i) => sum + i.amount, 0);
+        const totalCurrent = myInvestments.reduce((sum, i) => sum + (i.currentValue || i.amount), 0);
+        const profit = totalCurrent - totalInvested;
+        const profitPct = totalInvested > 0 ? (profit / totalInvested) * 100 : 0;
+
+        const allocation = [
+            { name: 'Renda Fixa', value: myInvestments.filter(i => i.type === 'fixed').reduce((s, i) => s + (i.currentValue || i.amount), 0), color: '#3b82f6' },
+            { name: 'Renda Variável', value: myInvestments.filter(i => i.type === 'variable').reduce((s, i) => s + (i.currentValue || i.amount), 0), color: '#8b5cf6' },
+            { name: 'Fundos', value: myInvestments.filter(i => i.type === 'fund').reduce((s, i) => s + (i.currentValue || i.amount), 0), color: '#10b981' },
+            { name: 'Cripto', value: myInvestments.filter(i => i.type === 'crypto').reduce((s, i) => s + (i.currentValue || i.amount), 0), color: '#f59e0b' },
+            { name: 'Outros', value: myInvestments.filter(i => i.type === 'other').reduce((s, i) => s + (i.currentValue || i.amount), 0), color: '#64748b' },
+        ].filter(i => i.value > 0);
+
+        return { totalInvested, totalCurrent, profit, profitPct, allocation };
+    }, [myInvestments]);
 
     const generateDailyOpportunities = (forceRefresh = false) => {
         const today = new Date();
@@ -227,9 +290,9 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
         <div className="space-y-6 animate-fade-in pb-20">
             {/* Tabs */}
             <div className="flex gap-6 border-b border-slate-200 dark:border-slate-700 overflow-x-auto custom-scrollbar">
-                {(['opportunities', 'nubank', 'suitability', 'projection'] as SubTab[]).map(t => (
+                {(['portfolio', 'opportunities', 'nubank', 'suitability', 'projection'] as SubTab[]).map(t => (
                     <button key={t} onClick={() => setSubTab(t)} className={`pb-3 px-1 text-sm font-bold uppercase tracking-wider transition-colors relative whitespace-nowrap ${subTab === t ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 hover:text-slate-600'}`}>
-                        {t === 'opportunities' ? 'Oportunidades' : t === 'nubank' ? 'Simulador Nubank' : t === 'suitability' ? 'Suitability' : 'Projeção'}
+                        {t === 'portfolio' ? 'Minha Carteira' : t === 'opportunities' ? 'Oportunidades' : t === 'nubank' ? 'Simulador Nubank' : t === 'suitability' ? 'Suitability' : 'Projeção'}
                         {subTab === t && <span className={`absolute bottom-0 left-0 w-full h-1 ${t === 'nubank' ? 'bg-[#820ad1]' : 'bg-blue-600'} rounded-t-full`}></span>}
                     </button>
                 ))}

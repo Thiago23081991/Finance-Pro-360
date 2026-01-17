@@ -123,3 +123,16 @@ export interface UserProfile {
   createdAt?: string; // If available
   isGhost?: boolean; // Flag para usuários detectados via pedidos mas sem perfil
 }
+
+export type InvestmentType = 'fixed' | 'variable' | 'fund' | 'crypto' | 'other';
+
+export interface Investment {
+  id: string;
+  userId: string;
+  name: string; // ex: CDB Banco Master, PETR4, Bitcoin
+  type: InvestmentType;
+  amount: number; // Valor Investido
+  currentValue?: number; // Valor Atual (para renda variável)
+  date: string; // Data da aplicação
+  rate?: string; // Taxa contratada (ex: 120% CDI) - Opcional
+}
