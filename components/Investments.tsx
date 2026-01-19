@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { AppConfig, Investment, InvestmentType } from '../types';
-import { Lock, Crown, CheckCircle, TrendingUp, BarChart4, PieChart, Calculator, Landmark, ArrowRight, AlertTriangle, AlertCircle, Calendar, RefreshCw, Sparkles, BrainCircuit, Wallet, ArrowUpRight, PiggyBank, Info, ChevronRight, Plus, Trash2, X } from 'lucide-react';
+import { Lock, Crown, CheckCircle, TrendingUp, BarChart4, PieChart as PieChartIcon, Calculator, Landmark, ArrowRight, AlertTriangle, AlertCircle, Calendar, RefreshCw, Sparkles, BrainCircuit, Wallet, ArrowUpRight, PiggyBank, Info, ChevronRight, Plus, Trash2, X } from 'lucide-react';
 import { formatCurrency, generateId } from '../utils';
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Cell, BarChart, Bar, Pie } from 'recharts';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Cell, BarChart, Bar, Pie, PieChart, Legend } from 'recharts';
 import { DBService } from '../db';
 
 
@@ -297,6 +297,176 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                     </button>
                 ))}
             </div>
+
+            {subTab === 'portfolio' && (
+                <div className="space-y-6 animate-fade-in">
+                    {/* Portfolio Summary */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-between relative overflow-hidden">
+                            <div>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Patrimônio Bruto</p>
+                                <h3 className="text-2xl font-black text-slate-800 dark:text-white mt-1">{formatCurrency(portfolioStats.totalCurrent, currency)}</h3>
+                            </div>
+                            <div className="mt-4 flex items-center gap-2">
+                                <span className={`px-2 py-1 rounded text-xs font-bold flex items-center gap-1 ${portfolioStats.profit >= 0 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 link text-rose-400'}`}>
+                                    <TrendingUp size={12} className={portfolioStats.profit < 0 ? 'rotate-180' : ''} />
+                                    {Math.abs(portfolioStats.profitPct).toFixed(2)}%
+                                </span>
+                                <span className="text-[10px] text-slate-400">Rentabilidade Total</span>
+                            </div>
+                            <div className="absolute top-0 right-0 p-4 opacity-10">
+                                <Landmark size={80} />
+                            </div>
+                        </div>
+
+                        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-between">
+                            <div>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Investido</p>
+                                <h3 className="text-2xl font-black text-slate-700 dark:text-slate-200 mt-1">{formatCurrency(portfolioStats.totalInvested, currency)}</h3>
+                            </div>
+                            <div className="mt-2 text-xs text-slate-500">
+                                Lucro/Prejuízo: <span className={`font-bold ${portfolioStats.profit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>{formatCurrency(portfolioStats.profit, currency)}</span>
+                            </div>
+                        </div>
+
+                        <div className="bg-blue-600 p-6 rounded-2xl shadow-lg shadow-blue-500/30 text-white flex flex-col justify-center items-center text-center cursor-pointer hover:bg-blue-700 transition-colors" onClick={() => setShowAddModal(true)}>
+                            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mb-2">
+                                <Plus size={24} />
+                            </div>
+                            <h3 className="font-bold">Novo Investimento</h3>
+                            <p className="text-blue-100 text-xs">Adicionar ativo manualmente</p>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* Allocation Chart */}
+                        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm lg:col-span-1 min-h-[300px] flex flex-col">
+                            <h4 className="font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+                                <PieChartIcon size={18} className="text-blue-500" /> Alocação por Tipo
+                            </h4>
+                            <div className="flex-1">
+                                {portfolioStats.allocation.length > 0 ? (
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <PieChart>
+                                            <Pie
+                                                data={portfolioStats.allocation}
+                                                cx="50%"
+                                                cy="50%"
+                                                innerRadius={60}
+                                                outerRadius={80}
+                                                paddingAngle={5}
+                                                dataKey="value"
+                                            >
+                                                {portfolioStats.allocation.map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={entry.color} />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip formatter={(v: any) => formatCurrency(v, currency)} />
+                                            <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div className="h-full flex flex-col items-center justify-center text-slate-300">
+                                        <PieChartIcon size={48} className="opacity-20 mb-2" />
+                                        <p className="text-xs">Sem dados para gráfico</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Investments List */}
+                        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm lg:col-span-2">
+                            <h4 className="font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+                                <BarChart4 size={18} className="text-blue-500" /> Meus Ativos
+                            </h4>
+                            <div className="overflow-y-auto max-h-[400px] custom-scrollbar pr-2">
+                                {myInvestments.length === 0 ? (
+                                    <div className="text-center py-10 border-2 border-dashed border-slate-100 dark:border-slate-700 rounded-xl">
+                                        <p className="text-slate-400 font-bold mb-2">Carteira Vazia</p>
+                                        <button onClick={() => setShowAddModal(true)} className="text-blue-600 hover:underline text-sm font-bold">Adicionar primeiro investimento</button>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {myInvestments.map(item => (
+                                            <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-700 hover:border-blue-200 transition-all group">
+                                                <div className="flex items-center gap-4 mb-2 sm:mb-0">
+                                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-black text-xs uppercase
+                                                        ${item.type === 'fixed' ? 'bg-blue-100 text-blue-600' :
+                                                            item.type === 'variable' ? 'bg-purple-100 text-purple-600' :
+                                                                item.type === 'fund' ? 'bg-emerald-100 text-emerald-600' :
+                                                                    item.type === 'crypto' ? 'bg-amber-100 text-amber-600' : 'bg-slate-200 text-slate-600'}`}>
+                                                        {item.type.substring(0, 3)}
+                                                    </div>
+                                                    <div>
+                                                        <h5 className="font-bold text-slate-800 dark:text-white">{item.name}</h5>
+                                                        <p className="text-xs text-slate-500 font-medium">{new Date(item.date).toLocaleDateString('pt-BR')}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto">
+                                                    <div className="text-right">
+                                                        <p className="text-[10px] uppercase font-bold text-slate-400">Valor Atual</p>
+                                                        <p className="font-black text-slate-700 dark:text-slate-200">{formatCurrency(item.currentValue || item.amount, currency)}</p>
+                                                    </div>
+                                                    <button onClick={() => handleDeleteInvestment(item.id)} className="text-slate-300 hover:text-rose-500 transition-colors p-2">
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showAddModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-700">
+                        <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
+                            <h3 className="font-bold text-lg dark:text-white">Adicionar Investimento</h3>
+                            <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-rose-500"><X size={20} /></button>
+                        </div>
+                        <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nome do Ativo</label>
+                                <input type="text" value={newInv.name || ''} onChange={e => setNewInv({ ...newInv, name: e.target.value })} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ex: CDB Banco Inter, PETR4..." />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Tipo</label>
+                                    <select value={newInv.type} onChange={e => setNewInv({ ...newInv, type: e.target.value as any })} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-3 outline-none">
+                                        <option value="fixed">Renda Fixa</option>
+                                        <option value="variable">Renda Variável</option>
+                                        <option value="fund">Fundos</option>
+                                        <option value="crypto">Criptomoedas</option>
+                                        <option value="other">Outros</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Data</label>
+                                    <input type="date" value={newInv.date} onChange={e => setNewInv({ ...newInv, date: e.target.value })} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-3 outline-none" />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Valor Investido</label>
+                                    <input type="number" value={newInv.amount || ''} onChange={e => setNewInv({ ...newInv, amount: Number(e.target.value) })} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500" placeholder="0.00" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Valor Atual (Opcional)</label>
+                                    <input type="number" value={newInv.currentValue || ''} onChange={e => setNewInv({ ...newInv, currentValue: Number(e.target.value) })} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500" placeholder="0.00" />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="p-4 bg-slate-50 dark:bg-slate-900 border-t border-slate-100 dark:border-slate-700 flex justify-end gap-2">
+                            <button onClick={() => setShowAddModal(false)} className="px-4 py-2 text-slate-500 hover:text-slate-700 font-bold text-sm">Cancelar</button>
+                            <button onClick={handleAddInvestment} className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-sm shadow-lg">Salvar Investimento</button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {subTab === 'nubank' && (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">

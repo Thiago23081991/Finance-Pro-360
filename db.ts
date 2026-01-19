@@ -1,5 +1,5 @@
 
-import { Transaction, Goal, Debt, AppConfig, UserAccount, PurchaseRequest, AdminMessage, SystemStats, UserProfile, Investment } from "./types";
+import { Transaction, Goal, Debt, BudgetLimit, AppConfig, UserAccount, PurchaseRequest, AdminMessage, SystemStats, UserProfile, Investment } from "./types";
 import { DEFAULT_CONFIG } from "./constants";
 import { supabase } from "./supabaseClient";
 import { generateId, validateLicenseKey } from "./utils";
@@ -233,6 +233,63 @@ export class DBService {
         const currentDebts = await this.getDebts(user.id);
         const filtered = currentDebts.filter(d => d.id !== id);
         localStorage.setItem(`fp360_debts_${user.id}`, JSON.stringify(filtered));
+      }
+    }
+  }
+
+  // --- BUDGET OPERATIONS ---
+
+  static async getBudgetLimits(userId: string): Promise<BudgetLimit[]> {
+    const { data, error } = await supabase.from('budget_limits').select('*');
+
+    if (error) {
+      // Fallback for when table doesn't exist yet or offline
+      const localData = localStorage.getItem(`fp360_budget_${userId}`);
+      if (localData) return JSON.parse(localData);
+      return [];
+    }
+
+    return data.map((b: any) => ({
+      id: b.id,
+      userId: b.user_id,
+      category: b.category,
+      amount: parseFloat(b.amount),
+      alertThreshold: b.alert_threshold
+    }));
+  }
+
+  static async saveBudgetLimit(b: BudgetLimit): Promise<void> {
+    const user = await this.getCurrentUser();
+    if (!user) throw new Error("Usuário não autenticado");
+
+    const payload = {
+      id: b.id,
+      user_id: user.id,
+      category: b.category,
+      amount: b.amount,
+      alert_threshold: b.alertThreshold
+    };
+
+    const { error } = await supabase.from('budget_limits').upsert(payload);
+
+    if (error) {
+      // Fallback local
+      const current = await this.getBudgetLimits(user.id);
+      const index = current.findIndex(x => x.id === b.id);
+      if (index >= 0) current[index] = b;
+      else current.push(b);
+      localStorage.setItem(`fp360_budget_${user.id}`, JSON.stringify(current));
+    }
+  }
+
+  static async deleteBudgetLimit(id: string): Promise<void> {
+    const { error } = await supabase.from('budget_limits').delete().eq('id', id);
+    if (error) {
+      const user = await this.getCurrentUser();
+      if (user) {
+        const current = await this.getBudgetLimits(user.id);
+        const filtered = current.filter(b => b.id !== id);
+        localStorage.setItem(`fp360_budget_${user.id}`, JSON.stringify(filtered));
       }
     }
   }

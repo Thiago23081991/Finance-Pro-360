@@ -1,8 +1,8 @@
 
 export type TransactionType = 'income' | 'expense';
 
-// Centralized Tab definition - Adicionado 'dividas'
-export type Tab = 'controle' | 'receitas' | 'despesas' | 'dividas' | 'metas' | 'investimentos' | 'cursos' | 'config' | 'admin';
+// Centralized Tab definition - Adicionado 'dividas' e 'orcamento'
+export type Tab = 'controle' | 'receitas' | 'despesas' | 'dividas' | 'metas' | 'orcamento' | 'investimentos' | 'cursos' | 'config' | 'admin';
 
 export interface Transaction {
   id: string;
@@ -34,6 +34,14 @@ export interface Debt {
   interestRate: number; // Taxa de juros mensal (%)
   dueDate?: string; // Vencimento opcional
   category: 'banco' | 'cartao' | 'servico' | 'emprestimo' | 'outro';
+}
+
+export interface BudgetLimit {
+  id: string;
+  userId: string;
+  category: string;
+  amount: number; // Limite mensal
+  alertThreshold: number; // Porcentagem para alerta (ex: 80)
 }
 
 export interface AppConfig {

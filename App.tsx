@@ -22,12 +22,13 @@ import { RecurringExpenses } from './components/RecurringExpenses';
 import { MonthlyReportModal } from './components/MonthlyReportModal';
 import { Notifications } from './components/Notifications';
 import { StatementImportModal } from './components/StatementImportModal';
+import { Budget } from './components/Budget';
 import { Logo } from './components/Logo';
 import { DBService } from './db';
 import { supabase } from './supabaseClient';
 import { SubscriptionWall } from './components/SubscriptionWall';
 import { TrialModal } from './components/TrialModal';
-import { LayoutDashboard, CreditCard, TrendingUp, Target, Settings as SettingsIcon, Menu, Filter, LogOut, Loader2, ShieldCheck, Mail, Sun, Moon, X, BarChart4, GraduationCap, Scale, Calculator, List, TableProperties, AlertTriangle, RefreshCw, Plus, User, Receipt, Upload } from 'lucide-react';
+import { LayoutDashboard, CreditCard, TrendingUp, Target, Settings as SettingsIcon, Menu, Filter, LogOut, Loader2, ShieldCheck, Mail, Sun, Moon, X, BarChart4, GraduationCap, Scale, Calculator, List, TableProperties, AlertTriangle, RefreshCw, Plus, User, Receipt, Upload, PieChart } from 'lucide-react';
 
 const TAB_METADATA: Record<Tab, { label: string; pageTitle: string; icon: React.ReactNode }> = {
     controle: { label: 'Controle', pageTitle: 'Painel de Controle', icon: <LayoutDashboard size={20} /> },
@@ -35,6 +36,7 @@ const TAB_METADATA: Record<Tab, { label: string; pageTitle: string; icon: React.
     despesas: { label: 'Despesas', pageTitle: 'Gerenciar Despesas', icon: <CreditCard size={20} /> },
     dividas: { label: 'Dívidas', pageTitle: 'Gestão de Passivos', icon: <Scale size={20} /> },
     metas: { label: 'Metas', pageTitle: 'Metas Financeiras', icon: <Target size={20} /> },
+    orcamento: { label: 'Orçamento', pageTitle: 'Orçamento Familiar', icon: <PieChart size={20} /> },
     investimentos: { label: 'Investimentos', pageTitle: 'Central de Investimentos', icon: <BarChart4 size={20} /> },
     cursos: { label: 'Cursos', pageTitle: 'Educação Financeira', icon: <GraduationCap size={20} /> },
     config: { label: 'Configurações', pageTitle: 'Ajustes do Sistema', icon: <SettingsIcon size={20} /> },
@@ -182,6 +184,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
             const dataPromises: Promise<any>[] = [minLoadTime];
             if (tab === 'controle' || tab === 'receitas' || tab === 'despesas') dataPromises.push(DBService.getTransactions(user).then(setTransactions));
             else if (tab === 'metas') dataPromises.push(DBService.getGoals(user).then(setGoals));
+            else if (tab === 'orcamento') { /* Data loaded inside component */ }
             else if (tab === 'dividas') dataPromises.push(DBService.getDebts(user).then(setDebts));
             else if (tab === 'config') dataPromises.push(DBService.getConfig(user).then((cfg) => setConfig({ ...DEFAULT_CONFIG, ...cfg, userId: user })));
             await Promise.all(dataPromises);
@@ -233,7 +236,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
             <aside className="w-64 bg-brand-blue text-white flex flex-col shadow-xl z-20 hidden md:flex border-r border-slate-800/50">
                 <div className="p-6 border-b border-white/10"><Logo className="w-9 h-9" textClassName="text-white" /></div>
                 <nav className="flex-1 px-4 space-y-1 mt-4 overflow-y-auto custom-scrollbar">
-                    {(['controle', 'receitas', 'despesas', 'dividas', 'metas', 'investimentos', 'cursos', 'config'] as Tab[]).concat(isAdmin ? ['admin'] : []).map(tabId => (
+                    {(['controle', 'receitas', 'despesas', 'orcamento', 'dividas', 'metas', 'investimentos', 'cursos', 'config'] as Tab[]).concat(isAdmin ? ['admin'] : []).map(tabId => (
                         <button key={tabId} onClick={() => handleTabChange(tabId)} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${activeTab === tabId ? 'bg-brand-gold text-white shadow-lg font-bold' : 'text-slate-300 hover:bg-white/10'}`}>
                             {TAB_METADATA[tabId].icon}{TAB_METADATA[tabId].label}
                         </button>
@@ -254,7 +257,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
             </aside>
 
             {isMobileMenuOpen && (
-                <div className="fixed inset-0 z-50 flex md:hidden"><div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)}></div><aside className="relative w-64 bg-brand-blue text-white flex flex-col shadow-2xl h-full animate-fade-in border-r border-white/10"><div className="p-6 border-b border-white/10 flex justify-between items-center"><Logo className="w-8 h-8" textClassName="text-white" /><button onClick={() => setIsMobileMenuOpen(false)} className="text-slate-400"><X size={20} /></button></div><nav className="flex-1 px-4 mt-4 overflow-y-auto">{(['controle', 'receitas', 'despesas', 'dividas', 'metas', 'investimentos', 'config'] as Tab[]).map(tabId => (<button key={tabId} onClick={() => handleTabChange(tabId)} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${activeTab === tabId ? 'bg-brand-gold text-white' : 'text-slate-300'}`}>{TAB_METADATA[tabId].icon}{TAB_METADATA[tabId].label}</button>))}</nav></aside></div>
+                <div className="fixed inset-0 z-50 flex md:hidden"><div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)}></div><aside className="relative w-64 bg-brand-blue text-white flex flex-col shadow-2xl h-full animate-fade-in border-r border-white/10"><div className="p-6 border-b border-white/10 flex justify-between items-center"><Logo className="w-8 h-8" textClassName="text-white" /><button onClick={() => setIsMobileMenuOpen(false)} className="text-slate-400"><X size={20} /></button></div><nav className="flex-1 px-4 mt-4 overflow-y-auto">{(['controle', 'receitas', 'despesas', 'orcamento', 'dividas', 'metas', 'investimentos', 'config'] as Tab[]).map(tabId => (<button key={tabId} onClick={() => handleTabChange(tabId)} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${activeTab === tabId ? 'bg-brand-gold text-white' : 'text-slate-300'}`}>{TAB_METADATA[tabId].icon}{TAB_METADATA[tabId].label}</button>))}</nav></aside></div>
             )}
 
             <main className="flex-1 flex flex-col h-full overflow-hidden relative">
@@ -309,6 +312,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                             </div>
                         )}
 
+                        {activeTab === 'orcamento' && <Budget transactions={transactions} config={config} filter={filter} />}
                         {activeTab === 'dividas' && <Debts config={config} debts={debts} onAddDebt={addDebt} onDeleteDebt={deleteDebt} onNavigateToSettings={() => handleTabChange('config')} />}
                         {activeTab === 'metas' && <GoalsSheet goals={goals} onAdd={addGoal} onDelete={deleteGoal} onUpdate={updateGoalValue} currency={config.currency} />}
                         {activeTab === 'investimentos' && <Investments config={config} onNavigateToSettings={() => handleTabChange('config')} />}
