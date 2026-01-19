@@ -1,3 +1,4 @@
+import React, { useState, useMemo } from 'react';
 import { Transaction, Goal, AppConfig, Investment, FilterState } from '../types';
 import { formatCurrency } from '../utils';
 import { MONTH_NAMES } from '../constants';
@@ -33,7 +34,7 @@ const CATEGORY_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', 
 export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filter, currency = 'BRL' }) => {
     const [selectedTrendCategory, setSelectedTrendCategory] = useState<string>('Alimentação');
 
-    const filteredTransactions = useMemo(() => {
+    const filteredTransactions = useMemo<Transaction[]>(() => {
         return transactions.filter(t => {
             const d = new Date(t.date + 'T12:00:00');
             return d.getMonth() === filter.month && d.getFullYear() === filter.year;
@@ -152,15 +153,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
         return goals.find(g => g.status === 'Em andamento') || null;
     }, [goals]);
 
-    const availableCategories = useMemo(() => {
+    const availableCategories = useMemo<string[]>(() => {
         const cats = new Set<string>();
         transactions.forEach(t => { if (t.type === 'expense') cats.add(t.category); });
         return Array.from(cats);
     }, [transactions]);
 
     // --- LÓGICA DE ALERTAS INTELIGENTES (CATEGORIAS E HISTÓRICO) ---
-    const smartAlerts = useMemo(() => {
-        const alerts: { type: 'warning' | 'critical', message: string, detail: string }[] = [];
+    const smartAlerts = useMemo<{ type: 'warning' | 'critical'; message: string; detail: string }[]>(() => {
+        const alerts: { type: 'warning' | 'critical'; message: string; detail: string }[] = [];
 
         // 1. Gastos Atuais por Categoria
         const currentExpenses: Record<string, number> = {};
@@ -285,8 +286,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
     }, [transactions, filter, selectedTrendCategory]);
 
     // --- LÓGICA DE PROJEÇÃO FUTURA (6 MESES) ---
-    const projectionData = useMemo(() => {
-        const data = [];
+    const projectionData = useMemo<{ name: string; saldo: number; receita: number; despesa: number }[]>(() => {
+        const data: { name: string; saldo: number; receita: number; despesa: number }[] = [];
 
         // 1. Calculate historical averages (Last 3 months)
         let totalInc = 0;
@@ -432,7 +433,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
         return data;
     }, [filteredTransactions, filter]);
 
-    const recentTransactions = useMemo(() => {
+    const recentTransactions = useMemo<Transaction[]>(() => {
         return [...transactions]
             .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
             .slice(0, 5);
