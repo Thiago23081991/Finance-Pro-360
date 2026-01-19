@@ -2,8 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Transaction, AppConfig, BudgetLimit } from '../types';
 import { DBService } from '../db';
 import { formatCurrency } from '../utils';
-import { Plus, AlertTriangle, CheckCircle2, Siren, Edit2, X, Save, PieChart as PieChartIcon } from 'lucide-react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
+import { Edit2, X, Save, PieChart as PieChartIcon } from 'lucide-react';
 
 interface BudgetProps {
     transactions: Transaction[];
