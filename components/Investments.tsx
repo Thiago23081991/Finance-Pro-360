@@ -70,7 +70,9 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
         if (!config.userId) return;
         const data = await DBService.getInvestments(config.userId);
         setMyInvestments(data);
-        if (data.length === 0) setSubTab('opportunities'); // Se vazio, mostra oportunidades primeiro
+        if (data.length === 0) {
+            // setSubTab('opportunities'); // Removido para permitir ver o estado vazio da carteira
+        }
     };
 
     const handleAddInvestment = async () => {
