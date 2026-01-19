@@ -33,6 +33,14 @@ export const Courses: React.FC<CoursesProps> = ({ config, userEmail }) => {
             duration: "06:17",
             videoUrl: "/videos/Modulo2.mp4",
             thumbnail: "bg-blue-900"
+        },
+        {
+            id: 3,
+            title: "Módulo 3: Colocando Minhas Finanças Em Ordem",
+            description: "O guia definitivo para organizar sua vida financeira do zero e retomar o controle.",
+            duration: "12:00",
+            videoUrl: "/videos/Colocando_as_Finanças_em_Ordem.mp4",
+            thumbnail: "bg-purple-900"
         }
     ];
 
@@ -113,7 +121,7 @@ export const Courses: React.FC<CoursesProps> = ({ config, userEmail }) => {
                     <div className="space-y-2">
                         <h3 className="text-xl font-bold flex items-center gap-2 justify-center md:justify-start">
                             <Lock size={20} className="text-slate-400" />
-                            Módulo 3: Investimentos no Exterior
+                            Módulo 4: Investimentos no Exterior
                         </h3>
                         <p className="text-slate-400 text-sm max-w-md">
                             Este módulo está em produção e será liberado em breve para todos os assinantes Premium.
