@@ -77,10 +77,7 @@ export const MonthlyReportModal: React.FC<MonthlyReportModalProps> = ({
             // 2. Call AI
             const { data, error } = await supabase.functions.invoke('financial-advisor', {
                 body: {
-                    messages: [
-                        { role: 'system', content: 'You are a financial analyst generating a monthly report.' },
-                        {
-                            role: 'user', content: `Generate a detailed financial report for ${monthName}/${currentYear} in Brazilian Portuguese (Markdown).
+                    message: `Generate a detailed financial report for ${monthName}/${currentYear} in Brazilian Portuguese (Markdown).
                         
                         Data:
                         - Income: ${income}
@@ -95,14 +92,13 @@ export const MonthlyReportModal: React.FC<MonthlyReportModalProps> = ({
                         3. **Pontos de Atenção**: Where to save?
                         4. **Recomendação**: 1 actionable tip.
                         
-                        Keep it professional, encouraging, and concise.` }
-                    ],
-                    financialContext: context // Pass context for broader awareness if needed
+                        Keep it professional, encouraging, and concise.`,
+                    context: context // Pass context for broader awareness if needed
                 }
             });
 
             if (error) throw error;
-            setAnalysis(data.answer);
+            setAnalysis(data.reply);
 
         } catch (err) {
             console.error('Error generating report:', err);
