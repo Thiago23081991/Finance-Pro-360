@@ -2,780 +2,385 @@
 import React, { useState, useEffect } from 'react';
 import { PurchaseRequest, AdminMessage, SystemStats, UserProfile } from '../types';
 import { DBService } from '../db';
-import { Check, X, ShieldAlert, User, MessageSquare, Send, FileText, Mail, Eye, EyeOff, RefreshCw, Key, Copy, Smartphone, Lock, Loader2, Users, BarChart3, Wallet, Database, ShieldOff, ShieldCheck, Wrench, UserPlus, AlertTriangle, Megaphone, Search } from 'lucide-react';
+import {
+    Check, X, ShieldAlert, User, MessageSquare, Send, FileText, Mail,
+    Eye, EyeOff, RefreshCw, Key, Copy, Smartphone, Lock, Loader2,
+    Users, BarChart3, Wallet, Database, ShieldOff, ShieldCheck,
+    Wrench, UserPlus, AlertTriangle, Megaphone, Search, Bell,
+    LayoutDashboard, LogOut, ChevronRight
+} from 'lucide-react';
 import { generateId, generateLicenseKey, formatCurrency } from '../utils';
 
-type AdminTab = 'overview' | 'users' | 'requests' | 'messages' | 'generator';
+type AdminTab = 'dashboard' | 'users' | 'push' | 'tools';
 
 export const AdminPanel: React.FC = () => {
-    const [activeTab, setActiveTab] = useState<AdminTab>('overview');
-
-    // Data States
+    const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
     const [stats, setStats] = useState<SystemStats | null>(null);
     const [profiles, setProfiles] = useState<UserProfile[]>([]);
-    const [requests, setRequests] = useState<PurchaseRequest[]>([]);
-    const [messages, setMessages] = useState<AdminMessage[]>([]);
-
     const [loading, setLoading] = useState(true);
-    const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
-
-    // Message Modal State
-    const [msgModalOpen, setMsgModalOpen] = useState(false);
-    const [msgTargetUser, setMsgTargetUser] = useState('');
-    const [msgContent, setMsgContent] = useState('');
-    const [sending, setSending] = useState(false);
-    const [isBroadcast, setIsBroadcast] = useState(false);
-
-    // Tools/Generator State
-    const [genUserId, setGenUserId] = useState('');
-    const [generatedKey, setGeneratedKey] = useState('');
-
-    // Manual Create Profile State
-    const [manualId, setManualId] = useState('');
-    const [manualEmail, setManualEmail] = useState('');
-    const [manualName, setManualName] = useState('');
-    const [manualLoading, setManualLoading] = useState(false);
-
-    // Search State
     const [searchTerm, setSearchTerm] = useState('');
 
-    const filteredProfiles = profiles.filter(p =>
-        p.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.username.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Push State
+    const [pushTarget, setPushTarget] = useState<'all' | string>('all');
+    const [pushTitle, setPushTitle] = useState('');
+    const [pushBody, setPushBody] = useState('');
+    const [pushSending, setPushSending] = useState(false);
+
+    // Manual Tools State
+    const [genUserId, setGenUserId] = useState('');
+    const [generatedKey, setGeneratedKey] = useState('');
+    const [manualId, setManualId] = useState('');
+    const [manualEmail, setManualEmail] = useState('');
+
+    useEffect(() => {
+        fetchData();
+    }, []);
 
     const fetchData = async () => {
         setLoading(true);
         try {
-            // Parallel fetching for performance
-            const [sysStats, dbProfiles, dbRequests, msgs] = await Promise.all([
+            const [sysStats, dbProfiles] = await Promise.all([
                 DBService.getSystemStats(),
-                DBService.getAllProfiles(),
-                DBService.getAllPurchaseRequests(),
-                DBService.getAllMessages()
+                DBService.getAllProfiles()
             ]);
-
             setStats(sysStats);
-
-            // --- LÓGICA DE MESCLAGEM AUTOMÁTICA (RESOLVE USUÁRIOS FANTASMAS) ---
-            const profileMap = new Map(dbProfiles.map(p => [p.id, p]));
-
-            const ghostUsers: UserProfile[] = [];
-            const uniqueRequestUserIds = new Set(dbRequests.map(r => r.userId));
-
-            uniqueRequestUserIds.forEach(reqUserId => {
-                if (!profileMap.has(reqUserId)) {
-                    ghostUsers.push({
-                        id: reqUserId,
-                        name: 'Usuário (Perfil Pendente)',
-                        email: 'Email não registrado',
-                        username: 'user_ghost',
-                        licenseStatus: 'inactive',
-                        isGhost: true,
-                        createdAt: new Date().toISOString()
-                    });
-                }
-            });
-
-            const allProfiles = [...dbProfiles, ...ghostUsers];
-            setProfiles(allProfiles);
-
-            const enrichedRequests = dbRequests.map(req => {
-                const userProfile = profileMap.get(req.userId) || ghostUsers.find(g => g.id === req.userId);
-                return {
-                    ...req,
-                    userName: userProfile?.name || 'Desconhecido',
-                    userEmail: userProfile?.email
-                };
-            });
-
-            const sortedReqs = enrichedRequests.sort((a, b) => {
-                if (a.status === 'pending' && b.status !== 'pending') return -1;
-                if (a.status !== 'pending' && b.status === 'pending') return 1;
-                return new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime();
-            });
-            setRequests(sortedReqs);
-            setPendingRequestsCount(sortedReqs.filter(r => r.status === 'pending').length);
-
-            setMessages(msgs);
+            setProfiles(dbProfiles);
         } catch (error) {
-            console.error("Error loading admin data", error);
+            console.error("Error fetching admin data", error);
         } finally {
             setLoading(false);
         }
     };
 
-    useEffect(() => {
-        fetchData();
-        const interval = setInterval(fetchData, 30000);
-        return () => clearInterval(interval);
-    }, []);
-
-    const handleStatusChange = async (req: PurchaseRequest, newStatus: 'approved' | 'rejected') => {
-        try {
-            const updated: PurchaseRequest = { ...req, status: newStatus };
-            await DBService.savePurchaseRequest(updated);
-            fetchData();
-        } catch (error: any) {
-            alert("Erro ao atualizar status: " + error.message);
-        }
-    };
-
     const handleToggleLicense = async (profile: UserProfile) => {
-        if (profile.isGhost) {
-            if (confirm("Este usuário não possui perfil completo no banco de dados. Deseja criar um perfil básico para ele agora para poder ativar o Premium?")) {
-                setManualId(profile.id);
-                setManualEmail(profile.email !== 'Email não registrado' ? profile.email : '');
-                setActiveTab('generator');
-                alert("Por favor, preencha o e-mail do usuário na aba Ferramentas para finalizar o cadastro.");
-            }
-            return;
-        }
-
         const newStatus = profile.licenseStatus === 'active' ? 'inactive' : 'active';
-        const action = newStatus === 'active' ? 'ativar' : 'remover';
-
-        if (!window.confirm(`Deseja realmente ${action} a licença Premium para ${profile.name || profile.email}?`)) return;
+        if (!window.confirm(`Deseja ${newStatus === 'active' ? 'ativar' : 'remover'} o Premium de ${profile.name}?`)) return;
 
         try {
             await DBService.updateUserLicense(profile.id, newStatus);
-
-            setProfiles(prev => prev.map(p =>
-                p.id === profile.id ? { ...p, licenseStatus: newStatus } : p
-            ));
-
-            // Optimistically update Active License Stats
+            setProfiles(prev => prev.map(p => p.id === profile.id ? { ...p, licenseStatus: newStatus } : p));
             if (stats) {
                 setStats({
                     ...stats,
-                    activeLicenses: newStatus === 'active'
-                        ? stats.activeLicenses + 1
-                        : Math.max(0, stats.activeLicenses - 1)
+                    activeLicenses: newStatus === 'active' ? stats.activeLicenses + 1 : stats.activeLicenses - 1
                 });
             }
-
-            if (newStatus === 'active') alert(`Licença ativada com sucesso para ${profile.name}!`);
         } catch (error: any) {
-            alert("Erro ao atualizar licença: " + error.message);
+            alert(error.message);
         }
     };
 
-    const openMessageModal = (userId: string, broadcast: boolean = false) => {
-        setIsBroadcast(broadcast);
-        setMsgTargetUser(broadcast ? 'TODOS OS USUÁRIOS' : userId);
-        setMsgContent('');
-        setMsgModalOpen(true);
-    };
+    const handleSendPush = async () => {
+        if (!pushTitle || !pushBody) {
+            alert("Título e Mensagem são obrigatórios");
+            return;
+        }
 
-    const handleSendMessage = async () => {
-        if (!msgContent.trim()) return;
+        if (!window.confirm(`Enviar Push para ${pushTarget === 'all' ? 'TODOS' : 'usuário específico'}?`)) return;
 
-        const confirmMsg = isBroadcast
-            ? `VOCÊ ESTÁ PRESTES A ENVIAR UM COMUNICADO GERAL PARA TODOS OS ${profiles.length} USUÁRIOS. DESEJA CONTINUAR?`
-            : `Tem certeza que deseja enviar esta mensagem para o usuário?`;
-
-        if (!window.confirm(confirmMsg)) return;
-
-        setSending(true);
+        setPushSending(true);
         try {
-            if (isBroadcast) {
-                await DBService.sendBroadcastMessage(msgContent);
-                alert(`Comunicado enviado com sucesso para ${profiles.length} usuários!`);
-            } else {
-                const msg: AdminMessage = {
-                    id: generateId(),
-                    sender: 'Admin',
-                    receiver: msgTargetUser,
-                    content: msgContent,
-                    timestamp: new Date().toISOString(),
-                    read: false
-                };
-                await DBService.sendMessage(msg);
-                alert('Mensagem enviada com sucesso!');
-            }
-            setMsgModalOpen(false);
-            fetchData();
+            await DBService.sendPushNotification(pushTarget, pushTitle, pushBody);
+            alert("Push enviado com sucesso!");
+            setPushTitle('');
+            setPushBody('');
         } catch (error: any) {
-            alert('Erro no envio: ' + error.message);
+            alert("Erro ao enviar: " + error.message);
         } finally {
-            setSending(false);
+            setPushSending(false);
         }
     };
 
     const handleGenerateKey = () => {
         if (!genUserId) return;
-        const key = generateLicenseKey(genUserId);
-        setGeneratedKey(key);
+        setGeneratedKey(generateLicenseKey(genUserId));
     };
 
-    const handleManualProfileCreate = async () => {
-        if (!manualId || !manualEmail) {
-            alert("ID e Email são obrigatórios.");
-            return;
-        }
-        setManualLoading(true);
+    const handleCreateGhost = async () => {
+        if (!manualId || !manualEmail) return;
         try {
-            await DBService.createProfileManually(manualId, manualEmail, manualName || 'Usuário Recuperado');
-            alert("Perfil criado com sucesso!");
-            setManualId('');
-            setManualEmail('');
-            setManualName('');
+            await DBService.createProfileManually(manualId, manualEmail, 'Usuário Recuperado');
+            alert("Perfil criado!");
+            setManualId(''); setManualEmail('');
             fetchData();
-        } catch (error: any) {
-            alert("Erro ao criar perfil: " + error.message);
-        } finally {
-            setManualLoading(false);
+        } catch (e: any) {
+            alert(e.message);
         }
     };
+
+    const filteredUsers = profiles.filter(p =>
+        p.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.email.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     return (
-        <div className="max-w-6xl mx-auto animate-fade-in space-y-6 relative pb-10">
-            <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
-                <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-                    <div className="flex items-center gap-3">
-                        <div className="bg-indigo-100 dark:bg-indigo-900/30 p-3 rounded-lg text-indigo-600 dark:text-indigo-400 shrink-0">
-                            <ShieldAlert size={24} />
-                        </div>
-                        <div>
-                            <h2 className="text-xl md:text-2xl font-bold text-slate-800 dark:text-white">Painel Administrativo</h2>
-                            <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400">Gestão global do sistema.</p>
-                        </div>
+        <div className="flex flex-col md:flex-row min-h-screen bg-slate-50 dark:bg-slate-900 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
+            {/* Sidebar */}
+            <aside className="w-full md:w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 p-6 flex flex-col">
+                <div className="flex items-center gap-3 mb-10">
+                    <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
+                        <ShieldAlert size={20} />
                     </div>
-                    <div className="flex items-center gap-2 self-end md:self-auto">
-                        <button
-                            onClick={() => openMessageModal('', true)}
-                            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 md:px-4 md:py-2 rounded-lg text-xs md:text-sm font-bold shadow-md transition-all active:scale-95"
-                        >
-                            <Megaphone size={16} className="md:w-[18px] md:h-[18px]" />
-                            <span className="hidden sm:inline">Comunicado Geral</span>
-                            <span className="sm:hidden">Comunicar Todos</span>
-                        </button>
-                        <button
-                            onClick={fetchData}
-                            className="p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 rounded-full transition-colors"
-                            title="Atualizar Dados"
-                        >
-                            <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
-                        </button>
+                    <div>
+                        <h1 className="font-black text-slate-800 dark:text-white text-lg leading-tight">ADMIN</h1>
+                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Painel</p>
                     </div>
                 </div>
 
-                <div className="flex gap-4 border-b border-slate-200 dark:border-slate-700 overflow-x-auto">
-                    <button
-                        onClick={() => setActiveTab('overview')}
-                        className={`pb-3 px-2 text-sm font-medium flex items-center gap-2 transition-colors relative whitespace-nowrap ${activeTab === 'overview' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
-                            }`}
-                    >
-                        <BarChart3 size={18} /> Visão Geral
-                        {activeTab === 'overview' && <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 dark:bg-blue-400 rounded-t-full"></span>}
+                <nav className="space-y-2 flex-1">
+                    <button onClick={() => setActiveTab('dashboard')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'dashboard' ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}>
+                        <LayoutDashboard size={18} /> Dashboard
                     </button>
-
-                    <button
-                        onClick={() => setActiveTab('users')}
-                        className={`pb-3 px-2 text-sm font-medium flex items-center gap-2 transition-colors relative whitespace-nowrap ${activeTab === 'users' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
-                            }`}
-                    >
+                    <button onClick={() => setActiveTab('users')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'users' ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}>
                         <Users size={18} /> Usuários
-                        {activeTab === 'users' && <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 dark:bg-blue-400 rounded-t-full"></span>}
                     </button>
-
-                    <button
-                        onClick={() => setActiveTab('requests')}
-                        className={`pb-3 px-2 text-sm font-medium flex items-center gap-2 transition-colors relative whitespace-nowrap ${activeTab === 'requests' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
-                            }`}
-                    >
-                        <FileText size={18} /> Licenças
-                        {pendingRequestsCount > 0 && (
-                            <span className="bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
-                                {pendingRequestsCount}
-                            </span>
-                        )}
-                        {activeTab === 'requests' && <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 dark:bg-blue-400 rounded-t-full"></span>}
+                    <button onClick={() => setActiveTab('push')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'push' ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}>
+                        <Bell size={18} /> Central Push
                     </button>
-
-                    <button
-                        onClick={() => setActiveTab('messages')}
-                        className={`pb-3 px-2 text-sm font-medium flex items-center gap-2 transition-colors relative whitespace-nowrap ${activeTab === 'messages' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
-                            }`}
-                    >
-                        <MessageSquare size={18} /> Mensagens
-                        {activeTab === 'messages' && <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 dark:bg-blue-400 rounded-t-full"></span>}
-                    </button>
-
-                    <button
-                        onClick={() => setActiveTab('generator')}
-                        className={`pb-3 px-2 text-sm font-medium flex items-center gap-2 transition-colors relative whitespace-nowrap ${activeTab === 'generator' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
-                            }`}
-                    >
+                    <button onClick={() => setActiveTab('tools')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'tools' ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}>
                         <Wrench size={18} /> Ferramentas
-                        {activeTab === 'generator' && <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 dark:bg-blue-400 rounded-t-full"></span>}
                     </button>
-                </div>
-            </div>
+                </nav>
 
-            {activeTab === 'overview' && stats && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in">
-                    <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-                        <div className="flex justify-between items-start">
-                            <div>
-                                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Usuários Totais</p>
-                                <h3 className="text-3xl font-bold text-slate-800 dark:text-white mt-2">{stats.totalUsers}</h3>
-                            </div>
-                            <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400">
-                                <Users size={24} />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-                        <div className="flex justify-between items-start">
-                            <div>
-                                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Transações</p>
-                                <h3 className="text-3xl font-bold text-slate-800 dark:text-white mt-2">{stats.totalTransactions}</h3>
-                            </div>
-                            <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg text-emerald-600 dark:text-emerald-400">
-                                <Database size={24} />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-                        <div className="flex justify-between items-start">
-                            <div>
-                                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Volume Movimentado</p>
-                                <h3 className="text-2xl font-bold text-slate-800 dark:text-white mt-2">{formatCurrency(stats.totalVolume)}</h3>
-                            </div>
-                            <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg text-indigo-600 dark:text-indigo-400">
-                                <Wallet size={24} />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-                        <div className="flex justify-between items-start">
-                            <div>
-                                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Licenças Ativas</p>
-                                <h3 className="text-3xl font-bold text-slate-800 dark:text-white mt-2">{stats.activeLicenses}</h3>
-                            </div>
-                            <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-lg text-amber-600 dark:text-amber-400">
-                                <ShieldAlert size={24} />
-                            </div>
+                <div className="pt-6 border-t border-slate-100 dark:border-slate-700">
+                    <div className="bg-slate-900 rounded-xl p-4 relative overflow-hidden group cursor-pointer hover:scale-105 transition-transform">
+                        <div className="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -mr-8 -mt-8 blur-xl"></div>
+                        <p className="text-slate-400 text-xs font-bold mb-1">Status do Sistema</p>
+                        <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                            <span className="text-white text-sm font-bold">Operacional</span>
                         </div>
                     </div>
                 </div>
-            )}
+            </aside>
 
-            {activeTab === 'users' && (
-                <div className="space-y-4 animate-fade-in">
-                    {/* Search Bar */}
-                    <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex items-center gap-3">
-                        <Search className="text-slate-400" size={20} />
-                        <input
-                            type="text"
-                            placeholder="Buscar usuário por nome, email ou ID..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="bg-transparent border-none focus:ring-0 text-slate-700 dark:text-white w-full text-sm outline-none placeholder:text-slate-400"
-                        />
-                        {searchTerm && (
-                            <button onClick={() => setSearchTerm('')} className="text-slate-400 hover:text-slate-600">
-                                <X size={16} />
-                            </button>
-                        )}
+            {/* Main Content */}
+            <main className="flex-1 p-6 md:p-10 overflow-y-auto">
+                <header className="flex justify-between items-center mb-8">
+                    <div>
+                        <h2 className="text-2xl md:text-3xl font-black text-slate-800 dark:text-white mb-2">
+                            {activeTab === 'dashboard' && 'Visão Geral'}
+                            {activeTab === 'users' && 'Gestão de Usuários'}
+                            {activeTab === 'push' && 'Disparo de Notificações'}
+                            {activeTab === 'tools' && 'Ferramentas de Suporte'}
+                        </h2>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm">Bem-vindo ao painel de controle do Finance Pro 360.</p>
                     </div>
+                    <button onClick={fetchData} className="p-3 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition-colors">
+                        <RefreshCw size={20} className={`text-slate-600 dark:text-slate-300 ${loading ? 'animate-spin' : ''}`} />
+                    </button>
+                </header>
 
-                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden transition-colors">
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse">
-                                <thead className="bg-slate-50 dark:bg-slate-900">
+                {/* Dashboard View */}
+                {activeTab === 'dashboard' && stats && (
+                    <div className="space-y-6 animate-fade-in-up">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl text-blue-600">
+                                        <Users size={24} />
+                                    </div>
+                                    <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-1 rounded-full">+12%</span>
+                                </div>
+                                <h3 className="text-3xl font-black text-slate-800 dark:text-white">{stats.totalUsers}</h3>
+                                <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mt-1">Usuários Totais</p>
+                            </div>
+
+                            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-xl text-amber-600">
+                                        <Wallet size={24} />
+                                    </div>
+                                    <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-1 rounded-full">+5%</span>
+                                </div>
+                                <h3 className="text-3xl font-black text-slate-800 dark:text-white">{stats.activeLicenses}</h3>
+                                <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mt-1">Assinantes Premium</p>
+                            </div>
+
+                            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl text-emerald-600">
+                                        <DollarSignIcon size={24} />
+                                    </div>
+                                </div>
+                                <h3 className="text-2xl font-black text-slate-800 dark:text-white">R$ {(stats.activeLicenses * 80).toLocaleString('pt-BR')}</h3>
+                                <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mt-1">Receita Estimada (Ano)</p>
+                            </div>
+                        </div>
+
+                        {/* Recent Activity Table (Mock) */}
+                        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+                            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6">Atividade Recente</h3>
+                            <div className="space-y-4">
+                                {[1, 2, 3].map(i => (
+                                    <div key={i} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold">U{i}</div>
+                                            <div>
+                                                <p className="text-sm font-bold text-slate-800 dark:text-white">Novo usuário registrado</p>
+                                                <p className="text-xs text-slate-500">Há {i * 15} minutos</p>
+                                            </div>
+                                        </div>
+                                        <span className="text-xs font-bold text-blue-600">Ver Detalhes</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Users View */}
+                {activeTab === 'users' && (
+                    <div className="space-y-6 animate-fade-in-up">
+                        <div className="flex gap-4 mb-4">
+                            <div className="flex-1 bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center gap-3">
+                                <Search className="text-slate-400" size={20} />
+                                <input
+                                    type="text"
+                                    placeholder="Buscar usuário..."
+                                    value={searchTerm}
+                                    onChange={e => setSearchTerm(e.target.value)}
+                                    className="bg-transparent outline-none text-sm w-full dark:text-white"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+                            <table className="w-full text-left">
+                                <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-100 dark:border-slate-700">
                                     <tr>
-                                        <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Usuário</th>
-                                        <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Cadastro</th>
-                                        <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Licença</th>
-                                        <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 text-center">Ações</th>
+                                        <th className="p-4 text-xs font-bold text-slate-500 uppercase">Usuário</th>
+                                        <th className="p-4 text-xs font-bold text-slate-500 uppercase">Email</th>
+                                        <th className="p-4 text-xs font-bold text-slate-500 uppercase">Status</th>
+                                        <th className="p-4 text-xs font-bold text-slate-500 uppercase text-center">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                    {filteredProfiles.length === 0 ? (
-                                        <tr>
-                                            <td colSpan={4} className="py-12 text-center text-slate-400 dark:text-slate-500">
-                                                {searchTerm ? 'Nenhum usuário encontrado para a busca.' : 'Nenhum usuário encontrado.'}
+                                    {filteredUsers.map(user => (
+                                        <tr key={user.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                            <td className="p-4 font-bold text-slate-800 dark:text-white">{user.name || 'Sem Nome'}</td>
+                                            <td className="p-4 text-sm text-slate-500">{user.email}</td>
+                                            <td className="p-4">
+                                                <span className={`px-2 py-1 rounded-full text-[10px] font-black uppercase ${user.licenseStatus === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'
+                                                    }`}>
+                                                    {user.licenseStatus === 'active' ? 'PREMIUM' : 'GRÁTIS'}
+                                                </span>
+                                            </td>
+                                            <td className="p-4 text-center">
+                                                <button
+                                                    onClick={() => handleToggleLicense(user)}
+                                                    className="text-blue-600 hover:text-blue-800 font-bold text-xs"
+                                                >
+                                                    {user.licenseStatus === 'active' ? 'Remover Premium' : 'Dar Premium'}
+                                                </button>
                                             </td>
                                         </tr>
-                                    ) : (
-                                        filteredProfiles.map(profile => (
-                                            <tr key={profile.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
-                                                <td className="py-4 px-6">
-                                                    <div className="flex flex-col">
-                                                        <span className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                                                            {profile.name || 'Sem nome'}
-                                                            {profile.isGhost && <span className="text-[9px] bg-amber-100 text-amber-700 px-1 rounded uppercase">Pendente</span>}
-                                                        </span>
-                                                        <span className="text-xs text-slate-500 dark:text-slate-400">{profile.email}</span>
-                                                        <span className="text-[9px] text-slate-300 dark:text-slate-600 font-mono mt-0.5 truncate max-w-[150px]" title={profile.id}>ID: {profile.id.substring(0, 8)}...</span>
-                                                    </div>
-                                                </td>
-                                                <td className="py-4 px-6 text-sm text-slate-600 dark:text-slate-400">
-                                                    {profile.createdAt ? new Date(profile.createdAt).toLocaleDateString() : '-'}
-                                                </td>
-                                                <td className="py-4 px-6">
-                                                    <span className={`px-2 py-1 rounded-full text-xs font-bold uppercase ${profile.licenseStatus === 'active'
-                                                        ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
-                                                        : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
-                                                        }`}>
-                                                        {profile.licenseStatus === 'active' ? 'Premium' : 'Gratuito'}
-                                                    </span>
-                                                </td>
-                                                <td className="py-4 px-6 text-center">
-                                                    <div className="flex items-center justify-center">
-                                                        <button
-                                                            onClick={() => handleToggleLicense(profile)}
-                                                            className={`p-2 rounded transition-colors mr-2 ${profile.licenseStatus === 'active'
-                                                                ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 hover:bg-rose-200 dark:hover:bg-rose-800'
-                                                                : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-800'
-                                                                }`}
-                                                            title={profile.licenseStatus === 'active' ? "Remover Premium" : "Ativar Premium"}
-                                                        >
-                                                            {profile.licenseStatus === 'active' ? <ShieldOff size={16} /> : <ShieldCheck size={16} />}
-                                                        </button>
-                                                        <button
-                                                            onClick={() => openMessageModal(profile.id)}
-                                                            className="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
-                                                            title="Enviar Mensagem"
-                                                        >
-                                                            <Mail size={16} />
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    )}
+                                    ))}
                                 </tbody>
                             </table>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
 
-            {activeTab === 'requests' && (
-                <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden animate-fade-in transition-colors">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
-                            <thead className="bg-slate-50 dark:bg-slate-900">
-                                <tr>
-                                    <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Solicitante</th>
-                                    <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Data</th>
-                                    <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Status</th>
-                                    <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 text-center">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                {requests.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={4} className="py-12 text-center text-slate-400 dark:text-slate-500">
-                                            Nenhuma solicitação encontrada.
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    requests.map(req => (
-                                        <tr key={req.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
-                                            <td className="py-4 px-6">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center text-slate-600 dark:text-slate-300 font-bold text-xs">
-                                                        <User size={14} />
-                                                    </div>
-                                                    <div className="flex flex-col">
-                                                        <span className="font-bold text-slate-800 dark:text-white text-sm">
-                                                            {req.userName || 'Desconhecido'}
-                                                        </span>
-                                                        {req.userEmail && <span className="text-xs text-slate-500">{req.userEmail}</span>}
-                                                        <span className="font-mono text-[9px] text-slate-400 dark:text-slate-500 mt-0.5" title={req.userId}>
-                                                            ID: {req.userId.substring(0, 8)}...
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="py-4 px-6 text-sm text-slate-600 dark:text-slate-400">
-                                                {new Date(req.requestDate).toLocaleDateString('pt-BR')}
-                                            </td>
-                                            <td className="py-4 px-6">
-                                                <span className={`px-2 py-1 rounded-full text-xs font-bold uppercase ${req.status === 'approved' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' :
-                                                    req.status === 'rejected' ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400' :
-                                                        'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
-                                                    }`}>
-                                                    {req.status === 'pending' ? 'Pendente' : req.status === 'approved' ? 'Aprovado' : 'Rejeitado'}
-                                                </span>
-                                            </td>
-                                            <td className="py-4 px-6">
-                                                <div className="flex items-center justify-center gap-2">
-                                                    {req.status === 'pending' && (
-                                                        <>
-                                                            <button
-                                                                onClick={() => handleStatusChange(req, 'approved')}
-                                                                className="p-2 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded hover:bg-emerald-200 dark:hover:bg-emerald-800 transition-colors"
-                                                                title="Aprovar"
-                                                            >
-                                                                <Check size={16} />
-                                                            </button>
-                                                            <button
-                                                                onClick={() => handleStatusChange(req, 'rejected')}
-                                                                className="p-2 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded hover:bg-rose-200 dark:hover:bg-rose-800 transition-colors"
-                                                                title="Rejeitar"
-                                                            >
-                                                                <X size={16} />
-                                                            </button>
-                                                        </>
-                                                    )}
-                                                    <button
-                                                        onClick={() => openMessageModal(req.userId)}
-                                                        className="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
-                                                        title="Enviar Mensagem"
-                                                    >
-                                                        <Mail size={16} />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            )}
-
-            {activeTab === 'messages' && (
-                <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden animate-fade-in transition-colors">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
-                            <thead className="bg-slate-50 dark:bg-slate-900">
-                                <tr>
-                                    <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Para</th>
-                                    <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Mensagem</th>
-                                    <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Data</th>
-                                    <th className="py-3 px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 text-center">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                {messages.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={4} className="py-12 text-center text-slate-400 dark:text-slate-500">
-                                            Nenhuma mensagem enviada.
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    messages.map(msg => {
-                                        const receiverProfile = profiles.find(p => p.id === msg.receiver);
-                                        const receiverName = receiverProfile?.name || 'ID: ' + msg.receiver.substring(0, 8) + '...';
-
-                                        return (
-                                            <tr key={msg.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
-                                                <td className="py-3 px-6 text-xs font-medium text-slate-700 dark:text-slate-300">
-                                                    {receiverName}
-                                                </td>
-                                                <td className="py-3 px-6 text-sm text-slate-700 dark:text-slate-300 max-w-xs truncate">{msg.content}</td>
-                                                <td className="py-3 px-6 text-xs text-slate-500 dark:text-slate-400">
-                                                    {new Date(msg.timestamp).toLocaleDateString('pt-BR')} {new Date(msg.timestamp).toLocaleTimeString('pt-BR')}
-                                                </td>
-                                                <td className="py-3 px-6 text-center">
-                                                    {msg.read ? (
-                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[10px] font-bold uppercase">
-                                                            <Eye size={10} /> Lida
-                                                        </span>
-                                                    ) : (
-                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase">
-                                                            <EyeOff size={10} /> Não lida
-                                                        </span>
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        )
-                                    })
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            )}
-
-            {activeTab === 'generator' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
-                    <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
-                        <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-                            <UserPlus size={20} className="text-amber-500" />
-                            Reparar Usuário Fantasma
-                        </h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-                            Use isto se o usuário criou conta mas não aparece na lista.
-                        </p>
-
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">ID do Usuário (UUID) *</label>
-                                <input
-                                    type="text"
-                                    value={manualId}
-                                    onChange={(e) => setManualId(e.target.value)}
-                                    className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded px-3 py-2 font-mono text-sm focus:outline-none focus:border-amber-500"
-                                    placeholder="Ex: 8257b1c5-..."
-                                />
+                {/* Push Notification View */}
+                {activeTab === 'push' && (
+                    <div className="max-w-2xl mx-auto space-y-8 animate-fade-in-up">
+                        <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700">
+                            <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 mb-6 mx-auto">
+                                <Megaphone size={32} />
                             </div>
-                            <div>
-                                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Email *</label>
-                                <input
-                                    type="email"
-                                    value={manualEmail}
-                                    onChange={(e) => setManualEmail(e.target.value)}
-                                    className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-amber-500"
-                                    placeholder="email@exemplo.com"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Nome (Opcional)</label>
-                                <input
-                                    type="text"
-                                    value={manualName}
-                                    onChange={(e) => setManualName(e.target.value)}
-                                    className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-amber-500"
-                                    placeholder="Nome do usuário"
-                                />
-                            </div>
+                            <h3 className="text-2xl font-black text-center text-slate-800 dark:text-white mb-8">Disparar Notificação</h3>
 
-                            <button
-                                onClick={handleManualProfileCreate}
-                                disabled={manualLoading || !manualId || !manualEmail}
-                                className="w-full bg-amber-600 text-white py-2 rounded font-bold hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-                            >
-                                {manualLoading ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
-                                Criar Perfil na Base
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="space-y-6">
-                        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
-                            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-                                <Smartphone size={20} className="text-blue-500" />
-                                Gerar Chave de Licença
-                            </h3>
-                            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-                                Gera uma chave manual para ativação offline ou via WhatsApp.
-                            </p>
-
-                            <div className="space-y-4">
+                            <div className="space-y-6">
                                 <div>
-                                    <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">ID do Usuário</label>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Destinatário</label>
+                                    <select
+                                        value={pushTarget}
+                                        onChange={(e) => setPushTarget(e.target.value)}
+                                        className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-sm font-bold outline-none"
+                                    >
+                                        <option value="all">📢 TODOS OS USUÁRIOS</option>
+                                        {profiles.map(p => (
+                                            <option key={p.id} value={p.id}>{p.name} ({p.email})</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Título do Alerta</label>
                                     <input
                                         type="text"
-                                        value={genUserId}
-                                        onChange={(e) => setGenUserId(e.target.value)}
-                                        className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded px-3 py-2 font-mono text-sm focus:outline-none focus:border-blue-500"
-                                        placeholder="Cole o ID aqui..."
+                                        value={pushTitle}
+                                        onChange={e => setPushTitle(e.target.value)}
+                                        placeholder="Ex: Fatura Vencendo!"
+                                        className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-sm outline-none font-bold"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Mensagem</label>
+                                    <textarea
+                                        value={pushBody}
+                                        onChange={e => setPushBody(e.target.value)}
+                                        placeholder="Sua fatura do cartão vence amanhã..."
+                                        className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-sm outline-none resize-none h-32"
                                     />
                                 </div>
 
                                 <button
-                                    onClick={handleGenerateKey}
-                                    disabled={!genUserId}
-                                    className="w-full bg-blue-600 text-white py-2 rounded font-bold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    onClick={handleSendPush}
+                                    disabled={pushSending}
+                                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-xl shadow-lg shadow-indigo-500/20 transition-all active:scale-95 flex items-center justify-center gap-2"
                                 >
-                                    Gerar Chave Única
+                                    {pushSending ? <Loader2 className="animate-spin" /> : <Send size={20} />}
+                                    ENVIAR NOTIFICAÇÃOAGORA
                                 </button>
                             </div>
                         </div>
-
-                        <div className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center text-center transition-colors">
-                            {generatedKey ? (
-                                <div className="animate-fade-in w-full">
-                                    <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mx-auto mb-3">
-                                        <Key size={24} className="text-emerald-600 dark:text-emerald-400" />
-                                    </div>
-                                    <h4 className="text-emerald-700 dark:text-emerald-400 font-bold mb-1">Chave Gerada!</h4>
-
-                                    <div className="bg-white dark:bg-slate-800 border-2 border-emerald-200 dark:border-emerald-800 rounded-lg p-3 mb-3 relative">
-                                        <p className="text-xl font-mono font-bold text-slate-800 dark:text-white tracking-widest">{generatedKey}</p>
-                                    </div>
-
-                                    <button
-                                        onClick={() => { navigator.clipboard.writeText(generatedKey); alert('Chave copiada!'); }}
-                                        className="text-blue-600 dark:text-blue-400 text-sm font-bold hover:underline flex items-center justify-center gap-2"
-                                    >
-                                        <Copy size={16} /> Copiar
-                                    </button>
-                                </div>
-                            ) : (
-                                <div className="text-slate-400 dark:text-slate-600">
-                                    <Lock size={32} className="mx-auto mb-2 opacity-20" />
-                                    <p className="text-xs">A chave aparecerá aqui.</p>
-                                </div>
-                            )}
-                        </div>
                     </div>
-                </div>
-            )}
+                )}
 
-            {msgModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-md p-6 animate-fade-in border border-slate-200 dark:border-slate-700 transition-colors">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                                {isBroadcast ? <Megaphone className="text-indigo-500" size={20} /> : <Mail className="text-blue-500" size={20} />}
-                                {isBroadcast ? 'Comunicado Geral' : 'Enviar Mensagem'}
-                            </h3>
-                            <button onClick={() => setMsgModalOpen(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
-                                <X size={20} />
-                            </button>
-                        </div>
-
-                        <div className="mb-4">
-                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Para:</label>
-                            <div className={`p-2 rounded text-sm font-bold border ${isBroadcast ? 'bg-indigo-50 border-indigo-200 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-800 dark:text-indigo-300' : 'bg-slate-100 dark:bg-slate-900 rounded text-sm font-mono text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700'}`}>
-                                {msgTargetUser}
+                {/* Tools View */}
+                {activeTab === 'tools' && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in-up">
+                        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
+                            <h3 className="text-lg font-bold flex items-center gap-2 mb-4 text-slate-800 dark:text-white"><UserPlus size={20} className="text-orange-500" /> Reparar Usuário Fantasma</h3>
+                            <div className="space-y-4">
+                                <input value={manualId} onChange={e => setManualId(e.target.value)} placeholder="UUID do Usuário" className="w-full bg-slate-50 p-3 rounded-lg text-sm border border-slate-200" />
+                                <input value={manualEmail} onChange={e => setManualEmail(e.target.value)} placeholder="Email" className="w-full bg-slate-50 p-3 rounded-lg text-sm border border-slate-200" />
+                                <button onClick={handleCreateGhost} className="w-full bg-orange-500 text-white font-bold py-3 rounded-lg hover:bg-orange-600">Criar Perfil</button>
                             </div>
-                            {isBroadcast && <p className="text-[10px] text-indigo-500 mt-1 uppercase font-bold tracking-wider">Atenção: Esta mensagem será enviada individualmente para todos.</p>}
                         </div>
 
-                        <div className="mb-4">
-                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Conteúdo da Mensagem:</label>
-                            <textarea
-                                value={msgContent}
-                                onChange={(e) => setMsgContent(e.target.value)}
-                                className="w-full h-40 border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded p-3 text-sm focus:border-indigo-500 outline-none resize-none"
-                                placeholder={isBroadcast ? "Ex: Olá a todos! Temos novos recursos disponíveis no Finance Pro 360..." : "Escreva sua mensagem aqui..."}
-                            ></textarea>
-                        </div>
-
-                        <div className="flex justify-end gap-3">
-                            <button
-                                onClick={() => setMsgModalOpen(false)}
-                                disabled={sending}
-                                className="px-4 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-sm font-medium transition-colors disabled:opacity-50"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                onClick={handleSendMessage}
-                                disabled={sending || !msgContent.trim()}
-                                className={`px-4 py-2 rounded text-sm font-bold flex items-center gap-2 transition-all shadow-md ${sending ? 'bg-slate-400 cursor-not-allowed' : (isBroadcast ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-blue-600 hover:bg-blue-700')
-                                    } text-white disabled:opacity-50 active:scale-95`}
-                            >
-                                {sending ? (
-                                    <>
-                                        <Loader2 size={16} className="animate-spin" />
-                                        Processando...
-                                    </>
-                                ) : (
-                                    <>
-                                        {isBroadcast ? <Megaphone size={16} /> : <Send size={16} />}
-                                        {isBroadcast ? 'Disparar Comunicado' : 'Enviar Mensagem'}
-                                    </>
-                                )}
-                            </button>
+                        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
+                            <h3 className="text-lg font-bold flex items-center gap-2 mb-4 text-slate-800 dark:text-white"><Key size={20} className="text-emerald-500" /> Gerar Chave Offline</h3>
+                            <div className="space-y-4">
+                                <input value={genUserId} onChange={e => setGenUserId(e.target.value)} placeholder="UUID do Usuário" className="w-full bg-slate-50 p-3 rounded-lg text-sm border border-slate-200" />
+                                {generatedKey && <div className="p-4 bg-emerald-50 text-emerald-700 font-mono text-center font-bold rounded-lg border border-emerald-200 select-all">{generatedKey}</div>}
+                                <button onClick={handleGenerateKey} className="w-full bg-emerald-500 text-white font-bold py-3 rounded-lg hover:bg-emerald-600">Gerar Chave</button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
+            </main>
         </div>
     );
 };
+
+const DollarSignIcon = ({ size }: { size: number }) => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="lucide lucide-dollar-sign"
+    >
+        <line x1="12" x2="12" y1="2" y2="22" />
+        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+    </svg>
+);

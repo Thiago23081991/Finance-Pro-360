@@ -650,6 +650,13 @@ export class DBService {
     }
   }
 
+  static async sendPushNotification(userId: string, title: string, body: string): Promise<void> {
+    const { error } = await supabase.functions.invoke('send-push-notification', {
+      body: { userId, title, body }
+    });
+    if (error) throw new Error("Erro ao enviar push: " + error.message);
+  }
+
   // --- MESSAGING OPERATIONS ---
 
   static async sendMessage(msg: AdminMessage): Promise<void> {
