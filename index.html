@@ -11,6 +11,9 @@
   <meta property="og:description" content="Organize sua vida financeira com o Finance Pro 360.">
   <meta property="og:url" content="https://www.financepro360.com.br">
   <link rel="canonical" href="https://www.financepro360.com.br" />
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#051b35">
+  <link rel="apple-touch-icon" href="/icon-192.png">
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
@@ -137,6 +140,16 @@
 <body>
   <div id="root"></div>
   <script type="module" src="/index.tsx"></script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(registration => console.log('SW registered:', registration))
+          .catch(error => console.log('SW registration failed:', error));
+      });
+    }
+  </script>
 </body>
 
 </html>
