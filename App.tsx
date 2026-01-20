@@ -22,6 +22,7 @@ import { RecurringExpenses } from './components/RecurringExpenses';
 import { MonthlyReportModal } from './components/MonthlyReportModal';
 import { Notifications } from './components/Notifications';
 import { StatementImportModal } from './components/StatementImportModal';
+import { AIAdvisor } from './components/AIAdvisor';
 import { Budget } from './components/Budget';
 import { Logo } from './components/Logo';
 import { DBService } from './db';
@@ -353,6 +354,10 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                         config={config}
                     />
                 )}
+
+                {/* AI Advisor Chat (Global) */}
+                <AIAdvisor userId={user} />
+
 
 
             </main>
