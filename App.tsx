@@ -197,6 +197,12 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
     };
 
     const addTransaction = async (t: Transaction) => { const tWithUser = { ...t, userId: user }; await DBService.addTransaction(tWithUser); setTransactions(prev => [...prev, tWithUser]); };
+    const handleBatchImport = async (newTransactions: Transaction[]) => {
+        const txsWithUser = newTransactions.map(t => ({ ...t, userId: user }));
+        await DBService.addTransactions(txsWithUser);
+        setTransactions(prev => [...prev, ...txsWithUser]);
+        setToastMessage(`${newTransactions.length} transações importadas com sucesso!`);
+    };
     const updateTransaction = async (t: Transaction) => { const tWithUser = { ...t, userId: user }; await DBService.addTransaction(tWithUser); setTransactions(prev => prev.map(x => x.id === t.id ? tWithUser : x)); };
     const deleteTransaction = async (id: string) => { await DBService.deleteTransaction(id); setTransactions(prev => prev.filter(x => x.id !== id)); };
     const addGoal = async (g: Goal) => { const gWithUser = { ...g, userId: user }; await DBService.saveGoal(gWithUser); setGoals(prev => [...prev, gWithUser]); };
@@ -339,6 +345,15 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                 <Inbox userId={user} isOpen={showInbox} onClose={() => setShowInbox(false)} onUpdateUnread={checkUnreadMessages} />
                 <CalculatorModal isOpen={showCalculatorModal} onClose={() => setShowCalculatorModal(false)} />
                 {showRecurringExpenses && <RecurringExpenses config={config} onClose={() => setShowRecurringExpenses(false)} />}
+                {showImportModal && (
+                    <StatementImportModal
+                        isOpen={showImportModal}
+                        onClose={() => setShowImportModal(false)}
+                        onImport={handleBatchImport}
+                        config={config}
+                    />
+                )}
+
 
             </main>
         </div>

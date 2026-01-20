@@ -139,6 +139,29 @@ export class DBService {
     if (error) throw new Error(error.message);
   }
 
+  static async addTransactions(transactions: Transaction[]): Promise<void> {
+    const user = await this.getCurrentUser();
+    if (!user) throw new Error("Usuário não autenticado");
+
+    if (transactions.length === 0) return;
+
+    const payload = transactions.map(t => ({
+      id: t.id,
+      user_id: user.id,
+      date: t.date,
+      amount: t.amount,
+      category: t.category,
+      description: t.description,
+      payment_method: t.paymentMethod,
+      type: t.type,
+      is_recurring: t.isRecurring,
+      recurrence_day: t.recurrenceDay
+    }));
+
+    const { error } = await supabase.from('transactions').upsert(payload);
+    if (error) throw new Error(error.message);
+  }
+
   static async deleteTransaction(id: string): Promise<void> {
     const { error } = await supabase.from('transactions').delete().eq('id', id);
     if (error) throw new Error(error.message);
