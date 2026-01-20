@@ -630,6 +630,26 @@ export class DBService {
     }));
   }
 
+  // --- PUSH NOTIFICATIONS ---
+
+  static async savePushSubscription(subscription: PushSubscription): Promise<void> {
+    const user = await this.getCurrentUser();
+    if (!user) return;
+
+    // Convert subscription to simple JSON object if it's not already
+    const subJSON = JSON.parse(JSON.stringify(subscription));
+
+    const { error } = await supabase.from('push_subscriptions').upsert({
+      user_id: user.id,
+      subscription: subJSON,
+      device_type: /Mobi|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop'
+    }, { onConflict: 'user_id, subscription' });
+
+    if (error) {
+      console.error("Erro ao salvar inscrição push:", error);
+    }
+  }
+
   // --- MESSAGING OPERATIONS ---
 
   static async sendMessage(msg: AdminMessage): Promise<void> {

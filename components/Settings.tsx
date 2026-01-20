@@ -19,6 +19,8 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
     const [newMethod, setNewMethod] = useState('');
     const [isRestoring, setIsRestoring] = useState(false);
     const [dueDate, setDueDate] = useState(config.creditCardDueDate || 10);
+    const [isPushEnabled, setIsPushEnabled] = useState(false);
+    const [pushLoading, setPushLoading] = useState(false);
 
     // Perfil
     const [isEditingName, setIsEditingName] = useState(false);
@@ -46,6 +48,16 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
         setDueDate(config.creditCardDueDate || 10);
     }, [config.userId, isLicensed, config.name, config.creditCardDueDate]);
 
+    useEffect(() => {
+        if ('serviceWorker' in navigator && 'PushManager' in window) {
+            navigator.serviceWorker.ready.then(reg => {
+                reg.pushManager.getSubscription().then(sub => {
+                    if (sub) setIsPushEnabled(true);
+                });
+            });
+        }
+    }, []);
+
     const handleSaveName = () => {
         onUpdateConfig({ ...config, name: tempName });
         setIsEditingName(false);
@@ -62,6 +74,39 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
             DBService.saveConfig(newConfig);
         } else {
             setLicenseError('Chave inválida para este usuário. Verifique o e-mail de compra.');
+        }
+    };
+
+    const handleTogglePush = async () => {
+        if (!('serviceWorker' in navigator)) {
+            alert('Seu navegador não suporta notificações Push.');
+            return;
+        }
+
+        setPushLoading(true);
+        try {
+            const reg = await navigator.serviceWorker.ready;
+            const sub = await reg.pushManager.getSubscription();
+
+            if (sub) {
+                // Unsubscribe logic (optional, for now just toggle state locally or remove from DB if we implemented delete)
+                // For simplified flow we just re-subscribe or stay subscribed
+                setIsPushEnabled(true);
+                alert("Você já está inscrito!");
+            } else {
+                const newSub = await reg.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: 'BCpZYgyHbEfonCDY5NdvLfbG1vlNnGbRvPbiJRW4nniP89YIiAKI3LozraSqQRe9LP65j1H0x0N_ArBAdeonIyQ'
+                });
+                await DBService.savePushSubscription(newSub);
+                setIsPushEnabled(true);
+                alert("Notificações ativadas com sucesso!");
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Erro ao ativar notificações. Verifique se você bloqueou o site.');
+        } finally {
+            setPushLoading(false);
         }
     };
 
@@ -331,6 +376,28 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                     {config.theme === 'dark' ? <Moon className="text-blue-500" size={20} /> : <Sun className="text-orange-500" size={20} />}
                     Aparência e Sistema
                 </h3>
+
+                <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900 rounded-lg flex items-center justify-between">
+                    <div>
+                        <h4 className="text-sm font-bold text-blue-900 dark:text-blue-100 flex items-center gap-2">
+                            <Bell size={16} /> Notificações Push
+                        </h4>
+                        <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                            Receba alertas de vencimento mesmo com o app fechado.
+                        </p>
+                    </div>
+                    <button
+                        onClick={handleTogglePush}
+                        disabled={pushLoading}
+                        className={`px-4 py-2 rounded-lg text-xs font-black transition-all shadow-sm ${isPushEnabled
+                            ? 'bg-emerald-500 text-white'
+                            : 'bg-white text-blue-600 border border-blue-200'
+                            }`}
+                    >
+                        {pushLoading ? '...' : (isPushEnabled ? 'ATIVADO ✓' : 'ATIVAR AGORA')}
+                    </button>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-xl">
                         <div>
