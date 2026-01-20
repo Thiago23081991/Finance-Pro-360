@@ -730,9 +730,14 @@ export class DBService {
   static async getFinancialContext(userId: string): Promise<any> {
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
+    const today = new Date();
 
-    const transactions = await this.getTransactions(userId);
-    const goals = await this.getGoals(userId);
+    const [transactions, goals, debts, investments] = await Promise.all([
+      this.getTransactions(userId),
+      this.getGoals(userId),
+      this.getDebts(userId),
+      this.getInvestments(userId)
+    ]);
 
     // Filter for current month
     const monthlyTxs = transactions.filter(t => {
@@ -748,24 +753,44 @@ export class DBService {
       .filter(t => t.type === 'expense')
       .reduce((acc, t) => acc + t.amount, 0);
 
-    // Calculate top categories
+    // Calculate top categories with percentages
     const categoryTotals: Record<string, number> = {};
-    monthlyTxs
-      .filter(t => t.type === 'expense')
-      .forEach(t => {
-        categoryTotals[t.category] = (categoryTotals[t.category] || 0) + t.amount;
-      });
+    monthlyTxs.filter(t => t.type === 'expense').forEach(t => {
+      categoryTotals[t.category] = (categoryTotals[t.category] || 0) + t.amount;
+    });
 
     const topCategories = Object.entries(categoryTotals)
       .sort(([, a], [, b]) => b - a)
-      .slice(0, 3)
-      .map(([cat, amount]) => `${cat}: R$ ${amount.toFixed(2)}`)
+      .slice(0, 5)
+      .map(([cat, amount]) => {
+        const percent = expenses > 0 ? ((amount / expenses) * 100).toFixed(0) : 0;
+        return `${cat}: R$ ${amount.toFixed(2)} (${percent}%)`;
+      })
       .join(', ');
 
+    // Active Goals
     const activeGoals = goals
       .filter(g => g.status === 'Em andamento')
-      .map(g => `${g.name} (Meta: R$ ${g.targetValue})`)
+      .map(g => `${g.name} (Meta: R$ ${g.targetValue}, Atual: R$ ${g.currentValue})`)
       .join(', ');
+
+    // Upcoming Debts (Next 7 days)
+    const nextWeek = new Date();
+    nextWeek.setDate(today.getDate() + 7);
+
+    // Adjusted for correct Debt interface props
+    const upcomingDebts = debts
+      .filter(d => {
+        if (!d.dueDate) return false;
+        const dueDate = new Date(d.dueDate);
+        return dueDate >= today && dueDate <= nextWeek;
+      })
+      .map(d => `${d.name} (Vence ${new Date(d.dueDate!).toLocaleDateString()}, R$ ${d.totalAmount})`)
+      .join(', ');
+
+    // Investments Total
+    const totalInvested = investments.reduce((acc, inv) => acc + (inv.currentValue || inv.amount), 0);
+    const investmentBreakdown = investments.map(i => `${i.name} (${i.type}): R$ ${i.currentValue || i.amount}`).join(', ');
 
     // Recurring Expenses for AI Context
     const recurringTxs = transactions.filter(t => t.type === 'expense' && t.isRecurring);
@@ -778,6 +803,8 @@ export class DBService {
       expenses: expenses.toFixed(2),
       topCategories: topCategories || 'Nenhuma despesa este mês',
       goal: activeGoals || 'Nenhuma meta definida',
+      debts: upcomingDebts || 'Nenhuma conta vencendo nos próximos 7 dias',
+      investments: `Total: R$ ${totalInvested.toFixed(2)}. Detalhes: ${investmentBreakdown || 'Nenhum'}`,
       recurringExpenses: recurringList || 'Nenhuma assinatura/conta fixa identificada',
       totalRecurring: totalRecurring.toFixed(2)
     };

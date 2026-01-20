@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Bot, Send, X, Sparkles, Loader2, Minimize2, Maximize2 } from 'lucide-react';
+import { Bot, Send, X, Sparkles, Loader2, Minimize2, Maximize2, Lightbulb } from 'lucide-react';
 import { DBService } from '../db';
 import { supabase } from '../supabaseClient';
 
@@ -9,10 +9,17 @@ interface Message {
     text: string;
 }
 
+const SUGGESTIONS = [
+    "📊 Analise meus gastos recentes",
+    "💰 Como posso economizar mais?",
+    "📅 Tenho contas vencendo logo?",
+    "🎯 Quanto falta para minha meta?",
+];
+
 export const AIAdvisor: React.FC<{ userId: string }> = ({ userId }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<Message[]>([
-        { role: 'assistant', text: 'Olá! Sou seu assistente financeiro. Como posso ajudar você a economizar hoje?' }
+        { role: 'assistant', text: 'Olá! Sou seu Coach Financeiro 🤖. Posso analisar suas finanças e te dar conselhos personalizados. O que deseja saber?' }
     ]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
