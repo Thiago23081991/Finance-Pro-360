@@ -109,8 +109,8 @@ export const AdminPanel: React.FC = () => {
     };
 
     const filteredUsers = profiles.filter(p =>
-        p.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.email.toLowerCase().includes(searchTerm.toLowerCase())
+        (p.name && p.name.toLowerCase().includes((searchTerm || '').toLowerCase())) ||
+        (p.email && p.email.toLowerCase().includes((searchTerm || '').toLowerCase()))
     );
 
     return (
@@ -240,7 +240,7 @@ export const AdminPanel: React.FC = () => {
                                             <span
                                                 className="text-xs font-bold text-blue-600 cursor-pointer hover:underline"
                                                 onClick={() => {
-                                                    setSearchTerm(user.email);
+                                                    setSearchTerm(user.email || '');
                                                     setActiveTab('users');
                                                 }}
                                             >
