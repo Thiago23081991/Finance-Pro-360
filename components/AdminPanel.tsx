@@ -212,18 +212,42 @@ export const AdminPanel: React.FC = () => {
                         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
                             <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6">Atividade Recente</h3>
                             <div className="space-y-4">
-                                {[1, 2, 3].map(i => (
-                                    <div key={i} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold">U{i}</div>
-                                            <div>
-                                                <p className="text-sm font-bold text-slate-800 dark:text-white">Novo usuário registrado</p>
-                                                <p className="text-xs text-slate-500">Há {i * 15} minutos</p>
+                                {profiles
+                                    .slice() // Create a copy so we don't mutate state
+                                    .sort((a, b) => {
+                                        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                                        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                                        return dateB - dateA;
+                                    })
+                                    .slice(0, 5) // Last 5 users
+                                    .map(user => (
+                                        <div key={user.id} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-600">
+                                                    {user.name ? user.name.substring(0, 2).toUpperCase() : 'U'}
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-bold text-slate-800 dark:text-white">
+                                                        {user.name || 'Novo Usuário'}
+                                                    </p>
+                                                    <p className="text-xs text-slate-500">
+                                                        {user.createdAt
+                                                            ? new Date(user.createdAt).toLocaleDateString('pt-BR') + ' às ' + new Date(user.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+                                                            : 'Data desconhecida'}
+                                                    </p>
+                                                </div>
                                             </div>
+                                            <span
+                                                className="text-xs font-bold text-blue-600 cursor-pointer hover:underline"
+                                                onClick={() => {
+                                                    setSearchTerm(user.email);
+                                                    setActiveTab('users');
+                                                }}
+                                            >
+                                                Ver Detalhes
+                                            </span>
                                         </div>
-                                        <span className="text-xs font-bold text-blue-600">Ver Detalhes</span>
-                                    </div>
-                                ))}
+                                    ))}
                             </div>
                         </div>
                     </div>

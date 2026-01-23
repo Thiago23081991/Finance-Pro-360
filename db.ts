@@ -654,7 +654,10 @@ export class DBService {
     const { error } = await supabase.functions.invoke('send-push-notification', {
       body: { userId, title, body }
     });
-    if (error) throw new Error("Erro ao enviar push: " + error.message);
+    if (error) {
+      console.error("DETAILED PUSH ERROR:", error);
+      throw new Error("Erro ao enviar push: " + (error.message || JSON.stringify(error)));
+    }
   }
 
   // --- MESSAGING OPERATIONS ---
