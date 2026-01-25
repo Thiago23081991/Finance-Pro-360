@@ -29,24 +29,33 @@ serve(async (req) => {
         if (!geminiApiKey) return new Response(JSON.stringify({ error: 'Server Config Error: API Key missing' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
         const financialContext = context ? `
-        DATA:
-        - Balance: R$ ${context.balance || '0.00'}
-        - Income: R$ ${context.income || '0.00'}
-        - Expenses: R$ ${context.expenses || '0.00'}
-        - Top Categories: ${context.topCategories || 'None'}
-        - Goals: ${context.goal || 'None'}
-        - Debts (7 days): ${context.debts || 'None'}
+        FINANCIAL DATA:
+        - Balance (Income - Expense): R$ ${context.balance || '0.00'}
+        - Monthly Income: R$ ${context.income || '0.00'}
+        - Monthly Expenses: R$ ${context.expenses || '0.00'}
+        - Recurring Fixed Costs: R$ ${context.totalRecurring || '0.00'} (Items: ${context.recurringExpenses})
+        - Top Spending Categories: ${context.topCategories || 'None'}
+        - Active Goals: ${context.goal || 'None'}
+        - Debts (Next 7 days): ${context.debts || 'None'}
         - Investments: ${context.investments || 'None'}
-        ` : 'No context.';
+        ` : 'No context provided.';
 
         const fullPrompt = `
-        You are "Finance AI", a financial coach.
-        Persona: Concise, direct, motivating, uses emojis. Brazil Portuguese.
-        Mission: Answer the user's question based on their data.
+        You are "Finance AI", a highly analytical and motivating financial coach.
+        Persona: Direct, practical, uses emojis, Brazil Portuguese.
+        
+        MISSION:
+        Analyze the USER's data to answer their question.
+        
+        RULES:
+        1. If Expenses > Income, ALERT the user about the deficit immediately.
+        2. If "Recurring Fixed Costs" are high, suggest reviewing subscriptions.
+        3. If "Debts" are present, prioritize paying them off before investing.
+        4. Be specific: cite the actual values from the data.
         
         ${financialContext}
         
-        USER: "${message}"
+        USER QUESTION: "${message}"
         `;
 
         // 1. Try Primary Model (Standard Flash)

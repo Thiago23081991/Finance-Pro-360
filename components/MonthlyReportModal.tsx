@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Printer, Sparkles, AlertCircle, Loader2, FileText } from 'lucide-react';
 import { Transaction, Goal, AppConfig } from '../types';
-import { formatCurrency } from '../utils';
+import { formatCurrency, exportToCSV } from '../utils';
 import { DBService } from '../db';
 import { supabase } from '../supabaseClient';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
@@ -27,6 +27,7 @@ export const MonthlyReportModal: React.FC<MonthlyReportModalProps> = ({
         topCategories: { name: string, value: number }[];
         totals: { fixed: number; variable: number; };
     } | null>(null);
+    const [exportTransactions, setExportTransactions] = useState<Transaction[]>([]);
 
     const monthName = new Date(currentYear, currentMonth).toLocaleDateString('pt-BR', { month: 'long' });
 
@@ -52,6 +53,8 @@ export const MonthlyReportModal: React.FC<MonthlyReportModalProps> = ({
                 const d = new Date(t.date + 'T12:00:00');
                 return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
             });
+
+            setExportTransactions(monthTransactions);
 
             const income = monthTransactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
             const expense = monthTransactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
@@ -130,6 +133,17 @@ export const MonthlyReportModal: React.FC<MonthlyReportModalProps> = ({
                             <X size={20} />
                         </button>
                     </div>
+                </div>
+
+                {/* Sub-Header Actions (CSV) */}
+                <div className="px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex justify-end print:hidden">
+                    <button
+                        onClick={() => exportToCSV(exportTransactions)}
+                        disabled={loading || exportTransactions.length === 0}
+                        className="text-xs font-bold text-slate-500 hover:text-blue-600 flex items-center gap-1 transition-colors disabled:opacity-50"
+                    >
+                        <FileText size={14} /> Baixar dados em CSV (Excel)
+                    </button>
                 </div>
 
                 {/* Printable Content */}
