@@ -503,55 +503,64 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                 {/* Coluna 1: KPIs Principais (Receita, Despesa, Saldo) */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-3 content-start">
                     {/* Receita */}
-                    <div className="bg-white dark:bg-slate-800 p-4 md:p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex justify-between items-center relative overflow-hidden group hover:shadow-md transition-all">
-                        <div className="z-10">
-                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Receitas</p>
-                            <h3 className="text-xl md:text-2xl font-black text-emerald-600 dark:text-emerald-400">{formatCurrency(kpiData.income, currency)}</h3>
-                            <div className="flex items-center gap-1 mt-1">
-                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5 ${momComparison.incomePct >= 0 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/30'}`}>
+                    <div className="bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-900/20 dark:to-slate-800 p-4 md:p-5 rounded-2xl shadow-sm border border-emerald-100 dark:border-emerald-900/30 flex justify-between items-center relative overflow-hidden group hover:shadow-md transition-all duration-300">
+                        <div className="z-10 relative">
+                            <div className="flex items-center gap-2 mb-2">
+                                <div className="p-1.5 bg-emerald-100 dark:bg-emerald-500/20 rounded-lg text-emerald-600 dark:text-emerald-400">
+                                    <TrendingUp size={14} />
+                                </div>
+                                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Receitas</p>
+                            </div>
+                            <h3 className="text-2xl md:text-3xl font-black text-slate-800 dark:text-white tracking-tight">{formatCurrency(kpiData.income, currency)}</h3>
+                            <div className="flex items-center gap-2 mt-2">
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 border ${momComparison.incomePct >= 0 ? 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30' : 'bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-500/20 dark:text-rose-300 dark:border-rose-500/30'}`}>
                                     {momComparison.incomePct >= 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
                                     {Math.abs(momComparison.incomePct).toFixed(0)}%
                                 </span>
-                                <span className="text-[9px] text-slate-400 hidden sm:inline">vs. mês anterior</span>
+                                <span className="text-[10px] font-medium text-slate-400">vs. mês anterior</span>
                             </div>
                         </div>
-                        <div className="p-2 md:p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-full text-emerald-500 dark:text-emerald-400">
-                            <TrendingUp size={20} className="md:w-6 md:h-6" />
-                        </div>
+                        <div className="absolute right-[-10%] top-[-10%] w-[100px] h-[100px] bg-emerald-400/10 rounded-full blur-2xl group-hover:bg-emerald-400/20 transition-all"></div>
                     </div>
 
                     {/* Despesa */}
-                    <div className="bg-white dark:bg-slate-800 p-4 md:p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex justify-between items-center relative overflow-hidden group hover:shadow-md transition-all">
-                        <div className="z-10">
-                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Despesas</p>
-                            <h3 className="text-xl md:text-2xl font-black text-rose-600 dark:text-rose-400">{formatCurrency(kpiData.expense, currency)}</h3>
-                            <div className="flex items-center gap-1 mt-1">
-                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5 ${momComparison.expensePct <= 0 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/30'}`}>
+                    <div className="bg-gradient-to-br from-rose-50 to-white dark:from-rose-900/20 dark:to-slate-800 p-4 md:p-5 rounded-2xl shadow-sm border border-rose-100 dark:border-rose-900/30 flex justify-between items-center relative overflow-hidden group hover:shadow-md transition-all duration-300">
+                        <div className="z-10 relative">
+                            <div className="flex items-center gap-2 mb-2">
+                                <div className="p-1.5 bg-rose-100 dark:bg-rose-500/20 rounded-lg text-rose-600 dark:text-rose-400">
+                                    <TrendingDown size={14} />
+                                </div>
+                                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Despesas</p>
+                            </div>
+                            <h3 className="text-2xl md:text-3xl font-black text-slate-800 dark:text-white tracking-tight">{formatCurrency(kpiData.expense, currency)}</h3>
+                            <div className="flex items-center gap-2 mt-2">
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 border ${momComparison.expensePct <= 0 ? 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30' : 'bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-500/20 dark:text-rose-300 dark:border-rose-500/30'}`}>
                                     {momComparison.expensePct > 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
                                     {Math.abs(momComparison.expensePct).toFixed(0)}%
                                 </span>
-                                <span className="text-[9px] text-slate-400 hidden sm:inline">vs. mês anterior</span>
+                                <span className="text-[10px] font-medium text-slate-400">vs. mês anterior</span>
                             </div>
                         </div>
-                        <div className="p-2 md:p-3 bg-rose-50 dark:bg-rose-900/20 rounded-full text-rose-500 dark:text-rose-400">
-                            <TrendingDown size={20} className="md:w-6 md:h-6" />
-                        </div>
+                        <div className="absolute right-[-10%] top-[-10%] w-[100px] h-[100px] bg-rose-400/10 rounded-full blur-2xl group-hover:bg-rose-400/20 transition-all"></div>
                     </div>
 
                     {/* Saldo */}
-                    <div className="bg-white dark:bg-slate-800 p-4 md:p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex justify-between items-center relative overflow-hidden group hover:shadow-md transition-all">
-                        <div className="z-10">
-                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Saldo Líquido</p>
-                            <h3 className={`text-xl md:text-2xl font-black ${kpiData.balance >= 0 ? 'text-slate-800 dark:text-white' : 'text-rose-600 dark:text-rose-400'}`}>
+                    <div className="bg-gradient-to-br from-blue-50 to-white dark:from-blue-900/20 dark:to-slate-800 p-4 md:p-5 rounded-2xl shadow-sm border border-blue-100 dark:border-blue-900/30 flex justify-between items-center relative overflow-hidden group hover:shadow-md transition-all duration-300">
+                        <div className="z-10 relative">
+                            <div className="flex items-center gap-2 mb-2">
+                                <div className="p-1.5 bg-blue-100 dark:bg-blue-500/20 rounded-lg text-blue-600 dark:text-blue-400">
+                                    <DollarSign size={14} />
+                                </div>
+                                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Saldo Líquido</p>
+                            </div>
+                            <h3 className={`text-2xl md:text-3xl font-black tracking-tight ${kpiData.balance >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-rose-600 dark:text-rose-400'}`}>
                                 {formatCurrency(kpiData.balance, currency)}
                             </h3>
-                            <p className="text-[10px] text-slate-400 mt-1">
-                                {kpiData.balance >= 0 ? 'Parabéns!' : 'Cuidado.'}
+                            <p className="text-[10px] font-medium text-slate-400 mt-2">
+                                {kpiData.balance >= 0 ? 'Excelente! Você está no verde.' : 'Atenção! Você está no vermelho.'}
                             </p>
                         </div>
-                        <div className="p-2 md:p-3 bg-blue-50 dark:bg-blue-900/20 rounded-full text-blue-500 dark:text-blue-400">
-                            <DollarSign size={20} className="md:w-6 md:h-6" />
-                        </div>
+                        <div className="absolute right-[-10%] top-[-10%] w-[100px] h-[100px] bg-blue-400/10 rounded-full blur-2xl group-hover:bg-blue-400/20 transition-all"></div>
                     </div>
                 </div>
 
