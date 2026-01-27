@@ -587,109 +587,153 @@ export const SheetView: React.FC<SheetViewProps> = ({
                 </div>
             )}
 
-            {/* Main Content Area - Modern Date-Grouped List */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-0 bg-slate-50 dark:bg-slate-900/50">
-                {sheetData.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-64 text-slate-400 dark:text-slate-500 italic">
-                        <ShoppingBag size={48} className="mb-4 opacity-20" />
-                        <p>Nenhuma transação encontrada com os filtros atuais.</p>
-                        <p className="text-xs mt-1">Tente ajustar os filtros ou adicione um novo registro.</p>
-                    </div>
-                ) : (
-                    <div className="max-w-5xl mx-auto w-full pb-24">
-                        {/* Group data by date for display */}
-                        {Object.entries(sheetData.reduce((groups, t) => {
-                            const date = t.date;
-                            if (!groups[date]) groups[date] = [];
-                            groups[date].push(t);
-                            return groups;
-                        }, {} as Record<string, Transaction[]>))
-                            .sort((a, b) => b[0].localeCompare(a[0])) // Sort groups by date descending
-                            .map(([date, dayTransactions]) => (
-                                <div key={date} className="mb-6 animate-fade-in group/day">
-                                    {/* Date Header */}
-                                    <div className="sticky top-0 z-10 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-sm py-3 px-4 md:px-6 flex items-center gap-3 border-b border-slate-200/50 dark:border-slate-800/50">
-                                        <div className={`p-1.5 rounded-lg ${date === todayStr ? 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400' : 'bg-slate-200 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
-                                            }`}>
-                                            <Calendar size={16} />
+            {/* Spreadsheet Table Area - Modern Clean Table */}
+            <div className="flex-1 overflow-auto custom-scrollbar relative bg-white dark:bg-slate-900">
+                {/* Desktop Table */}
+                <table className="w-full text-left border-collapse hidden md:table">
+                    <thead className="bg-white dark:bg-slate-900 sticky top-0 z-10 shadow-sm border-b border-slate-200 dark:border-slate-700">
+                        <tr>
+                            <th className="py-3 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-32 cursor-pointer hover:text-blue-600 transition-colors select-none" onClick={() => handleSort('date')}>
+                                <div className="flex items-center gap-1">
+                                    Data
+                                    {sortConfig.key === 'date' && (sortConfig.direction === 'desc' ? <ArrowDown size={12} /> : <ArrowUp size={12} />)}
+                                </div>
+                            </th>
+                            <th className="py-3 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-40 cursor-pointer hover:text-blue-600 transition-colors select-none" onClick={() => handleSort('amount')}>
+                                <div className="flex items-center gap-1 justify-end pr-2">
+                                    Valor
+                                    {sortConfig.key === 'amount' && (sortConfig.direction === 'desc' ? <ArrowDown size={12} /> : <ArrowUp size={12} />)}
+                                </div>
+                            </th>
+                            <th className="py-3 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-48">Categoria</th>
+                            {type === 'expense' && <th className="py-3 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-40">Pagamento</th>}
+                            <th className="py-3 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Descrição</th>
+                            <th className="py-3 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-20 text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                        {sheetData.length === 0 ? (
+                            <tr>
+                                <td colSpan={type === 'expense' ? 6 : 5} className="py-16 text-center text-slate-400 dark:text-slate-500 italic">
+                                    Nenhuma transação encontrada.
+                                </td>
+                            </tr>
+                        ) : (
+                            sheetData.map((t, idx) => (
+                                <tr key={t.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
+                                    <td className="py-3 px-4 text-xs text-slate-600 dark:text-slate-300 font-medium">
+                                        <div className="flex items-center gap-2">
+                                            {formatDateRaw(t.date)}
+                                            {t.date === todayStr && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mb-0.5" title="Hoje"></span>}
+                                            {t.isRecurring && <RefreshCw size={10} className="text-purple-400" title="Recorrente" />}
                                         </div>
-                                        <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 capitalize">
-                                            {formatDateRaw(date)} {date === todayStr && <span className="ml-2 text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full uppercase tracking-wider">Hoje</span>}
-                                        </h3>
-                                        <div className="flex-1 border-b border-slate-200 dark:border-slate-800 border-dashed ml-4 opacity-50"></div>
-                                        <span className="text-xs font-mono font-medium text-slate-400">
-                                            {formatCurrency(dayTransactions.reduce((acc, t) => acc + t.amount, 0), currency)}
+                                    </td>
+                                    <td className={`py-3 px-4 text-sm font-bold text-right font-mono tabular-nums pr-6 ${type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-200'}`}>
+                                        {formatCurrency(t.amount, currency)}
+                                    </td>
+                                    <td className="py-3 px-4">
+                                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide border ${type === 'income'
+                                                ? 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-900'
+                                                : 'bg-indigo-50 text-indigo-700 border-indigo-100 dark:bg-indigo-900/20 dark:text-indigo-400 dark:border-indigo-900'
+                                            }`}>
+                                            {getCategoryIcon(t.category)}
+                                            {t.category}
+                                        </span>
+                                    </td>
+                                    {type === 'expense' && (
+                                        <td className="py-3 px-4 text-xs text-slate-500 dark:text-slate-400">
+                                            <div className="flex items-center gap-1.5">
+                                                {t.paymentMethod && t.paymentMethod.toLowerCase().includes('pix')
+                                                    ? <Zap size={12} className="text-amber-500" />
+                                                    : <CreditCard size={12} className="text-slate-400" />
+                                                }
+                                                {t.paymentMethod || '-'}
+                                            </div>
+                                        </td>
+                                    )}
+                                    <td className="py-3 px-4 text-xs text-slate-600 dark:text-slate-300 font-medium truncate max-w-[250px]">
+                                        {t.description}
+                                    </td>
+                                    <td className="py-3 px-4 text-center">
+                                        <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button onClick={() => handleEdit(t)} className="p-1.5 text-slate-400 hover:text-blue-600 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
+                                                <Edit2 size={14} />
+                                            </button>
+                                            <button onClick={() => onDelete(t.id)} className="p-1.5 text-slate-400 hover:text-rose-600 rounded hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors">
+                                                <Trash2 size={14} />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                    {sheetData.length > 0 && (
+                        <tfoot className="bg-slate-50 dark:bg-slate-900 sticky bottom-0 z-10 border-t border-slate-200 dark:border-slate-700">
+                            <tr>
+                                <td className="py-3 px-4 text-xs font-bold text-slate-500 uppercase tracking-widest text-right">Total</td>
+                                <td className={`py-3 px-4 text-sm font-black font-mono text-right tabular-nums pr-6 ${type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+                                    }`}>
+                                    {formatCurrency(totalValue, currency)}
+                                </td>
+                                <td colSpan={10}></td>
+                            </tr>
+                        </tfoot>
+                    )}
+                </table>
+
+                {/* Mobile List View (Cards) */}
+                <div className="md:hidden p-4 space-y-3 pb-24">
+                    {sheetData.length === 0 ? (
+                        <div className="text-center py-10 text-slate-400 dark:text-slate-500 italic">
+                            <p>Nenhuma transação encontrada.</p>
+                            <p className="text-xs mt-1">Toque em + para adicionar.</p>
+                        </div>
+                    ) : (
+                        sheetData.map((t) => (
+                            <div key={t.id} className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 flex justify-between items-start animate-fade-in">
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <span className={`p-1.5 rounded-full ${type === 'income' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'} dark:bg-opacity-20`}>
+                                            {getCategoryIcon(t.category)}
+                                        </span>
+                                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider px-2 py-0.5 bg-slate-100 dark:bg-slate-700 rounded-full">
+                                            {t.category}
                                         </span>
                                     </div>
-
-                                    {/* Transactions List */}
-                                    <div className="divide-y divide-slate-100 dark:divide-slate-800/50 bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700 rounded-xl mx-2 md:mx-6 overflow-hidden mt-2">
-                                        {dayTransactions.map((t) => (
-                                            <div key={t.id} className="p-4 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 group/item">
-                                                {/* Left: Icon & Description */}
-                                                <div className="flex items-center gap-4">
-                                                    <div className={`w-10 h-10 shrink-0 rounded-full flex items-center justify-center text-lg shadow-sm
-                                                    ${type === 'income' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400'}`
-                                                    }>
-                                                        {getCategoryIcon(t.category)}
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">{t.description || 'Sem descrição'}</p>
-                                                        <div className="flex flex-wrap items-center gap-2 mt-1">
-                                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border
-                                                            ${type === 'income'
-                                                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-900'
-                                                                    : 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-700 dark:text-slate-400 dark:border-slate-600'}`
-                                                            }>
-                                                                {t.category}
-                                                            </span>
-                                                            {t.paymentMethod && (
-                                                                <span className="flex items-center gap-1 text-[10px] font-medium text-slate-400 uppercase tracking-widest">
-                                                                    {t.paymentMethod.toLowerCase().includes('pix') ? <Zap size={10} className="text-amber-500" /> : <CreditCard size={10} />}
-                                                                    {t.paymentMethod}
-                                                                </span>
-                                                            )}
-                                                            {t.isRecurring && (
-                                                                <span className="flex items-center gap-1 text-[10px] font-medium text-purple-500 uppercase tracking-widest bg-purple-50 dark:bg-purple-900/20 px-1.5 rounded">
-                                                                    <RefreshCw size={10} /> Recorrente
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {/* Right: Value & Actions */}
-                                                <div className="flex items-center justify-between sm:justify-end gap-6 sm:pl-4 sm:border-l sm:border-slate-100 sm:dark:border-slate-700 mt-2 sm:mt-0">
-                                                    <span className={`text-base font-black font-mono tracking-tight
-                                                    ${type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`
-                                                    }>
-                                                        {formatCurrency(t.amount, currency)}
-                                                    </span>
-
-                                                    <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover/item:opacity-100 transition-opacity">
-                                                        <button
-                                                            onClick={() => handleEdit(t)}
-                                                            className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                                                            title="Editar"
-                                                        >
-                                                            <Edit2 size={16} />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => onDelete(t.id)}
-                                                            className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors"
-                                                            title="Excluir"
-                                                        >
-                                                            <Trash2 size={16} />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
+                                    <h4 className="font-bold text-slate-800 dark:text-white text-sm mb-1">{t.description || 'Sem descrição'}</h4>
+                                    <div className="flex items-center gap-3 text-xs text-slate-400">
+                                        <span className="flex items-center gap-1"><Calendar size={10} /> {formatDateRaw(t.date)}</span>
+                                        {t.paymentMethod && <span>• {t.paymentMethod}</span>}
                                     </div>
                                 </div>
-                            ))}
-                    </div>
-                )}
+                                <div className="flex flex-col items-end gap-2">
+                                    <span className={`text-sm font-black font-mono ${type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                                        {formatCurrency(t.amount, currency)}
+                                    </span>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => handleEdit(t)} className="p-1.5 text-slate-400 hover:text-blue-500 bg-slate-50 dark:bg-slate-700 rounded-lg transition-colors">
+                                            <Edit2 size={14} />
+                                        </button>
+                                        <button onClick={() => onDelete(t.id)} className="p-1.5 text-slate-400 hover:text-rose-500 bg-slate-50 dark:bg-slate-700 rounded-lg transition-colors">
+                                            <Trash2 size={14} />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    )}
+
+                    {/* Mobile Footer Summary */}
+                    {sheetData.length > 0 && (
+                        <div className="fixed bottom-0 left-0 w-full bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 p-4 shadow-lg z-10 flex justify-between items-center mb-[56px] md:mb-0">
+                            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Total ({sheetData.length})</span>
+                            <span className={`text-lg font-black font-mono ${type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                                {formatCurrency(totalValue, currency)}
+                            </span>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Floating Summary Footer - Modern Glassmorphism */}
