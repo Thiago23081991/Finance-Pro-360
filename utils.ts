@@ -1,5 +1,6 @@
 
 import { Transaction } from "./types";
+import { BUDGET_CATEGORY_TYPES } from "./constants";
 
 export const formatCurrency = (value: number, currency: string = 'BRL') => {
   let locale = 'pt-BR';
@@ -27,9 +28,9 @@ export const generateId = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
     return crypto.randomUUID();
   }
-  
+
   // Fallback UUID v4 generator
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
     return v.toString(16);
   });
@@ -48,7 +49,7 @@ export const formatDateRaw = (dateString: string) => {
 export const exportToCSV = (transactions: Transaction[]) => {
   // Define headers
   const headers = ['Data', 'Tipo', 'Categoria', 'Valor', 'Descrição', 'Forma de Pagamento'];
-  
+
   // Map data to rows
   const rows = transactions.map(t => [
     new Date(t.date).toLocaleDateString('pt-BR'),
@@ -67,15 +68,15 @@ export const exportToCSV = (transactions: Transaction[]) => {
 
   // Create blob with BOM for UTF-8 (fixes accents in Excel)
   const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
-  
+
   // Create download link
   const link = document.createElement('a');
   const url = URL.createObjectURL(blob);
-  
+
   link.setAttribute('href', url);
   link.setAttribute('download', `finance_pro_360_relatorio_${new Date().toISOString().split('T')[0]}.csv`);
   link.style.visibility = 'hidden';
-  
+
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -89,13 +90,13 @@ export const generateLicenseKey = (userId: string): string => {
   let hash = 0;
   // Normalized ID + Secret
   const str = userId.trim().toLowerCase() + secret;
-  
+
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i);
     hash = ((hash << 5) - hash) + char;
     hash = hash & hash; // Convert to 32bit integer
   }
-  
+
   // Convert to Hex, absolute value, uppercase, take first 8 chars
   const key = Math.abs(hash).toString(16).toUpperCase().padStart(8, '0').substring(0, 8);
   // Format as XXXX-XXXX
@@ -103,10 +104,23 @@ export const generateLicenseKey = (userId: string): string => {
 };
 
 export const validateLicenseKey = (userId: string, keyInput: string): boolean => {
-    if (!userId || !keyInput) return false;
-    const expected = generateLicenseKey(userId);
-    // Remove dashes for comparison if user typed without them, but generator adds them
-    const cleanInput = keyInput.trim().toUpperCase().replace(/-/g, '');
-    const cleanExpected = expected.replace(/-/g, '');
-    return cleanInput === cleanExpected;
+  if (!userId || !keyInput) return false;
+  const expected = generateLicenseKey(userId);
+  // Remove dashes for comparison if user typed without them, but generator adds them
+  const cleanInput = keyInput.trim().toUpperCase().replace(/-/g, '');
+  const cleanExpected = expected.replace(/-/g, '');
+  return cleanInput === cleanExpected;
 };
+
+export const getBudgetCategoryType = (category: string): 'needs' | 'wants' | 'savings' => {
+  const needs = BUDGET_CATEGORY_TYPES.needs.map(c => c.toLowerCase());
+  const savings = BUDGET_CATEGORY_TYPES.savings.map(c => c.toLowerCase());
+
+  const catLower = category.toLowerCase();
+
+  if (needs.some(n => catLower.includes(n))) return 'needs';
+  if (savings.some(s => catLower.includes(s))) return 'savings';
+
+  return 'wants';
+};
+

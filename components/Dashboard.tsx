@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Transaction, Goal, AppConfig, Investment, FilterState } from '../types';
-import { formatCurrency } from '../utils';
+import { formatCurrency, getBudgetCategoryType } from '../utils';
 import { MONTH_NAMES } from '../constants';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, Cell, LineChart, Line, Legend } from 'recharts';
 import { TrendingUp, TrendingDown, DollarSign, History, Utensils, Car, Home, HeartPulse, PartyPopper, GraduationCap, Banknote, ShoppingBag, Zap, CircleDollarSign, AlertTriangle, Lightbulb, Siren, Target, CheckCircle2, BarChart4, PieChart, LineChart as LineChartIcon, ArrowRightLeft, Lock, Landmark, FileText, Printer, Calculator } from 'lucide-react';
@@ -149,6 +149,34 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
 
         return Math.max(0, Math.min(100, score));
     }, [kpiData, goals]);
+
+    // --- 50/30/20 RULE CALCULATION ---
+    const rule503020Stats = useMemo(() => {
+        let needs = 0;
+        let wants = 0;
+        let savings = 0;
+
+        // 1. Classify Expenses
+        filteredTransactions.filter(t => t.type === 'expense').forEach(t => {
+            const bucket = getBudgetCategoryType(t.category);
+            if (bucket === 'needs') needs += t.amount;
+            else if (bucket === 'wants') wants += t.amount;
+            else if (bucket === 'savings') savings += t.amount;
+        });
+
+        // 2. Add 'Savings' from Investments (if tracked as transactions with category Investment, or explicit Investment type)
+        // Usually, investments are Expenses in category 'Investimentos' or separate logic.
+        // My helper categorizes 'Investimentos' as 'savings'.
+
+        // Also Consider 'Renda' as the base 100%
+        const income = kpiData.income || 1;
+
+        return {
+            needs: { val: needs, pct: (needs / income) * 100, target: 50 },
+            wants: { val: wants, pct: (wants / income) * 100, target: 30 },
+            savings: { val: savings, pct: (savings / income) * 100, target: 20 }
+        };
+    }, [filteredTransactions, kpiData.income]);
 
     // --- NOVA META EM DESTAQUE ---
     const featuredGoal = useMemo(() => {
@@ -548,6 +576,55 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                             <div className="h-12 w-12 md:h-16 md:w-16 rounded-full border-4 border-white/30 flex items-center justify-center">
                                 <HeartPulse size={20} className="md:w-6 md:h-6 animate-pulse" />
                             </div>
+                        </div>
+                    </div>
+
+                    {/* 50/30/20 Rule Widget */}
+                    <div className="bg-white dark:bg-slate-800 p-4 md:p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col gap-3">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Regra 50/30/20</h4>
+                                <p className="text-xs text-slate-400">Distribuição Ideal</p>
+                            </div>
+                            <div className="p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-purple-600 dark:text-purple-400">
+                                <PieChart size={18} />
+                            </div>
+                        </div>
+
+                        {/* Needs */}
+                        <div className="space-y-1">
+                            <div className="flex justify-between text-[10px] font-bold">
+                                <span className="text-slate-700 dark:text-slate-300">Necessidades (50%)</span>
+                                <span className={`${rule503020Stats.needs.pct > 50 ? 'text-rose-500' : 'text-emerald-500'}`}>{rule503020Stats.needs.pct.toFixed(0)}%</span>
+                            </div>
+                            <div className="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                                <div className={`h-full rounded-full ${rule503020Stats.needs.pct > 50 ? 'bg-rose-500' : 'bg-blue-500'}`} style={{ width: `${Math.min(rule503020Stats.needs.pct, 100)}%` }}></div>
+                            </div>
+                            <p className="text-[9px] text-slate-400 text-right">{formatCurrency(rule503020Stats.needs.val, currency)}</p>
+                        </div>
+
+                        {/* Wants */}
+                        <div className="space-y-1">
+                            <div className="flex justify-between text-[10px] font-bold">
+                                <span className="text-slate-700 dark:text-slate-300">Desejos (30%)</span>
+                                <span className={`${rule503020Stats.wants.pct > 30 ? 'text-rose-500' : 'text-emerald-500'}`}>{rule503020Stats.wants.pct.toFixed(0)}%</span>
+                            </div>
+                            <div className="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                                <div className={`h-full rounded-full ${rule503020Stats.wants.pct > 30 ? 'bg-rose-500' : 'bg-purple-500'}`} style={{ width: `${Math.min(rule503020Stats.wants.pct, 100)}%` }}></div>
+                            </div>
+                            <p className="text-[9px] text-slate-400 text-right">{formatCurrency(rule503020Stats.wants.val, currency)}</p>
+                        </div>
+
+                        {/* Savings */}
+                        <div className="space-y-1">
+                            <div className="flex justify-between text-[10px] font-bold">
+                                <span className="text-slate-700 dark:text-slate-300">Objetivos (20%)</span>
+                                <span className={`${rule503020Stats.savings.pct < 20 ? 'text-amber-500' : 'text-emerald-500'}`}>{rule503020Stats.savings.pct.toFixed(0)}%</span>
+                            </div>
+                            <div className="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                                <div className={`h-full rounded-full ${rule503020Stats.savings.pct < 20 ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: `${Math.min(rule503020Stats.savings.pct, 100)}%` }}></div>
+                            </div>
+                            <p className="text-[9px] text-slate-400 text-right">{formatCurrency(rule503020Stats.savings.val, currency)}</p>
                         </div>
                     </div>
 

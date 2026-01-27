@@ -75,18 +75,30 @@ serve(async (req) => {
         const model = "gemini-1.5-flash";
 
         const prompt = `
-      Extract transaction details from this text: "${body}".
+      You are a financial assistant for a Brazilian user.
       Current Date: ${new Date().toISOString()}
+
+      Task: Extract transaction details from the user message: "${body}".
+
+      Rules:
+      1. Currency: 'real', 'reais', 'R$' -> BRL. If no currency, assume BRL.
+      2. Type: 
+         - 'income' (receita) if receiving money (ganhei, recebi, salário, venda).
+         - 'expense' (despesa) if spending (gastei, comprei, paguei, boleto).
+      3. Category: STRICTLY match one of these lists:
+         - Income: Salários, Vendas Diversas, Aluguel de Carro, Aluguel de Apartamento, Aluguel de Casa, Dividendos, Rendimentos, Aposentadoria, Outros.
+         - Expense: Alimentação, Transporte, Moradia, Saúde, Lazer, Educação, Investimentos, Outros.
+         *Infer the best fit. If unsure, use 'Outros'.*
       
-      Return JSON only:
+      Return JSON only (no markdown):
       {
-        "amount": number,
-        "description": string,
+        "amount": number (positive float),
+        "description": string (short title),
         "type": "income" | "expense",
-        "category": string (Infer one: Alimentação, Transporte, Moradia, Lazer, Saúde, Educação, Salário, Outros),
-        "date": string (ISO format, default to now if not specified)
+        "category": string,
+        "date": string (ISO 8601 format YYYY-MM-DD, default to today if not mentioned)
       }
-      If it's not a transaction, return { "error": "not_transaction" }.
+      If it's clearly not a transaction (e.g. "Oi", "Tudo bem?"), return { "error": "not_transaction" }.
     `;
 
         // Generate content

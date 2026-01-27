@@ -69,3 +69,9 @@ export const MONTH_NAMES = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
 ];
+
+export const BUDGET_CATEGORY_TYPES = {
+  needs: ["Moradia", "Alimentação", "Saúde", "Transporte", "Educação", "Mercado", "Contas", "Farmácia"],
+  wants: ["Lazer", "Outros", "Comida Fora", "Assinaturas", "Compras", "Viagem", "Presentes"],
+  savings: ["Investimentos", "Poupança", "Reserva", "Aporte"]
+};
