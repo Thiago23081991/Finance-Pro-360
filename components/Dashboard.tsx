@@ -579,54 +579,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                         </div>
                     </div>
 
-                    {/* 50/30/20 Rule Widget */}
-                    <div className="bg-white dark:bg-slate-800 p-4 md:p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col gap-3">
-                        <div className="flex justify-between items-start">
-                            <div>
-                                <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Regra 50/30/20</h4>
-                                <p className="text-xs text-slate-400">Distribuição Ideal</p>
-                            </div>
-                            <div className="p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-purple-600 dark:text-purple-400">
-                                <PieChart size={18} />
-                            </div>
-                        </div>
 
-                        {/* Needs */}
-                        <div className="space-y-1">
-                            <div className="flex justify-between text-[10px] font-bold">
-                                <span className="text-slate-700 dark:text-slate-300">Necessidades (50%)</span>
-                                <span className={`${rule503020Stats.needs.pct > 50 ? 'text-rose-500' : 'text-emerald-500'}`}>{rule503020Stats.needs.pct.toFixed(0)}%</span>
-                            </div>
-                            <div className="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
-                                <div className={`h-full rounded-full ${rule503020Stats.needs.pct > 50 ? 'bg-rose-500' : 'bg-blue-500'}`} style={{ width: `${Math.min(rule503020Stats.needs.pct, 100)}%` }}></div>
-                            </div>
-                            <p className="text-[9px] text-slate-400 text-right">{formatCurrency(rule503020Stats.needs.val, currency)}</p>
-                        </div>
-
-                        {/* Wants */}
-                        <div className="space-y-1">
-                            <div className="flex justify-between text-[10px] font-bold">
-                                <span className="text-slate-700 dark:text-slate-300">Desejos (30%)</span>
-                                <span className={`${rule503020Stats.wants.pct > 30 ? 'text-rose-500' : 'text-emerald-500'}`}>{rule503020Stats.wants.pct.toFixed(0)}%</span>
-                            </div>
-                            <div className="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
-                                <div className={`h-full rounded-full ${rule503020Stats.wants.pct > 30 ? 'bg-rose-500' : 'bg-purple-500'}`} style={{ width: `${Math.min(rule503020Stats.wants.pct, 100)}%` }}></div>
-                            </div>
-                            <p className="text-[9px] text-slate-400 text-right">{formatCurrency(rule503020Stats.wants.val, currency)}</p>
-                        </div>
-
-                        {/* Savings */}
-                        <div className="space-y-1">
-                            <div className="flex justify-between text-[10px] font-bold">
-                                <span className="text-slate-700 dark:text-slate-300">Objetivos (20%)</span>
-                                <span className={`${rule503020Stats.savings.pct < 20 ? 'text-amber-500' : 'text-emerald-500'}`}>{rule503020Stats.savings.pct.toFixed(0)}%</span>
-                            </div>
-                            <div className="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
-                                <div className={`h-full rounded-full ${rule503020Stats.savings.pct < 20 ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: `${Math.min(rule503020Stats.savings.pct, 100)}%` }}></div>
-                            </div>
-                            <p className="text-[9px] text-slate-400 text-right">{formatCurrency(rule503020Stats.savings.val, currency)}</p>
-                        </div>
-                    </div>
 
                     {/* Resumo de Investimentos (NOVO) */}
                     {totalInvested > 0 && (
@@ -717,6 +670,55 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                                 <span className="text-[10px] font-bold text-blue-500">Defina um objetivo!</span>
                             </div>
                         )}
+                    </div>
+
+                    {/* 50/30/20 Rule Widget (Moved) */}
+                    <div className="bg-white dark:bg-slate-800 p-4 md:p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col gap-3">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Regra 50/30/20</h4>
+                                <p className="text-xs text-slate-400">Distribuição Ideal</p>
+                            </div>
+                            <div className="p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-purple-600 dark:text-purple-400">
+                                <PieChart size={18} />
+                            </div>
+                        </div>
+
+                        {/* Needs */}
+                        <div className="space-y-1">
+                            <div className="flex justify-between text-[10px] font-bold">
+                                <span className="text-slate-700 dark:text-slate-300">Necessidades (50%)</span>
+                                <span className={`${rule503020Stats.needs.pct > 50 ? 'text-rose-500' : 'text-emerald-500'}`}>{rule503020Stats.needs.pct.toFixed(0)}%</span>
+                            </div>
+                            <div className="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                                <div className={`h-full rounded-full ${rule503020Stats.needs.pct > 50 ? 'bg-rose-500' : 'bg-blue-500'}`} style={{ width: `${Math.min(rule503020Stats.needs.pct, 100)}%` }}></div>
+                            </div>
+                            <p className="text-[9px] text-slate-400 text-right">{formatCurrency(rule503020Stats.needs.val, currency)}</p>
+                        </div>
+
+                        {/* Wants */}
+                        <div className="space-y-1">
+                            <div className="flex justify-between text-[10px] font-bold">
+                                <span className="text-slate-700 dark:text-slate-300">Desejos (30%)</span>
+                                <span className={`${rule503020Stats.wants.pct > 30 ? 'text-rose-500' : 'text-emerald-500'}`}>{rule503020Stats.wants.pct.toFixed(0)}%</span>
+                            </div>
+                            <div className="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                                <div className={`h-full rounded-full ${rule503020Stats.wants.pct > 30 ? 'bg-rose-500' : 'bg-purple-500'}`} style={{ width: `${Math.min(rule503020Stats.wants.pct, 100)}%` }}></div>
+                            </div>
+                            <p className="text-[9px] text-slate-400 text-right">{formatCurrency(rule503020Stats.wants.val, currency)}</p>
+                        </div>
+
+                        {/* Savings */}
+                        <div className="space-y-1">
+                            <div className="flex justify-between text-[10px] font-bold">
+                                <span className="text-slate-700 dark:text-slate-300">Objetivos (20%)</span>
+                                <span className={`${rule503020Stats.savings.pct < 20 ? 'text-amber-500' : 'text-emerald-500'}`}>{rule503020Stats.savings.pct.toFixed(0)}%</span>
+                            </div>
+                            <div className="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                                <div className={`h-full rounded-full ${rule503020Stats.savings.pct < 20 ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: `${Math.min(rule503020Stats.savings.pct, 100)}%` }}></div>
+                            </div>
+                            <p className="text-[9px] text-slate-400 text-right">{formatCurrency(rule503020Stats.savings.val, currency)}</p>
+                        </div>
                     </div>
                 </div>
             </div>
