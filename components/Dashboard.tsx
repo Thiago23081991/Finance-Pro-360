@@ -3,7 +3,7 @@ import { Transaction, Goal, AppConfig, Investment, FilterState } from '../types'
 import { formatCurrency, getBudgetCategoryType } from '../utils';
 import { MONTH_NAMES } from '../constants';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, Cell, LineChart, Line, Legend } from 'recharts';
-import { TrendingUp, TrendingDown, DollarSign, History, Utensils, Car, Home, HeartPulse, PartyPopper, GraduationCap, Banknote, ShoppingBag, Zap, CircleDollarSign, AlertTriangle, Lightbulb, Siren, Target, CheckCircle2, BarChart4, PieChart, LineChart as LineChartIcon, ArrowRightLeft, Lock, Landmark, FileText, Printer, Calculator } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, History, Utensils, Car, Home, HeartPulse, PartyPopper, GraduationCap, Banknote, ShoppingBag, Zap, CircleDollarSign, AlertTriangle, Lightbulb, Siren, Target, CheckCircle2, BarChart4, PieChart, LineChart as LineChartIcon, ArrowRightLeft, Lock, Landmark, FileText, Printer, Calculator, X } from 'lucide-react';
 import { DBService } from '../db';
 import { MonthlyReportModal } from './MonthlyReportModal';
 import { ProspectingModal } from './ProspectingModal';
@@ -53,6 +53,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
     const [investments, setInvestments] = useState<Investment[]>([]);
     const [showReportModal, setShowReportModal] = useState(false);
     const [showProspectingModal, setShowProspectingModal] = useState(false);
+    const [selectedRuleCategory, setSelectedRuleCategory] = useState<'needs' | 'wants' | 'savings' | null>(null);
 
     React.useEffect(() => {
         // Assume userId is available from first transaction or passed as prop (ideally prop)
@@ -694,9 +695,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                         </div>
 
                         {/* Needs */}
-                        <div className="space-y-1">
+                        <div
+                            className="space-y-1 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 p-1.5 -mx-1.5 rounded transition-colors group"
+                            onClick={() => setSelectedRuleCategory('needs')}
+                        >
                             <div className="flex justify-between text-[10px] font-bold">
-                                <span className="text-slate-700 dark:text-slate-300">Necessidades (50%)</span>
+                                <span className="text-slate-700 dark:text-slate-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Necessidades (50%)</span>
                                 <span className={`${rule503020Stats.needs.pct > 50 ? 'text-rose-500' : 'text-emerald-500'}`}>{rule503020Stats.needs.pct.toFixed(0)}%</span>
                             </div>
                             <div className="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
@@ -706,9 +710,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                         </div>
 
                         {/* Wants */}
-                        <div className="space-y-1">
+                        <div
+                            className="space-y-1 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 p-1.5 -mx-1.5 rounded transition-colors group"
+                            onClick={() => setSelectedRuleCategory('wants')}
+                        >
                             <div className="flex justify-between text-[10px] font-bold">
-                                <span className="text-slate-700 dark:text-slate-300">Desejos (30%)</span>
+                                <span className="text-slate-700 dark:text-slate-300 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Desejos (30%)</span>
                                 <span className={`${rule503020Stats.wants.pct > 30 ? 'text-rose-500' : 'text-emerald-500'}`}>{rule503020Stats.wants.pct.toFixed(0)}%</span>
                             </div>
                             <div className="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
@@ -718,9 +725,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                         </div>
 
                         {/* Savings */}
-                        <div className="space-y-1">
+                        <div
+                            className="space-y-1 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 p-1.5 -mx-1.5 rounded transition-colors group"
+                            onClick={() => setSelectedRuleCategory('savings')}
+                        >
                             <div className="flex justify-between text-[10px] font-bold">
-                                <span className="text-slate-700 dark:text-slate-300">Objetivos (20%)</span>
+                                <span className="text-slate-700 dark:text-slate-300 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Objetivos (20%)</span>
                                 <span className={`${rule503020Stats.savings.pct < 20 ? 'text-amber-500' : 'text-emerald-500'}`}>{rule503020Stats.savings.pct.toFixed(0)}%</span>
                             </div>
                             <div className="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
@@ -913,6 +923,89 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                 </div>
             </div>
 
+            {/* Rule Detail Modal */}
+            {selectedRuleCategory && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setSelectedRuleCategory(null)}>
+                    <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-700 flex flex-col max-h-[80vh]" onClick={e => e.stopPropagation()}>
+                        <div className={`p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center ${selectedRuleCategory === 'needs' ? 'bg-blue-50 dark:bg-blue-900/20' :
+                            selectedRuleCategory === 'wants' ? 'bg-purple-50 dark:bg-purple-900/20' :
+                                'bg-emerald-50 dark:bg-emerald-900/20'
+                            }`}>
+                            <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                                {selectedRuleCategory === 'needs' && <Home size={18} className="text-blue-600" />}
+                                {selectedRuleCategory === 'wants' && <PartyPopper size={18} className="text-purple-600" />}
+                                {selectedRuleCategory === 'savings' && <TrendingUp size={18} className="text-emerald-600" />}
+
+                                {selectedRuleCategory === 'needs' ? 'Necessidades (Detalhes)' :
+                                    selectedRuleCategory === 'wants' ? 'Desejos (Detalhes)' :
+                                        'Objetivos e Investimentos'}
+                            </h3>
+                            <button onClick={() => setSelectedRuleCategory(null)} className="p-1 rounded hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+                                <X size={20} className="text-slate-500" />
+                            </button>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto custom-scrollbar p-0">
+                            {(() => {
+                                // Filter Logic similar to rule503020Stats
+                                let items: Transaction[] = [];
+
+                                if (selectedRuleCategory === 'savings') {
+                                    // Logic for Savings: Expenses categorized as 'investments' or similar bucket
+                                    items = filteredTransactions.filter(t => t.type === 'expense' && getBudgetCategoryType(t.category) === 'savings');
+                                } else {
+                                    items = filteredTransactions.filter(t => t.type === 'expense' && getBudgetCategoryType(t.category) === selectedRuleCategory);
+                                }
+
+                                items.sort((a, b) => b.amount - a.amount);
+
+                                if (items.length === 0) {
+                                    return (
+                                        <div className="p-8 text-center text-slate-400">
+                                            <p className="text-sm">Nenhum lançamento encontrado nesta categoria.</p>
+                                        </div>
+                                    );
+                                }
+
+                                return (
+                                    <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                                        {items.map(t => (
+                                            <div key={t.id} className="p-3 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                                <div className="flex items-center gap-3">
+                                                    <div className={`p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500`}>
+                                                        {getCategoryIcon(t.category)}
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{t.description || t.category}</p>
+                                                        <p className="text-[10px] text-slate-400">{new Date(t.date).toLocaleDateString()}</p>
+                                                    </div>
+                                                </div>
+                                                <span className="font-mono font-bold text-slate-700 dark:text-slate-200">
+                                                    {formatCurrency(t.amount, currency)}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                );
+                            })()}
+                        </div>
+
+                        <div className="p-4 bg-slate-50 dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 text-center">
+                            <p className="text-xs text-slate-400">
+                                Total: <strong className="text-slate-700 dark:text-slate-200">
+                                    {formatCurrency(
+                                        filteredTransactions
+                                            .filter(t => t.type === 'expense' && getBudgetCategoryType(t.category) === selectedRuleCategory)
+                                            .reduce((sum, t) => sum + t.amount, 0)
+                                        , currency)}
+                                </strong>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modals */}
             <MonthlyReportModal
                 isOpen={showReportModal}
                 onClose={() => setShowReportModal(false)}

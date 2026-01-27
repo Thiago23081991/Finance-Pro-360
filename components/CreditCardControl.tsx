@@ -2,18 +2,19 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { Transaction, AppConfig } from '../types';
 import { formatCurrency, formatDateRaw, generateId } from '../utils';
-import { CreditCard, Calendar, TrendingUp, AlertCircle, ShoppingBag, Plus, Save, X, Trash2 } from 'lucide-react';
+import { CreditCard, Calendar, TrendingUp, AlertCircle, ShoppingBag, Plus, Save, X, Trash2, Edit2 } from 'lucide-react';
 
 interface CreditCardControlProps {
     transactions: Transaction[];
     onDelete: (id: string) => void;
     onAdd: (t: Transaction) => void;
+    onAddBatch?: (transactions: Transaction[]) => void;
     categories: string[];
     currency?: string;
     config?: AppConfig; // Config to access due date
 }
 
-export const CreditCardControl: React.FC<CreditCardControlProps> = ({ transactions, onDelete, onAdd, categories, currency = 'BRL', config }) => {
+export const CreditCardControl: React.FC<CreditCardControlProps> = ({ transactions, onDelete, onAdd, onAddBatch, categories, currency = 'BRL', config }) => {
     // --- ADD FORM STATE ---
     const [isAdding, setIsAdding] = useState(false);
     const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0]);
@@ -21,16 +22,33 @@ export const CreditCardControl: React.FC<CreditCardControlProps> = ({ transactio
     const [newCategory, setNewCategory] = useState(categories[0] || '');
     const [newDesc, setNewDesc] = useState('');
     const [installments, setInstallments] = useState(1);
-    
+
+    // --- CARD NAME STATE ---
+    const [cardName, setCardName] = useState(() => localStorage.getItem('finance_pro_credit_card_name') || 'Seu Cartão');
+    const [isEditingName, setIsEditingName] = useState(false);
+    const [tempName, setTempName] = useState('');
+
+    const handleSaveName = () => {
+        if (!tempName.trim()) return;
+        setCardName(tempName);
+        localStorage.setItem('finance_pro_credit_card_name', tempName);
+        setIsEditingName(false);
+    };
+
+    const startEditingName = () => {
+        setTempName(cardName);
+        setIsEditingName(true);
+    };
+
     // Ensure categories update if props change
     useEffect(() => {
-        if(categories.length > 0 && !newCategory) setNewCategory(categories[0]);
+        if (categories.length > 0 && !newCategory) setNewCategory(categories[0]);
     }, [categories]);
 
     // Filtrar apenas despesas de Cartão de Crédito
     const cardTransactions = useMemo(() => {
-        return transactions.filter(t => 
-            t.type === 'expense' && 
+        return transactions.filter(t =>
+            t.type === 'expense' &&
             (t.paymentMethod?.toLowerCase().includes('crédito') || t.paymentMethod?.toLowerCase().includes('cartão'))
         ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }, [transactions]);
@@ -42,7 +60,7 @@ export const CreditCardControl: React.FC<CreditCardControlProps> = ({ transactio
     const stats = useMemo(() => {
         let currentInvoice = 0;
         let totalLimitUsed = 0; // Soma histórica (simulação de limite tomado)
-        
+
         cardTransactions.forEach(t => {
             const d = new Date(t.date + 'T12:00:00');
             totalLimitUsed += t.amount;
@@ -59,25 +77,25 @@ export const CreditCardControl: React.FC<CreditCardControlProps> = ({ transactio
     // Lógica visual do status de vencimento
     const dueDateStatus = useMemo(() => {
         if (!config?.creditCardDueDate) return null;
-        
+
         const today = new Date();
         const dueDay = config.creditCardDueDate;
-        
+
         let nextDueDate = new Date(today.getFullYear(), today.getMonth(), dueDay);
         const todayZero = new Date(today);
-        todayZero.setHours(0,0,0,0);
+        todayZero.setHours(0, 0, 0, 0);
 
         if (todayZero > nextDueDate) {
-             nextDueDate = new Date(today.getFullYear(), today.getMonth() + 1, dueDay);
+            nextDueDate = new Date(today.getFullYear(), today.getMonth() + 1, dueDay);
         }
 
         const diffTime = nextDueDate.getTime() - todayZero.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
         if (diffDays === 0) return { label: 'Vence HOJE!', color: 'bg-rose-500 text-white animate-pulse' };
         if (diffDays <= 3) return { label: `Vence em ${diffDays} dias`, color: 'bg-rose-100 text-rose-600 border-rose-200' };
         if (diffDays <= 7) return { label: `Vence em ${diffDays} dias`, color: 'bg-amber-100 text-amber-600 border-amber-200' };
-        
+
         return { label: `Vence dia ${dueDay}`, color: 'bg-white/20 text-white border-white/20' };
     }, [config?.creditCardDueDate]);
 
@@ -88,6 +106,7 @@ export const CreditCardControl: React.FC<CreditCardControlProps> = ({ transactio
         const numInstallments = Math.max(1, Math.floor(installments));
         const [startYear, startMonth, startDay] = newDate.split('-').map(Number);
 
+        const transactionsToAdd: Transaction[] = [];
         // Gera as parcelas
         for (let i = 0; i < numInstallments; i++) {
             // Lógica de datas para parcelamento (mesmo do SheetView)
@@ -96,9 +115,9 @@ export const CreditCardControl: React.FC<CreditCardControlProps> = ({ transactio
             if (dateObj.getMonth() !== expectedMonthIndex) {
                 dateObj.setDate(0);
             }
-            
+
             const dateStr = dateObj.toISOString().split('T')[0];
-            
+
             const description = numInstallments > 1
                 ? `${newDesc} (${i + 1}/${numInstallments})`
                 : newDesc;
@@ -114,7 +133,13 @@ export const CreditCardControl: React.FC<CreditCardControlProps> = ({ transactio
                 paymentMethod: 'Crédito' // Forçado para aparecer nesta lista
             };
 
-            onAdd(transaction);
+            transactionsToAdd.push(transaction);
+        }
+
+        if (onAddBatch && transactionsToAdd.length > 0) {
+            onAddBatch(transactionsToAdd);
+        } else {
+            transactionsToAdd.forEach(t => onAdd(t));
         }
 
         // Reset
@@ -126,21 +151,41 @@ export const CreditCardControl: React.FC<CreditCardControlProps> = ({ transactio
 
     return (
         <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm flex flex-col h-[calc(100vh-140px)] transition-colors animate-fade-in overflow-hidden">
-            
+
             {/* Header / Dashboard Area */}
             <div className="p-6 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700 grid grid-cols-1 md:grid-cols-2 gap-6">
-                
+
                 {/* Visual Card */}
                 <div className="relative h-48 w-full max-w-sm rounded-2xl bg-gradient-to-br from-slate-700 to-slate-900 text-white shadow-xl overflow-hidden mx-auto md:mx-0 transition-transform hover:scale-[1.02] duration-300">
                     {/* Decorative Circles */}
                     <div className="absolute top-0 right-0 -mr-10 -mt-10 w-40 h-40 bg-white/5 rounded-full blur-2xl"></div>
                     <div className="absolute bottom-0 left-0 -ml-10 -mb-10 w-40 h-40 bg-white/5 rounded-full blur-2xl"></div>
-                    
+
                     <div className="relative z-10 p-6 flex flex-col justify-between h-full">
                         <div className="flex justify-between items-start">
                             <div className="flex items-center gap-2">
                                 <CreditCard className="text-brand-gold" size={24} />
-                                <span className="text-xs font-semibold tracking-widest uppercase text-slate-300">Cartão de Crédito</span>
+                                {isEditingName ? (
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="text"
+                                            value={tempName}
+                                            onChange={(e) => setTempName(e.target.value)}
+                                            className="text-xs font-semibold tracking-widest uppercase text-slate-800 bg-white/90 rounded px-2 py-0.5 outline-none border border-brand-gold w-32"
+                                            autoFocus
+                                            onBlur={handleSaveName}
+                                            onKeyDown={(e) => e.key === 'Enter' && handleSaveName()}
+                                        />
+                                    </div>
+                                ) : (
+                                    <span
+                                        onClick={startEditingName}
+                                        className="text-xs font-semibold tracking-widest uppercase text-slate-300 cursor-pointer hover:text-white hover:underline decoration-brand-gold underline-offset-4 transition-all flex items-center gap-2"
+                                        title="Clique para editar o nome"
+                                    >
+                                        {cardName} <Edit2 size={10} className="text-brand-gold opacity-50" />
+                                    </span>
+                                )}
                             </div>
                             <span className="font-mono text-sm tracking-widest opacity-70">**** 3600</span>
                         </div>
@@ -160,7 +205,7 @@ export const CreditCardControl: React.FC<CreditCardControlProps> = ({ transactio
                         <div className="flex justify-between items-end">
                             <div>
                                 <p className="text-[10px] text-slate-400 uppercase">Titular</p>
-                                <p className="text-sm font-medium tracking-wide">SEU NOME</p>
+                                <p className="text-sm font-medium tracking-wide">{cardName}</p>
                             </div>
                             <div className="w-10 h-6 bg-white/20 rounded flex items-center justify-center">
                                 <div className="w-4 h-4 bg-red-500/80 rounded-full -mr-2"></div>
@@ -324,7 +369,7 @@ export const CreditCardControl: React.FC<CreditCardControlProps> = ({ transactio
                                         {formatCurrency(t.amount, currency)}
                                     </td>
                                     <td className="py-3 px-6 text-center">
-                                        <button 
+                                        <button
                                             onClick={() => onDelete(t.id)}
                                             className="text-slate-300 hover:text-rose-500 transition-colors opacity-0 group-hover:opacity-100"
                                         >
@@ -354,7 +399,7 @@ export const CreditCardControl: React.FC<CreditCardControlProps> = ({ transactio
                                     </div>
                                     <h4 className="font-bold text-slate-800 dark:text-white text-sm mb-1">{t.description || 'Sem descrição'}</h4>
                                     <div className="flex items-center gap-2 text-xs text-slate-400">
-                                        <Calendar size={10}/> {formatDateRaw(t.date)}
+                                        <Calendar size={10} /> {formatDateRaw(t.date)}
                                     </div>
                                 </div>
                                 <div className="flex flex-col items-end gap-2">

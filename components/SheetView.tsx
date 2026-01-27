@@ -10,6 +10,7 @@ interface SheetViewProps {
     categories: string[];
     paymentMethods: string[];
     onAdd: (t: Transaction) => void;
+    onAddBatch?: (transactions: Transaction[]) => void;
     onUpdate: (t: Transaction) => void;
     onDelete: (id: string) => void;
     currency?: string;
@@ -37,6 +38,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
     categories,
     paymentMethods,
     onAdd,
+    onAddBatch,
     onUpdate,
     onDelete,
     currency = 'BRL'
@@ -159,6 +161,8 @@ export const SheetView: React.FC<SheetViewProps> = ({
             const numInstallments = isRecurring ? 1 : Math.max(1, Math.floor(installments));
             const [startYear, startMonth, startDay] = newDate.split('-').map(Number);
 
+            const transactionsToAdd: Transaction[] = [];
+
             for (let i = 0; i < numInstallments; i++) {
                 // Usa o construtor Date para lidar com virada de ano e mês automaticamente
                 // Meses em JS são 0-indexados (0=Jan, 11=Dez)
@@ -195,7 +199,14 @@ export const SheetView: React.FC<SheetViewProps> = ({
                     recurrenceDay: (isRecurring && i === 0) ? (recurrenceDay || parseInt(dateStr.split('-')[2])) : undefined
                 };
 
-                onAdd(transaction);
+                transactionsToAdd.push(transaction);
+            }
+
+            // Batch optimization or single add
+            if (onAddBatch && transactionsToAdd.length > 0) {
+                onAddBatch(transactionsToAdd);
+            } else {
+                transactionsToAdd.forEach(t => onAdd(t));
             }
         }
 

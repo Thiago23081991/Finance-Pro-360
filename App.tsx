@@ -204,6 +204,12 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
         setTransactions(prev => [...prev, ...txsWithUser]);
         setToastMessage(`${newTransactions.length} transações importadas com sucesso!`);
     };
+    const addTransactions = async (ts: Transaction[]) => {
+        const tsWithUser = ts.map(t => ({ ...t, userId: user }));
+        await DBService.addTransactions(tsWithUser);
+        setTransactions(prev => [...prev, ...tsWithUser]);
+    };
+
     const updateTransaction = async (t: Transaction) => { const tWithUser = { ...t, userId: user }; await DBService.addTransaction(tWithUser); setTransactions(prev => prev.map(x => x.id === t.id ? tWithUser : x)); };
     const deleteTransaction = async (id: string) => { await DBService.deleteTransaction(id); setTransactions(prev => prev.filter(x => x.id !== id)); };
     const addGoal = async (g: Goal) => { const gWithUser = { ...g, userId: user }; await DBService.saveGoal(gWithUser); setGoals(prev => [...prev, gWithUser]); };
@@ -285,7 +291,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                     {contentLoading && <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm z-20"><Loader2 size={40} className="animate-spin text-brand-gold mb-3" /><p className="text-sm font-medium animate-pulse">Sincronizando...</p></div>}
                     <div className={`transition-opacity duration-300 ${contentLoading ? 'opacity-40' : 'opacity-100'}`}>
                         {activeTab === 'controle' && <Dashboard transactions={transactions} goals={goals} filter={filter} currency={config.currency} />}
-                        {activeTab === 'receitas' && <SheetView type="income" transactions={transactions} categories={config.incomeCategories || DEFAULT_CONFIG.incomeCategories} paymentMethods={config.paymentMethods} onAdd={addTransaction} onUpdate={updateTransaction} onDelete={deleteTransaction} currency={config.currency} />}
+                        {activeTab === 'receitas' && <SheetView type="income" transactions={transactions} categories={config.incomeCategories || DEFAULT_CONFIG.incomeCategories} paymentMethods={config.paymentMethods} onAdd={addTransaction} onAddBatch={addTransactions} onUpdate={updateTransaction} onDelete={deleteTransaction} currency={config.currency} />}
 
                         {activeTab === 'despesas' && (
                             <div className="flex flex-col gap-4">
@@ -312,9 +318,9 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                                     </div>
                                 </div>
                                 {expenseSubTab === 'general' ? (
-                                    <SheetView type="expense" transactions={transactions} categories={config.expenseCategories || DEFAULT_CONFIG.expenseCategories} paymentMethods={config.paymentMethods} onAdd={addTransaction} onUpdate={updateTransaction} onDelete={deleteTransaction} currency={config.currency} />
+                                    <SheetView type="expense" transactions={transactions} categories={config.expenseCategories || DEFAULT_CONFIG.expenseCategories} paymentMethods={config.paymentMethods} onAdd={addTransaction} onAddBatch={addTransactions} onUpdate={updateTransaction} onDelete={deleteTransaction} currency={config.currency} />
                                 ) : (
-                                    <CreditCardControl transactions={transactions} onDelete={deleteTransaction} onAdd={addTransaction} categories={config.expenseCategories || DEFAULT_CONFIG.expenseCategories} currency={config.currency} config={config} />
+                                    <CreditCardControl transactions={transactions} onDelete={deleteTransaction} onAdd={addTransaction} onAddBatch={addTransactions} categories={config.expenseCategories || DEFAULT_CONFIG.expenseCategories} currency={config.currency} config={config} />
                                 )}
                             </div>
                         )}
