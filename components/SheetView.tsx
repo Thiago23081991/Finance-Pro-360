@@ -625,7 +625,11 @@ export const SheetView: React.FC<SheetViewProps> = ({
                                         <div className="flex items-center gap-2">
                                             {formatDateRaw(t.date)}
                                             {t.date === todayStr && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mb-0.5" title="Hoje"></span>}
-                                            {t.isRecurring && <RefreshCw size={10} className="text-purple-400" title="Recorrente" />}
+                                            {t.isRecurring && (
+                                                <span title="Recorrente">
+                                                    <RefreshCw size={10} className="text-purple-400" />
+                                                </span>
+                                            )}
                                         </div>
                                     </td>
                                     <td className={`py-3 px-4 text-sm font-bold text-right font-mono tabular-nums pr-6 ${type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-200'}`}>
@@ -633,8 +637,8 @@ export const SheetView: React.FC<SheetViewProps> = ({
                                     </td>
                                     <td className="py-3 px-4">
                                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide border ${type === 'income'
-                                                ? 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-900'
-                                                : 'bg-indigo-50 text-indigo-700 border-indigo-100 dark:bg-indigo-900/20 dark:text-indigo-400 dark:border-indigo-900'
+                                            ? 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-900'
+                                            : 'bg-indigo-50 text-indigo-700 border-indigo-100 dark:bg-indigo-900/20 dark:text-indigo-400 dark:border-indigo-900'
                                             }`}>
                                             {getCategoryIcon(t.category)}
                                             {t.category}
