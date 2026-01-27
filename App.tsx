@@ -320,7 +320,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                                 {expenseSubTab === 'general' ? (
                                     <SheetView type="expense" transactions={transactions} categories={config.expenseCategories || DEFAULT_CONFIG.expenseCategories} paymentMethods={config.paymentMethods} onAdd={addTransaction} onAddBatch={addTransactions} onUpdate={updateTransaction} onDelete={deleteTransaction} currency={config.currency} />
                                 ) : (
-                                    <CreditCardControl transactions={transactions} onDelete={deleteTransaction} onAdd={addTransaction} onAddBatch={addTransactions} categories={config.expenseCategories || DEFAULT_CONFIG.expenseCategories} currency={config.currency} config={config} />
+                                    <CreditCardControl transactions={transactions} onDelete={deleteTransaction} onAdd={addTransaction} onAddBatch={addTransactions} currency={config.currency} config={config} onUpdateConfig={updateConfig} />
                                 )}
                             </div>
                         )}

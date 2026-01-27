@@ -4,6 +4,16 @@ export type TransactionType = 'income' | 'expense';
 // Centralized Tab definition - Adicionado 'dividas' e 'orcamento'
 export type Tab = 'controle' | 'receitas' | 'despesas' | 'dividas' | 'metas' | 'orcamento' | 'investimentos' | 'cursos' | 'config' | 'admin';
 
+// New Interface for Credit Cards
+export interface CreditCard {
+  id: string;
+  name: string;
+  limit: number;
+  dueDay: number; // Day of month (1-31)
+  closingDay: number; // Day of month (1-31)
+  color: string;
+}
+
 export interface Transaction {
   id: string;
   userId: string; // Link to the user
@@ -12,11 +22,13 @@ export interface Transaction {
   category: string;
   description: string;
   paymentMethod?: string; // Only for expenses
+  cardId?: string; // Optional link to specific credit card
   type: TransactionType;
   isRecurring?: boolean; // If true, this transaction is a template for future months
   recurrenceDay?: number; // Day of month to repeat (1-31)
 }
 
+// ... (Goal, Debt, BudgetLimit interfaces remain unchanged)
 export interface Goal {
   id: string;
   userId: string; // Link to the user
@@ -58,7 +70,8 @@ export interface AppConfig {
   incomeCategories: string[]; // New separate list
   expenseCategories: string[]; // New separate list
   paymentMethods: string[];
-  creditCardDueDate?: number; // Dia do vencimento da fatura (1-31)
+  creditCardDueDate?: number; // Deprecated: legacy support
+  creditCards?: CreditCard[]; // New list of cards
   // New fields for Reminders
   enableReminders?: boolean;
   reminderFrequency?: 'weekly' | 'biweekly' | 'monthly';
