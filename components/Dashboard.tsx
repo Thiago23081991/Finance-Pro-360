@@ -4,6 +4,7 @@ import { formatCurrency, getBudgetCategoryType } from '../utils';
 import { MONTH_NAMES } from '../constants';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, Cell, LineChart, Line, Legend } from 'recharts';
 import { TrendingUp, TrendingDown, DollarSign, History, Utensils, Car, Home, HeartPulse, PartyPopper, GraduationCap, Banknote, ShoppingBag, Zap, CircleDollarSign, AlertTriangle, Lightbulb, Siren, Target, CheckCircle2, BarChart4, PieChart, LineChart as LineChartIcon, ArrowRightLeft, Lock, Landmark, FileText, Printer, Calculator, X } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { DBService } from '../db';
 import { MonthlyReportModal } from './MonthlyReportModal';
 import { ProspectingModal } from './ProspectingModal';
@@ -470,13 +471,32 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
             .slice(0, 5);
     }, [transactions]);
 
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: { staggerChildren: 0.1 }
+        }
+    };
+
+    const itemVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+    };
+
     return (
-        <div className="space-y-6 animate-fade-in pb-20 md:pb-10">
+        <motion.div
+            className="space-y-6 pb-20 md:pb-10"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+        >
 
             {/* Action Bar / Header */}
-            <div className="flex justify-between items-center bg-gradient-to-r from-slate-50 to-white dark:from-slate-800 dark:to-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+            {/* Action Bar / Header */}
+            <motion.div variants={itemVariants} className="flex justify-between items-center bg-gradient-to-r from-surfaceHighlight to-surface p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
                 <div>
-                    <h3 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                    <h3 className="text-xl font-bold text-textMain flex items-center gap-2">
                         Dashboard <span className="text-sm font-normal text-slate-500 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded-full">{MONTH_NAMES[filter.month]} {filter.year}</span>
                     </h3>
                 </div>
@@ -490,16 +510,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                     </button>
                     <button
                         onClick={() => setShowReportModal(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-700 dark:text-white font-bold text-sm rounded-lg border border-slate-200 dark:border-slate-600 shadow-sm transition-all"
+                        className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-textMain font-bold text-sm rounded-lg border border-slate-200 dark:border-slate-600 shadow-sm transition-all"
                     >
                         <FileText size={16} className="text-blue-600" />
                         <span className="hidden sm:inline">Relatório Mensal</span>
                     </button>
                 </div>
-            </div>
+            </motion.div>
 
             {/* KPI Cards & Highlights */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
                 {/* Coluna 1: KPIs Principais (Receita, Despesa, Saldo) */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-3 content-start">
@@ -510,9 +530,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                                 <div className="p-1.5 bg-emerald-100 dark:bg-emerald-500/20 rounded-lg text-emerald-600 dark:text-emerald-400">
                                     <TrendingUp size={14} />
                                 </div>
-                                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Receitas</p>
+                                <p className="text-[10px] font-bold text-textMuted uppercase tracking-widest">Receitas</p>
                             </div>
-                            <h3 className="text-2xl md:text-3xl font-black text-slate-800 dark:text-white tracking-tight">{formatCurrency(kpiData.income, currency)}</h3>
+                            <h3 className="text-2xl md:text-3xl font-black text-textMain tracking-tight">{formatCurrency(kpiData.income, currency)}</h3>
                             <div className="flex items-center gap-2 mt-2">
                                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 border ${momComparison.incomePct >= 0 ? 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30' : 'bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-500/20 dark:text-rose-300 dark:border-rose-500/30'}`}>
                                     {momComparison.incomePct >= 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
@@ -531,9 +551,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                                 <div className="p-1.5 bg-rose-100 dark:bg-rose-500/20 rounded-lg text-rose-600 dark:text-rose-400">
                                     <TrendingDown size={14} />
                                 </div>
-                                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Despesas</p>
+                                <p className="text-[10px] font-bold text-textMuted uppercase tracking-widest">Despesas</p>
                             </div>
-                            <h3 className="text-2xl md:text-3xl font-black text-slate-800 dark:text-white tracking-tight">{formatCurrency(kpiData.expense, currency)}</h3>
+                            <h3 className="text-2xl md:text-3xl font-black text-textMain tracking-tight">{formatCurrency(kpiData.expense, currency)}</h3>
                             <div className="flex items-center gap-2 mt-2">
                                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 border ${momComparison.expensePct <= 0 ? 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30' : 'bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-500/20 dark:text-rose-300 dark:border-rose-500/30'}`}>
                                     {momComparison.expensePct > 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
@@ -552,7 +572,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                                 <div className="p-1.5 bg-blue-100 dark:bg-blue-500/20 rounded-lg text-blue-600 dark:text-blue-400">
                                     <DollarSign size={14} />
                                 </div>
-                                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Saldo Líquido</p>
+                                <p className="text-[10px] font-bold text-textMuted uppercase tracking-widest">Saldo Líquido</p>
                             </div>
                             <h3 className={`text-2xl md:text-3xl font-black tracking-tight ${kpiData.balance >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-rose-600 dark:text-rose-400'}`}>
                                 {formatCurrency(kpiData.balance, currency)}
@@ -593,10 +613,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
 
                     {/* Resumo de Investimentos (NOVO) */}
                     {totalInvested > 0 && (
-                        <div className="bg-white dark:bg-slate-800 p-4 md:p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between group hover:shadow-md transition-all">
+                        <div className="bg-surface p-4 md:p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between group hover:shadow-md transition-all">
                             <div className="flex justify-between items-start mb-2">
                                 <div>
-                                    <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Patrimônio</h4>
+                                    <h4 className="text-xs font-bold text-textMuted uppercase tracking-widest">Patrimônio</h4>
                                     <p className="text-xs text-slate-400">Total Investido</p>
                                 </div>
                                 <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-blue-600 dark:text-blue-400">
@@ -604,7 +624,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                                 </div>
                             </div>
                             <div>
-                                <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white mb-1">{formatCurrency(totalInvested, currency)}</h3>
+                                <h3 className="text-xl md:text-2xl font-black text-textMain mb-1">{formatCurrency(totalInvested, currency)}</h3>
                                 <p className="text-[10px] text-emerald-600 font-bold bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded-full inline-block">
                                     Ver minha carteira
                                 </p>
@@ -613,10 +633,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                     )}
 
                     {/* Resumo de Renda Livre (Custos Fixos) */}
-                    <div className="bg-white dark:bg-slate-800 p-4 md:p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between">
+                    <div className="bg-surface p-4 md:p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between">
                         <div className="flex justify-between items-start mb-4">
                             <div>
-                                <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Comprometimento</h4>
+                                <h4 className="text-xs font-bold text-textMuted uppercase tracking-widest">Comprometimento</h4>
                                 <p className="text-xs text-slate-400">Renda vs. Custos Fixos</p>
                             </div>
                             <div className="p-2 bg-amber-50 dark:bg-amber-900/20 rounded-lg text-amber-600 dark:text-amber-400">
@@ -650,15 +670,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                 {/* Coluna 3: Meta em Destaque e Atalhos */}
                 <div className="grid grid-cols-1 gap-3 content-start">
                     {/* Meta Principal */}
-                    <div className="bg-white dark:bg-slate-800 p-4 md:p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 min-h-[160px] flex flex-col">
-                        <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <div className="bg-surface p-4 md:p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 min-h-[160px] flex flex-col">
+                        <h4 className="text-xs font-bold text-textMuted uppercase tracking-widest mb-4 flex items-center gap-2">
                             <Target size={14} /> Foco Principal
                         </h4>
 
                         {featuredGoal ? (
                             <div className="flex-1 flex flex-col justify-center">
                                 <div className="flex justify-between items-end mb-2">
-                                    <span className="font-bold text-slate-800 dark:text-white truncate max-w-[150px]">{featuredGoal.name}</span>
+                                    <span className="font-bold text-textMain truncate max-w-[150px]">{featuredGoal.name}</span>
                                     <span className="text-xs font-bold text-blue-600 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded-full">
                                         {Math.min(100, Math.round((featuredGoal.currentValue / featuredGoal.targetValue) * 100))}%
                                     </span>
@@ -669,7 +689,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                                         style={{ width: `${Math.min(100, (featuredGoal.currentValue / featuredGoal.targetValue) * 100)}%` }}
                                     ></div>
                                 </div>
-                                <div className="flex justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                                <div className="flex justify-between text-[11px] text-textMuted">
                                     <span>{formatCurrency(featuredGoal.currentValue, currency)}</span>
                                     <span>{formatCurrency(featuredGoal.targetValue, currency)}</span>
                                 </div>
@@ -683,10 +703,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                     </div>
 
                     {/* 50/30/20 Rule Widget (Moved) */}
-                    <div className="bg-white dark:bg-slate-800 p-4 md:p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col gap-3">
+                    <div className="bg-surface p-4 md:p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col gap-3">
                         <div className="flex justify-between items-start">
                             <div>
-                                <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Regra 50/30/20</h4>
+                                <h4 className="text-xs font-bold text-textMuted uppercase tracking-widest">Regra 50/30/20</h4>
                                 <p className="text-xs text-slate-400">Distribuição Ideal</p>
                             </div>
                             <div className="p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-purple-600 dark:text-purple-400">
@@ -740,12 +760,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                         </div>
                     </div>
                 </div>
-            </div>
+            </motion.div>
 
             {/* Alertas Inteligentes */}
             {smartAlerts.length > 0 && (
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 animate-fade-in">
-                    <h3 className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2 mb-4">
+                <motion.div variants={itemVariants} className="bg-surface p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                    <h3 className="text-sm font-bold text-textMain flex items-center gap-2 mb-4">
                         <Lightbulb className="text-amber-500" size={18} /> Insights do seu Comportamento
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -762,13 +782,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                             </div>
                         ))}
                     </div>
-                </div>
+                </motion.div>
             )}
 
             {/* Evolução e Histórico */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-                <div className="lg:col-span-2 bg-white dark:bg-slate-800 p-4 md:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-6 flex items-center gap-2">
+            <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+                <div className="lg:col-span-2 bg-surface p-4 md:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                    <h4 className="text-sm font-bold text-textMain mb-6 flex items-center gap-2">
                         <TrendingUp size={16} className="text-blue-500" /> Fluxo de Caixa Diário ({MONTH_NAMES[filter.month]})
                     </h4>
                     <div className="h-64">
@@ -795,8 +815,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col">
-                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-6 flex items-center gap-2">
+                <div className="bg-surface p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col">
+                    <h4 className="text-sm font-bold text-textMain mb-6 flex items-center gap-2">
                         <History size={16} className="text-slate-400" /> Atividades Recentes
                     </h4>
                     <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3">
@@ -807,8 +827,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                                         {getCategoryIcon(t.category)}
                                     </div>
                                     <div className="overflow-hidden">
-                                        <p className="text-xs font-bold text-slate-700 dark:text-slate-200 truncate">{t.description || t.category}</p>
-                                        <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-medium">{t.category}</p>
+                                        <p className="text-xs font-bold text-textMain truncate">{t.description || t.category}</p>
+                                        <p className="text-[10px] text-textMuted uppercase font-medium">{t.category}</p>
                                     </div>
                                 </div>
                                 <span className={`text-xs font-black shrink-0 ml-2 ${t.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
@@ -818,12 +838,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                         ))}
                     </div>
                 </div>
-            </div>
+            </motion.div>
 
             {/* Tendências Longo Prazo */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-                <div className="bg-white dark:bg-slate-800 p-4 md:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-6 flex items-center gap-2">
+            <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+                <div className="bg-surface p-4 md:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                    <h4 className="text-sm font-bold text-textMain mb-6 flex items-center gap-2">
                         <LineChartIcon size={18} className="text-indigo-500" /> Tendência de Fluxo Mensal (12 Meses)
                     </h4>
                     <div className="h-64">
@@ -841,9 +861,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-800 p-4 md:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                <div className="bg-surface p-4 md:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
-                        <h4 className="text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                        <h4 className="text-sm font-bold text-textMain flex items-center gap-2">
                             <ArrowRightLeft size={18} className="text-blue-500" /> Tendência por Categoria
                         </h4>
                         <select
@@ -874,15 +894,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                         </div>
                         <div className="flex flex-col justify-center items-center sm:items-start p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-700">
                             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Média Mensal</p>
-                            <p className="text-lg font-black text-slate-800 dark:text-white leading-tight">{formatCurrency(categoryTrendData.average, currency)}</p>
+                            <p className="text-lg font-black text-textMain leading-tight">{formatCurrency(categoryTrendData.average, currency)}</p>
                         </div>
                     </div>
                 </div>
-            </div>
+            </motion.div>
 
             {/* Projeção Futura */}
-            <div className="bg-white dark:bg-slate-800 p-4 md:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 animate-fade-in">
-                <h4 className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-6 flex items-center gap-2">
+            <div className="bg-surface p-4 md:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 animate-fade-in">
+                <h4 className="text-sm font-bold text-textMain mb-6 flex items-center gap-2">
                     <Target size={18} className="text-purple-500" /> Projeção de Saldo (Próximos 6 Meses)
                 </h4>
                 <div className="h-64">
@@ -924,86 +944,88 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
             </div>
 
             {/* Rule Detail Modal */}
-            {selectedRuleCategory && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setSelectedRuleCategory(null)}>
-                    <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-700 flex flex-col max-h-[80vh]" onClick={e => e.stopPropagation()}>
-                        <div className={`p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center ${selectedRuleCategory === 'needs' ? 'bg-blue-50 dark:bg-blue-900/20' :
-                            selectedRuleCategory === 'wants' ? 'bg-purple-50 dark:bg-purple-900/20' :
-                                'bg-emerald-50 dark:bg-emerald-900/20'
-                            }`}>
-                            <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                                {selectedRuleCategory === 'needs' && <Home size={18} className="text-blue-600" />}
-                                {selectedRuleCategory === 'wants' && <PartyPopper size={18} className="text-purple-600" />}
-                                {selectedRuleCategory === 'savings' && <TrendingUp size={18} className="text-emerald-600" />}
+            {
+                selectedRuleCategory && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setSelectedRuleCategory(null)}>
+                        <div className="bg-surface w-full max-w-md rounded-2xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-700 flex flex-col max-h-[80vh]" onClick={e => e.stopPropagation()}>
+                            <div className={`p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center ${selectedRuleCategory === 'needs' ? 'bg-blue-50 dark:bg-blue-900/20' :
+                                selectedRuleCategory === 'wants' ? 'bg-purple-50 dark:bg-purple-900/20' :
+                                    'bg-emerald-50 dark:bg-emerald-900/20'
+                                }`}>
+                                <h3 className="font-bold text-textMain flex items-center gap-2">
+                                    {selectedRuleCategory === 'needs' && <Home size={18} className="text-blue-600" />}
+                                    {selectedRuleCategory === 'wants' && <PartyPopper size={18} className="text-purple-600" />}
+                                    {selectedRuleCategory === 'savings' && <TrendingUp size={18} className="text-emerald-600" />}
 
-                                {selectedRuleCategory === 'needs' ? 'Necessidades (Detalhes)' :
-                                    selectedRuleCategory === 'wants' ? 'Desejos (Detalhes)' :
-                                        'Objetivos e Investimentos'}
-                            </h3>
-                            <button onClick={() => setSelectedRuleCategory(null)} className="p-1 rounded hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
-                                <X size={20} className="text-slate-500" />
-                            </button>
-                        </div>
+                                    {selectedRuleCategory === 'needs' ? 'Necessidades (Detalhes)' :
+                                        selectedRuleCategory === 'wants' ? 'Desejos (Detalhes)' :
+                                            'Objetivos e Investimentos'}
+                                </h3>
+                                <button onClick={() => setSelectedRuleCategory(null)} className="p-1 rounded hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+                                    <X size={20} className="text-slate-500" />
+                                </button>
+                            </div>
 
-                        <div className="flex-1 overflow-y-auto custom-scrollbar p-0">
-                            {(() => {
-                                // Filter Logic similar to rule503020Stats
-                                let items: Transaction[] = [];
+                            <div className="flex-1 overflow-y-auto custom-scrollbar p-0">
+                                {(() => {
+                                    // Filter Logic similar to rule503020Stats
+                                    let items: Transaction[] = [];
 
-                                if (selectedRuleCategory === 'savings') {
-                                    // Logic for Savings: Expenses categorized as 'investments' or similar bucket
-                                    items = filteredTransactions.filter(t => t.type === 'expense' && getBudgetCategoryType(t.category) === 'savings');
-                                } else {
-                                    items = filteredTransactions.filter(t => t.type === 'expense' && getBudgetCategoryType(t.category) === selectedRuleCategory);
-                                }
+                                    if (selectedRuleCategory === 'savings') {
+                                        // Logic for Savings: Expenses categorized as 'investments' or similar bucket
+                                        items = filteredTransactions.filter(t => t.type === 'expense' && getBudgetCategoryType(t.category) === 'savings');
+                                    } else {
+                                        items = filteredTransactions.filter(t => t.type === 'expense' && getBudgetCategoryType(t.category) === selectedRuleCategory);
+                                    }
 
-                                items.sort((a, b) => b.amount - a.amount);
+                                    items.sort((a, b) => b.amount - a.amount);
 
-                                if (items.length === 0) {
+                                    if (items.length === 0) {
+                                        return (
+                                            <div className="p-8 text-center text-slate-400">
+                                                <p className="text-sm">Nenhum lançamento encontrado nesta categoria.</p>
+                                            </div>
+                                        );
+                                    }
+
                                     return (
-                                        <div className="p-8 text-center text-slate-400">
-                                            <p className="text-sm">Nenhum lançamento encontrado nesta categoria.</p>
+                                        <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                                            {items.map(t => (
+                                                <div key={t.id} className="p-3 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500`}>
+                                                            {getCategoryIcon(t.category)}
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-sm font-bold text-textMain">{t.description || t.category}</p>
+                                                            <p className="text-[10px] text-slate-400">{new Date(t.date).toLocaleDateString()}</p>
+                                                        </div>
+                                                    </div>
+                                                    <span className="font-mono font-bold text-textMain">
+                                                        {formatCurrency(t.amount, currency)}
+                                                    </span>
+                                                </div>
+                                            ))}
                                         </div>
                                     );
-                                }
+                                })()}
+                            </div>
 
-                                return (
-                                    <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                                        {items.map(t => (
-                                            <div key={t.id} className="p-3 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                                                <div className="flex items-center gap-3">
-                                                    <div className={`p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500`}>
-                                                        {getCategoryIcon(t.category)}
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{t.description || t.category}</p>
-                                                        <p className="text-[10px] text-slate-400">{new Date(t.date).toLocaleDateString()}</p>
-                                                    </div>
-                                                </div>
-                                                <span className="font-mono font-bold text-slate-700 dark:text-slate-200">
-                                                    {formatCurrency(t.amount, currency)}
-                                                </span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                );
-                            })()}
-                        </div>
-
-                        <div className="p-4 bg-slate-50 dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 text-center">
-                            <p className="text-xs text-slate-400">
-                                Total: <strong className="text-slate-700 dark:text-slate-200">
-                                    {formatCurrency(
-                                        filteredTransactions
-                                            .filter(t => t.type === 'expense' && getBudgetCategoryType(t.category) === selectedRuleCategory)
-                                            .reduce((sum, t) => sum + t.amount, 0)
-                                        , currency)}
-                                </strong>
-                            </p>
+                            <div className="p-4 bg-slate-50 dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 text-center">
+                                <p className="text-xs text-slate-400">
+                                    Total: <strong className="text-textMain">
+                                        {formatCurrency(
+                                            filteredTransactions
+                                                .filter(t => t.type === 'expense' && getBudgetCategoryType(t.category) === selectedRuleCategory)
+                                                .reduce((sum, t) => sum + t.amount, 0)
+                                            , currency)}
+                                    </strong>
+                                </p>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Modals */}
             <MonthlyReportModal
@@ -1022,6 +1044,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                 recurringExpenses={fixedCostStats.totalFixed}
                 currency={currency}
             />
-        </div>
+        </motion.div >
     );
 };

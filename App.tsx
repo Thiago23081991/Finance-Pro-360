@@ -30,6 +30,9 @@ import { supabase } from './supabaseClient';
 import { SubscriptionWall } from './components/SubscriptionWall';
 import { TrialModal } from './components/TrialModal';
 import { LayoutDashboard, CreditCard, TrendingUp, Target, Settings as SettingsIcon, Menu, Filter, LogOut, Loader2, ShieldCheck, Mail, Sun, Moon, X, BarChart4, GraduationCap, Scale, Calculator, List, TableProperties, AlertTriangle, RefreshCw, Plus, User, Receipt, Upload, PieChart } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
+import { MotionWrapper } from './components/MotionWrapper';
+import { ThemeSelector } from './components/ThemeSelector';
 
 const TAB_METADATA: Record<Tab, { label: string; pageTitle: string; icon: React.ReactNode }> = {
     controle: { label: 'Controle', pageTitle: 'Painel de Controle', icon: <LayoutDashboard size={20} /> },
@@ -245,7 +248,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
     }
 
     return (
-        <div className="flex h-screen bg-[#f3f4f6] dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans overflow-hidden transition-colors">
+        <div className="flex h-screen bg-background text-textMain font-sans overflow-hidden transition-colors duration-300">
             <aside className="w-64 bg-brand-blue text-white flex flex-col shadow-xl z-20 hidden md:flex border-r border-slate-800/50">
                 <div className="p-6 border-b border-white/10"><Logo className="w-9 h-9" textClassName="text-white" /></div>
                 <nav className="flex-1 px-4 space-y-1 mt-4 overflow-y-auto custom-scrollbar">
@@ -273,11 +276,12 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                 <div className="fixed inset-0 z-50 flex md:hidden"><div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)}></div><aside className="relative w-64 bg-brand-blue text-white flex flex-col shadow-2xl h-full animate-fade-in border-r border-white/10"><div className="p-6 border-b border-white/10 flex justify-between items-center"><Logo className="w-8 h-8" textClassName="text-white" /><button onClick={() => setIsMobileMenuOpen(false)} className="text-slate-400"><X size={20} /></button></div><nav className="flex-1 px-4 mt-4 overflow-y-auto">{(['controle', 'receitas', 'despesas', 'orcamento', 'dividas', 'metas', 'investimentos', 'config'] as Tab[]).map(tabId => (<button key={tabId} onClick={() => handleTabChange(tabId)} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${activeTab === tabId ? 'bg-brand-gold text-white' : 'text-slate-300'}`}>{TAB_METADATA[tabId].icon}{TAB_METADATA[tabId].label}</button>))}</nav></aside></div>
             )}
 
-            <main className="flex-1 flex flex-col h-full overflow-hidden relative">
-                <header className="bg-white dark:bg-slate-900 h-16 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-4 shadow-sm z-30 transition-colors">
+            <main className="flex-1 flex flex-col h-full overflow-hidden relative bg-background">
+                <header className="bg-surface h-16 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-4 shadow-sm z-30 transition-colors">
                     <div className="flex items-center gap-3"><button onClick={() => setIsMobileMenuOpen(true)} className="md:hidden text-slate-500 hover:bg-slate-100 p-2 rounded-lg -ml-2"><Menu /></button><h2 className="text-lg font-semibold dark:text-white truncate max-w-[200px]">{TAB_METADATA[activeTab].pageTitle}</h2></div>
                     <div className="flex items-center gap-2 sm:gap-4">
                         <div className="hidden sm:block"><FilterBar filter={filter} setFilter={setFilter} activeTab={activeTab} config={config} /></div>
+                        <ThemeSelector />
                         <button onClick={() => updateConfig({ ...config, theme: config.theme === 'dark' ? 'light' : 'dark' })} className="p-2 text-slate-500 dark:hover:bg-slate-800 rounded-full transition-colors">{config.theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}</button>
                         <Notifications transactions={transactions} goals={goals} debts={debts} config={config} onNavigate={(tab) => { handleTabChange(tab as Tab); if (tab === 'despesas') setExpenseSubTab('cards'); }} />
                         <button onClick={() => setShowImportModal(true)} className="p-2 text-slate-500 dark:hover:bg-slate-800 rounded-full transition-colors" title="Importar Extrato"><Upload size={20} /></button>
@@ -290,48 +294,92 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                 <div className="flex-1 overflow-y-auto p-4 custom-scrollbar pb-28 md:pb-6 relative">
                     {contentLoading && <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm z-20"><Loader2 size={40} className="animate-spin text-brand-gold mb-3" /><p className="text-sm font-medium animate-pulse">Sincronizando...</p></div>}
                     <div className={`transition-opacity duration-300 ${contentLoading ? 'opacity-40' : 'opacity-100'}`}>
-                        {activeTab === 'controle' && <Dashboard transactions={transactions} goals={goals} filter={filter} currency={config.currency} />}
-                        {activeTab === 'receitas' && <SheetView type="income" transactions={transactions} categories={config.incomeCategories || DEFAULT_CONFIG.incomeCategories} paymentMethods={config.paymentMethods} onAdd={addTransaction} onAddBatch={addTransactions} onUpdate={updateTransaction} onDelete={deleteTransaction} currency={config.currency} />}
+                        <AnimatePresence mode="wait">
+                            {activeTab === 'controle' && (
+                                <MotionWrapper key="controle">
+                                    <Dashboard transactions={transactions} goals={goals} filter={filter} currency={config.currency} />
+                                </MotionWrapper>
+                            )}
+                            {activeTab === 'receitas' && (
+                                <MotionWrapper key="receitas">
+                                    <SheetView type="income" transactions={transactions} categories={config.incomeCategories || DEFAULT_CONFIG.incomeCategories} paymentMethods={config.paymentMethods} onAdd={addTransaction} onAddBatch={addTransactions} onUpdate={updateTransaction} onDelete={deleteTransaction} currency={config.currency} />
+                                </MotionWrapper>
+                            )}
 
-                        {activeTab === 'despesas' && (
-                            <div className="flex flex-col gap-4">
-                                <div className="flex justify-center">
-                                    <div className="bg-slate-200 dark:bg-slate-800 p-1 rounded-lg flex items-center border border-slate-200 dark:border-slate-700">
-                                        <button
-                                            onClick={() => setExpenseSubTab('general')}
-                                            className={`flex items-center gap-2 px-4 py-1.5 text-xs font-bold rounded-md transition-all ${expenseSubTab === 'general'
-                                                ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-800 dark:text-white'
-                                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-                                                }`}
-                                        >
-                                            Lista Geral
-                                        </button>
-                                        <button
-                                            onClick={() => setExpenseSubTab('cards')}
-                                            className={`flex items-center gap-2 px-4 py-1.5 text-xs font-bold rounded-md transition-all ${expenseSubTab === 'cards'
-                                                ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-800 dark:text-white'
-                                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-                                                }`}
-                                        >
-                                            Controle de Cartão e Crédito
-                                        </button>
+                            {activeTab === 'despesas' && (
+                                <MotionWrapper key="despesas">
+                                    <div className="flex flex-col gap-4">
+                                        <div className="flex justify-center">
+                                            <div className="bg-slate-200 dark:bg-slate-800 p-1 rounded-lg flex items-center border border-slate-200 dark:border-slate-700">
+                                                <button
+                                                    onClick={() => setExpenseSubTab('general')}
+                                                    className={`flex items-center gap-2 px-4 py-1.5 text-xs font-bold rounded-md transition-all ${expenseSubTab === 'general'
+                                                        ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-800 dark:text-white'
+                                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                                                        }`}
+                                                >
+                                                    Lista Geral
+                                                </button>
+                                                <button
+                                                    onClick={() => setExpenseSubTab('cards')}
+                                                    className={`flex items-center gap-2 px-4 py-1.5 text-xs font-bold rounded-md transition-all ${expenseSubTab === 'cards'
+                                                        ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-800 dark:text-white'
+                                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                                                        }`}
+                                                >
+                                                    Controle de Cartão e Crédito
+                                                </button>
+                                            </div>
+                                        </div>
+                                        {expenseSubTab === 'general' ? (
+                                            <MotionWrapper key="expense-general">
+                                                <SheetView type="expense" transactions={transactions} categories={config.expenseCategories || DEFAULT_CONFIG.expenseCategories} paymentMethods={config.paymentMethods} onAdd={addTransaction} onAddBatch={addTransactions} onUpdate={updateTransaction} onDelete={deleteTransaction} currency={config.currency} />
+                                            </MotionWrapper>
+                                        ) : (
+                                            <MotionWrapper key="expense-cards">
+                                                <CreditCardControl transactions={transactions} onDelete={deleteTransaction} onAdd={addTransaction} onAddBatch={addTransactions} currency={config.currency} config={config} onUpdateConfig={updateConfig} />
+                                            </MotionWrapper>
+                                        )}
                                     </div>
-                                </div>
-                                {expenseSubTab === 'general' ? (
-                                    <SheetView type="expense" transactions={transactions} categories={config.expenseCategories || DEFAULT_CONFIG.expenseCategories} paymentMethods={config.paymentMethods} onAdd={addTransaction} onAddBatch={addTransactions} onUpdate={updateTransaction} onDelete={deleteTransaction} currency={config.currency} />
-                                ) : (
-                                    <CreditCardControl transactions={transactions} onDelete={deleteTransaction} onAdd={addTransaction} onAddBatch={addTransactions} currency={config.currency} config={config} onUpdateConfig={updateConfig} />
-                                )}
-                            </div>
-                        )}
+                                </MotionWrapper>
+                            )}
 
-                        {activeTab === 'orcamento' && <Budget transactions={transactions} config={config} filter={filter} />}
-                        {activeTab === 'dividas' && <Debts config={config} debts={debts} onAddDebt={addDebt} onDeleteDebt={deleteDebt} onNavigateToSettings={() => handleTabChange('config')} />}
-                        {activeTab === 'metas' && <GoalsSheet goals={goals} onAdd={addGoal} onDelete={deleteGoal} onUpdate={updateGoalValue} currency={config.currency} />}
-                        {activeTab === 'investimentos' && <Investments config={config} onNavigateToSettings={() => handleTabChange('config')} />}
-                        {activeTab === 'cursos' && <Courses config={config} userEmail={userEmail} onNavigateToSettings={() => handleTabChange('config')} />}
-                        {activeTab === 'config' && <Settings config={config} onUpdateConfig={updateConfig} transactions={transactions} />}
-                        {activeTab === 'admin' && isAdmin && <AdminPanel />}
+                            {activeTab === 'orcamento' && (
+                                <MotionWrapper key="orcamento">
+                                    <Budget transactions={transactions} config={config} filter={filter} />
+                                </MotionWrapper>
+                            )}
+                            {activeTab === 'dividas' && (
+                                <MotionWrapper key="dividas">
+                                    <Debts config={config} debts={debts} onAddDebt={addDebt} onDeleteDebt={deleteDebt} onNavigateToSettings={() => handleTabChange('config')} />
+                                </MotionWrapper>
+                            )}
+                            {activeTab === 'metas' && (
+                                <MotionWrapper key="metas">
+                                    <GoalsSheet goals={goals} onAdd={addGoal} onDelete={deleteGoal} onUpdate={updateGoalValue} currency={config.currency} />
+                                </MotionWrapper>
+                            )}
+                            {activeTab === 'investimentos' && (
+                                <MotionWrapper key="investimentos">
+                                    <Investments config={config} onNavigateToSettings={() => handleTabChange('config')} />
+                                </MotionWrapper>
+                            )}
+                            {activeTab === 'cursos' && (
+                                <MotionWrapper key="cursos">
+                                    <Courses config={config} userEmail={userEmail} onNavigateToSettings={() => handleTabChange('config')} />
+                                </MotionWrapper>
+                            )}
+                            {activeTab === 'config' && (
+                                <MotionWrapper key="config">
+                                    <Settings config={config} onUpdateConfig={updateConfig} transactions={transactions} />
+                                </MotionWrapper>
+                            )}
+                            {activeTab === 'admin' && isAdmin && (
+                                <MotionWrapper key="admin">
+                                    <AdminPanel />
+                                </MotionWrapper>
+                            )}
+                        </AnimatePresence>
                     </div>
                 </div>
 
@@ -396,7 +444,7 @@ const App: React.FC = () => {
     };
 
     if (loading) {
-        return <div className="h-screen w-full flex items-center justify-center bg-[#f3f4f6] dark:bg-slate-950 transition-colors"><Loader2 className="animate-spin text-brand-blue" size={48} /></div>;
+        return <div className="h-screen w-full flex items-center justify-center bg-background transition-colors"><Loader2 className="animate-spin text-primary" size={48} /></div>;
     }
 
     if (window.location.pathname === '/apresentacao') {

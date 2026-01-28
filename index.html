@@ -25,16 +25,25 @@
       theme: {
         extend: {
           colors: {
+            // Semantic Colors (Mapped to CSS Variables)
+            background: 'var(--color-bg)',
+            surface: 'var(--color-surface)',
+            surfaceHighlight: 'var(--color-surface-highlight)',
+            primary: 'var(--color-primary)',
+            secondary: 'var(--color-secondary)',
+            textMain: 'var(--color-text-main)',
+            textMuted: 'var(--color-text-muted)',
+
+            // Maintaining legacy overrides just in case, but mapped relative to theme
             slate: {
               750: '#2d3748',
               850: '#1a202c',
               950: '#020617',
             },
             brand: {
-              blue: '#051b35',   // Deep Blue form image
-              gold: '#d4af37',   // Gold from image
-              light: '#e2e8f0',
-              accent: '#38bdf8'  // Light blue accent
+              blue: '#051b35',
+              gold: '#d4af37',
+              accent: '#38bdf8'
             }
           },
           fontFamily: {
@@ -45,27 +54,136 @@
     }
   </script>
 
-  <!-- Global Styles -->
+  <!-- Global Styles & Theme Definitions -->
   <style>
+    /* -------------------------------------------------------------------------- */
+    /*                               THEME DEFINITIONS                            */
+    /* -------------------------------------------------------------------------- */
+
+    /* 1. Default Theme (Finance Blue - Professional) */
     :root {
+      --color-bg: #f3f4f6;
+      /* Slate 100 */
+      --color-surface: #ffffff;
+      /* White */
+      --color-surface-highlight: #f8fafc;
+      /* Slate 50 */
+      --color-primary: #2563eb;
+      /* Blue 600 */
+      --color-secondary: #051b35;
+      /* Brand Blue */
+      --color-text-main: #1e293b;
+      /* Slate 800 */
+      --color-text-muted: #64748b;
+      /* Slate 500 */
+
       --tooltip-bg: #ffffff;
       --tooltip-border: #e2e8f0;
       --tooltip-text: #1e293b;
     }
 
+    /* Default Dark Mode */
     html.dark {
+      --color-bg: #020617;
+      /* Slate 950 */
+      --color-surface: #1e293b;
+      /* Slate 800 */
+      --color-surface-highlight: #334155;
+      /* Slate 700 */
+      --color-primary: #3b82f6;
+      /* Blue 500 */
+      --color-secondary: #94a3b8;
+      /* Slate 400 */
+      --color-text-main: #f8fafc;
+      /* Slate 50 */
+      --color-text-muted: #94a3b8;
+      /* Slate 400 */
+
       --tooltip-bg: #1e293b;
       --tooltip-border: #334155;
       --tooltip-text: #f8fafc;
     }
 
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #f3f4f6;
+    /* 2. Nubank Theme (Purple Magic) */
+    html[data-theme='nubank'] {
+      --color-bg: #f5f5f5;
+      --color-surface: #ffffff;
+      --color-surface-highlight: #f3e8f5;
+      /* Light Purple tint */
+      --color-primary: #820ad1;
+      /* Nu Purple */
+      --color-secondary: #973cdd;
+      --color-text-main: #111111;
+      --color-text-muted: #666666;
     }
 
-    html.dark body {
-      background-color: #020617;
+    html[data-theme='nubank'].dark {
+      --color-bg: #111111;
+      /* Deep black */
+      --color-surface: #261a2e;
+      /* Dark Purple surface */
+      --color-surface-highlight: #392a45;
+      --color-primary: #a750e6;
+      /* Lighter Purple */
+      --color-secondary: #d8ace0;
+      --color-text-main: #ffffff;
+      --color-text-muted: #a0a0a0;
+    }
+
+    /* 3. Cyberpunk Theme (Neon Future) */
+    html[data-theme='cyberpunk'] {
+      --color-bg: #050505;
+      --color-surface: #121212;
+      --color-surface-highlight: #1a1a1a;
+      --color-primary: #00ff9d;
+      /* Neon Green */
+      --color-secondary: #ff00ff;
+      /* Neon Pink */
+      --color-text-main: #e0e0e0;
+      --color-text-muted: #808080;
+    }
+
+    html[data-theme='cyberpunk'] .dark {
+      /* Cyberpunk is inherently dark, but we ensure consistency */
+      --color-bg: #000000;
+      --color-surface: #0a0a0a;
+      --color-primary: #00ff9d;
+    }
+
+    /* 4. Minimalist Theme (Clean Slate) */
+    html[data-theme='minimalist'] {
+      --color-bg: #ffffff;
+      --color-surface: #fafafa;
+      --color-surface-highlight: #f4f4f5;
+      --color-primary: #18181b;
+      /* Zinc 900 */
+      --color-secondary: #71717a;
+      /* Zinc 500 */
+      --color-text-main: #09090b;
+      --color-text-muted: #a1a1aa;
+    }
+
+    html[data-theme='minimalist'].dark {
+      --color-bg: #09090b;
+      /* Zinc 950 */
+      --color-surface: #18181b;
+      /* Zinc 900 */
+      --color-surface-highlight: #27272a;
+      --color-primary: #fafafa;
+      --color-secondary: #a1a1aa;
+      --color-text-main: #fafafa;
+      --color-text-muted: #a1a1aa;
+    }
+
+    /* -------------------------------------------------------------------------- */
+    /*                                GLOBAL STYLES                               */
+    /* -------------------------------------------------------------------------- */
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--color-bg);
+      color: var(--color-text-main);
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
 
     /* Custom Scrollbar */
@@ -75,21 +193,17 @@
     }
 
     .custom-scrollbar::-webkit-scrollbar-track {
-      background: #f1f1f1;
+      background: transparent;
     }
 
     .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #c1c1c1;
+      background: #cbd5e1;
+      /* Slate 300 */
       border-radius: 4px;
     }
 
     .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-      background: #a8a8a8;
-    }
-
-    /* Dark mode scrollbar */
-    html.dark .custom-scrollbar::-webkit-scrollbar-track {
-      background: #0f172a;
+      background: #94a3b8;
     }
 
     html.dark .custom-scrollbar::-webkit-scrollbar-thumb {
