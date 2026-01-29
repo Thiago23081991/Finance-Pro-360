@@ -35,7 +35,7 @@ const getCategoryIcon = (category: string) => {
 
 const CATEGORY_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#f43f5e'];
 
-export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filter, currency = 'BRL' }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filter, currency = 'BRL', isPremium = false }) => {
     const [selectedTrendCategory, setSelectedTrendCategory] = useState<string>('Alimentação');
 
     const filteredTransactions = useMemo<Transaction[]>(() => {
@@ -494,7 +494,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
             animate="visible"
         >
 
-            {/* Action Bar / Header */}
+            {/* Premium Banner (Show only for free users) */}
+            {!isPremium && <PremiumBanner />}
+
             {/* Action Bar / Header */}
             <motion.div variants={itemVariants} className="flex justify-between items-center bg-gradient-to-r from-surfaceHighlight to-surface p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
                 <div>
