@@ -33,6 +33,7 @@ import { LayoutDashboard, CreditCard, TrendingUp, Target, Settings as SettingsIc
 import { AnimatePresence } from 'framer-motion';
 import { MotionWrapper } from './components/MotionWrapper';
 import { ThemeSelector } from './components/ThemeSelector';
+import { PLANS_CONFIG } from './constants';
 
 const TAB_METADATA: Record<Tab, { label: string; pageTitle: string; icon: React.ReactNode }> = {
     controle: { label: 'Controle', pageTitle: 'Painel de Controle', icon: <LayoutDashboard size={20} /> },
@@ -258,6 +259,22 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                         </button>
                     ))}
                 </nav>
+
+                {/* Sidebar CTA for Free Users */}
+                {config.licenseStatus !== 'active' && (
+                    <div className="mx-4 mb-4 p-4 rounded-xl bg-gradient-to-br from-brand-gold to-yellow-600 shadow-lg text-center">
+                        <h4 className="font-black text-brand-blue text-sm mb-1">Seja Premium 🚀</h4>
+                        <p className="text-[10px] text-brand-blue/80 font-medium mb-3 leading-tight">Desbloqueie todos os recursos agora!</p>
+                        <a
+                            href={PLANS_CONFIG.annual.checkoutUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block w-full py-2 bg-brand-blue text-white text-xs font-bold rounded-lg hover:brightness-110 transition-all shadow-md"
+                        >
+                            UPGRADE
+                        </a>
+                    </div>
+                )}
                 <div className="p-4 border-t border-white/10 bg-black/20 flex items-center justify-between">
                     <div className="flex items-center gap-2 overflow-hidden">
                         <div className="w-8 h-8 rounded-full bg-brand-gold flex items-center justify-center text-xs font-bold text-brand-blue shrink-0">
@@ -297,7 +314,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                         <AnimatePresence mode="wait">
                             {activeTab === 'controle' && (
                                 <MotionWrapper key="controle">
-                                    <Dashboard transactions={transactions} goals={goals} filter={filter} currency={config.currency} />
+                                    <Dashboard transactions={transactions} goals={goals} filter={filter} currency={config.currency} isPremium={config.licenseStatus === 'active'} />
                                 </MotionWrapper>
                             )}
                             {activeTab === 'receitas' && (

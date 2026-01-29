@@ -8,12 +8,14 @@ import { motion } from 'framer-motion';
 import { DBService } from '../db';
 import { MonthlyReportModal } from './MonthlyReportModal';
 import { ProspectingModal } from './ProspectingModal';
+import { PremiumBanner } from './PremiumBanner';
 
 interface DashboardProps {
     transactions: Transaction[];
     goals: Goal[];
     filter: FilterState;
     currency?: string;
+    isPremium?: boolean;
 }
 
 const getCategoryIcon = (category: string) => {
