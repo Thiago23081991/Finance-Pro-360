@@ -9,6 +9,7 @@ interface AIAdvisorProps {
     transactions: Transaction[];
     goals: Goal[];
     userName?: string;
+    userId?: string;
     isPremium?: boolean;
 }
 
@@ -141,8 +142,8 @@ export const AIAdvisor: React.FC<AIAdvisorProps> = ({ transactions, goals, userN
                                 >
                                     <div
                                         className={`max-w-[85%] p-3 rounded-2xl ${msg.sender === 'user'
-                                                ? 'bg-indigo-600 text-white rounded-br-none'
-                                                : 'bg-slate-800 text-slate-200 border border-slate-700 rounded-bl-none shadow-sm'
+                                            ? 'bg-indigo-600 text-white rounded-br-none'
+                                            : 'bg-slate-800 text-slate-200 border border-slate-700 rounded-bl-none shadow-sm'
                                             }`}
                                     >
                                         <p className="leading-relaxed">{msg.text}</p>
