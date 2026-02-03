@@ -427,7 +427,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                 )}
 
                 {/* AI Advisor Chat (Global) */}
-                <AIAdvisor userId={user} />
+                <AIAdvisor userId={user} transactions={transactions} goals={goals} />
 
 
 
