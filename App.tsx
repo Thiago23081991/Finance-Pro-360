@@ -13,6 +13,7 @@ import { Debts } from './components/Debts';
 import { Login } from './components/Login';
 import { Presell } from './components/Presell';
 import { Toast } from './components/Toast';
+import { InstallPrompt } from './components/InstallPrompt';
 import { Inbox } from './components/Inbox';
 import { Tutorial } from './components/Tutorial';
 import { FilterBar } from './components/FilterBar';
@@ -301,10 +302,10 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                         <ThemeSelector />
                         <button onClick={() => updateConfig({ ...config, theme: config.theme === 'dark' ? 'light' : 'dark' })} className="p-2 text-slate-500 dark:hover:bg-slate-800 rounded-full transition-colors">{config.theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}</button>
                         <Notifications transactions={transactions} goals={goals} debts={debts} config={config} onNavigate={(tab) => { handleTabChange(tab as Tab); if (tab === 'despesas') setExpenseSubTab('cards'); }} />
-                        <button onClick={() => setShowImportModal(true)} className="p-2 text-slate-500 dark:hover:bg-slate-800 rounded-full transition-colors" title="Importar Extrato"><Upload size={20} /></button>
-                        <button onClick={() => setShowRecurringExpenses(true)} className="p-2 text-slate-500 dark:hover:bg-slate-800 rounded-full transition-colors" title="Organizador de Assinaturas"><Receipt size={20} /></button>
-                        <button onClick={() => setShowCalculatorModal(true)} className="p-2 text-slate-500 dark:hover:bg-slate-800 rounded-full transition-colors"><Calculator size={20} /></button>
-                        <button onClick={() => setShowInbox(true)} className="relative p-2 text-slate-500 dark:hover:bg-slate-800 rounded-full transition-colors"><Mail size={20} />{unreadMessages > 0 && <span className="absolute top-1 right-1 w-3 h-3 bg-brand-gold rounded-full border-2 border-white dark:border-slate-900 animate-pulse"></span>}</button>
+                        <button onClick={() => setShowImportModal(true)} className="p-3 text-slate-500 dark:hover:bg-slate-800 rounded-full transition-colors active:bg-slate-100" title="Importar Extrato"><Upload size={20} /></button>
+                        <button onClick={() => setShowRecurringExpenses(true)} className="p-3 text-slate-500 dark:hover:bg-slate-800 rounded-full transition-colors active:bg-slate-100" title="Organizador de Assinaturas"><Receipt size={20} /></button>
+                        <button onClick={() => setShowCalculatorModal(true)} className="p-3 text-slate-500 dark:hover:bg-slate-800 rounded-full transition-colors active:bg-slate-100"><Calculator size={20} /></button>
+                        <button onClick={() => setShowInbox(true)} className="relative p-3 text-slate-500 dark:hover:bg-slate-800 rounded-full transition-colors active:bg-slate-100"><Mail size={20} />{unreadMessages > 0 && <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-brand-gold rounded-full border-2 border-white dark:border-slate-900 animate-pulse"></span>}</button>
                     </div>
                 </header>
 
@@ -409,7 +410,16 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                 </button>
 
                 <nav className="md:hidden fixed bottom-0 w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 z-50 flex justify-around items-center pb-safe pt-1 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
-                    {(['controle', 'receitas', 'despesas', 'cursos', 'config'] as Tab[]).map(t => (<button key={t} onClick={() => handleTabChange(t)} className={`flex flex-col items-center justify-center p-2 min-w-[70px] ${activeTab === t ? 'text-brand-blue dark:text-brand-gold' : 'text-slate-400'}`}>{TAB_METADATA[t].icon}<span className="text-[10px] mt-1 font-medium">{TAB_METADATA[t].label}</span></button>))}
+                    {(['controle', 'receitas', 'despesas', 'cursos', 'config'] as Tab[]).map(t => (
+                        <button
+                            key={t}
+                            onClick={() => handleTabChange(t)}
+                            className={`flex flex-col items-center justify-center p-2 min-w-[70px] min-h-[60px] active:scale-95 transition-transform ${activeTab === t ? 'text-brand-blue dark:text-brand-gold' : 'text-slate-400'}`}
+                        >
+                            {TAB_METADATA[t].icon}
+                            <span className="text-[10px] mt-1 font-medium">{TAB_METADATA[t].label}</span>
+                        </button>
+                    ))}
                 </nav>
                 {toastMessage && <Toast message={toastMessage} onClose={() => setToastMessage(null)} actionLabel={toastAction?.label} onAction={toastAction?.fn} />}
                 {showTutorial && <Tutorial onComplete={handleTutorialComplete} onStepChange={handleTutorialStepChange} />}
@@ -425,6 +435,9 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                         config={config}
                     />
                 )}
+
+                {/* Prompt de Instalação PWA */}
+                <InstallPrompt />
 
                 {/* AI Advisor Chat (Global) */}
                 <AIAdvisor userId={user} transactions={transactions} goals={goals} />
