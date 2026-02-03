@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, X, Check, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
+import { Sparkles, X, Check, ArrowRight, Loader2, AlertCircle, Mic } from 'lucide-react';
 import { GeminiService } from '../services/GeminiService';
 import { Transaction } from '../types';
 
@@ -14,8 +14,36 @@ interface SmartInputModalProps {
 export const SmartInputModal: React.FC<SmartInputModalProps> = ({ isOpen, onClose, onSave, categories }) => {
     const [inputText, setInputText] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
+    const [isListening, setIsListening] = useState(false);
     const [parsedData, setParsedData] = useState<Partial<Transaction> | null>(null);
     const [error, setError] = useState('');
+
+    const startListening = () => {
+        if (!('webkitSpeechRecognition' in window)) {
+            alert('Seu navegador não suporta reconhecimento de voz. Tente usar o Google Chrome.');
+            return;
+        }
+
+        const recognition = new (window as any).webkitSpeechRecognition();
+        recognition.lang = 'pt-BR';
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        recognition.onstart = () => {
+            setIsListening(true);
+        };
+
+        recognition.onend = () => {
+            setIsListening(false);
+        };
+
+        recognition.onresult = (event: any) => {
+            const transcript = event.results[0][0].transcript;
+            setInputText(prev => prev + (prev ? ' ' : '') + transcript);
+        };
+
+        recognition.start();
+    };
 
     const handleAnalyze = async () => {
         if (!inputText.trim()) return;
@@ -77,13 +105,22 @@ export const SmartInputModal: React.FC<SmartInputModalProps> = ({ isOpen, onClos
                         <div className="p-6 space-y-6">
                             {!parsedData ? (
                                 <div className="space-y-4">
-                                    <textarea
-                                        value={inputText}
-                                        onChange={(e) => setInputText(e.target.value)}
-                                        placeholder="Ex: Uber 15,90 hoje tarde..."
-                                        className="w-full h-32 p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 focus:border-violet-500 focus:ring-0 outline-none resize-none text-lg transition-colors"
-                                        autoFocus
-                                    />
+                                    <div className="relative">
+                                        <textarea
+                                            value={inputText}
+                                            onChange={(e) => setInputText(e.target.value)}
+                                            placeholder="Digite ou fale: 'Mercado 200 reais'..."
+                                            className="w-full h-32 p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 focus:border-violet-500 focus:ring-0 outline-none resize-none text-lg transition-colors"
+                                            autoFocus
+                                        />
+                                        <button
+                                            onClick={startListening}
+                                            className={`absolute bottom-4 right-4 p-3 rounded-full shadow-md transition-all ${isListening ? 'bg-rose-500 text-white animate-pulse' : 'bg-white dark:bg-slate-700 text-slate-500 hover:text-violet-600'}`}
+                                            title="Falar"
+                                        >
+                                            <Mic size={20} />
+                                        </button>
+                                    </div>
 
                                     {error && (
                                         <div className="flex items-center gap-2 text-rose-500 text-sm bg-rose-50 dark:bg-rose-900/20 p-3 rounded-lg">
