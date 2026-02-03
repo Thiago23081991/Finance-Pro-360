@@ -10,6 +10,9 @@ import { MonthlyReportModal } from './MonthlyReportModal';
 import { ProspectingModal } from './ProspectingModal';
 import { PremiumBanner } from './PremiumBanner';
 import { AIAdvisor } from './AIAdvisor';
+import { ForecastingService } from '../services/ForecastingService';
+import { CashFlowChart } from './CashFlowChart';
+import { ForecastItem } from '../types';
 
 interface DashboardProps {
     transactions: Transaction[];
@@ -52,6 +55,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
         const balance = income - expense;
         return { income, expense, balance };
     }, [filteredTransactions]);
+
+    const forecastData = useMemo(() => {
+        // Calculate current total balance (simplified for MVP: assume 0 start or sum of all past txs)
+        const currentBalance = transactions
+            .filter(t => new Date(t.date) <= new Date())
+            .reduce((sum, t) => sum + (t.type === 'income' ? t.amount : -t.amount), 0);
+
+        return ForecastingService.generateForecast(transactions, currentBalance);
+    }, [transactions]);
 
     // --- INVESTIMENTOS ---
     const [investments, setInvestments] = useState<Investment[]>([]);
@@ -528,6 +540,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
 
             {/* KPI Cards & Highlights */}
             <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+                <div className="col-span-1 lg:col-span-3 mb-6">
+                    <CashFlowChart
+                        data={forecastData.projectedBalance}
+                        predictedItems={forecastData.forecast}
+                    />
+                </div>
 
                 {/* Coluna 1: KPIs Principais (Receita, Despesa, Saldo) */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-3 content-start">

@@ -135,6 +135,15 @@ export interface SystemStats {
   activeLicenses: number;
 }
 
+export interface ForecastItem {
+  date: string;
+  amount: number;
+  description: string;
+  type: 'income' | 'expense';
+  status: 'predicted' | 'confirmed';
+  category?: string;
+}
+
 export interface UserProfile {
   id: string;
   name?: string; // Nome completo
