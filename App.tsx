@@ -250,7 +250,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
     }
 
     return (
-        <div className="flex h-screen bg-background text-textMain font-sans overflow-hidden transition-colors duration-300">
+        <div className="flex h-[100dvh] bg-background text-textMain font-sans overflow-hidden transition-colors duration-300">
             <aside className="w-64 bg-brand-blue text-white flex flex-col shadow-xl z-20 hidden md:flex border-r border-slate-800/50">
                 <div className="p-6 border-b border-white/10"><Logo className="w-9 h-9" textClassName="text-white" /></div>
                 <nav className="flex-1 px-4 space-y-1 mt-4 overflow-y-auto custom-scrollbar">
@@ -299,7 +299,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                     <div className="flex items-center gap-3"><button onClick={() => setIsMobileMenuOpen(true)} className="md:hidden text-slate-500 hover:bg-slate-100 p-2 rounded-lg -ml-2"><Menu /></button><h2 className="text-lg font-semibold dark:text-white truncate max-w-[200px]">{TAB_METADATA[activeTab].pageTitle}</h2></div>
                     <div className="flex items-center gap-2 sm:gap-4">
                         <div className="hidden sm:block"><FilterBar filter={filter} setFilter={setFilter} activeTab={activeTab} config={config} /></div>
-                        <ThemeSelector />
+                        <div className="hidden md:block"><ThemeSelector /></div>
                         <button onClick={() => updateConfig({ ...config, theme: config.theme === 'dark' ? 'light' : 'dark' })} className="p-2 text-slate-500 dark:hover:bg-slate-800 rounded-full transition-colors">{config.theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}</button>
                         <Notifications transactions={transactions} goals={goals} debts={debts} config={config} onNavigate={(tab) => { handleTabChange(tab as Tab); if (tab === 'despesas') setExpenseSubTab('cards'); }} />
                         <button onClick={() => setShowImportModal(true)} className="p-3 text-slate-500 dark:hover:bg-slate-800 rounded-full transition-colors active:bg-slate-100" title="Importar Extrato"><Upload size={20} /></button>

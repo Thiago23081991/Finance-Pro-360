@@ -279,7 +279,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
             </div>
 
             {/* UPGRADE - ESCOLHA DE PLANOS */}
-            <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-black p-8 rounded-2xl shadow-xl border border-slate-700 relative overflow-hidden">
+            <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-black p-4 sm:p-8 rounded-2xl shadow-xl border border-slate-700 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none -mr-32 -mt-32"></div>
 
                 <div className="relative z-10 flex flex-col lg:flex-row gap-8 items-start">
@@ -377,7 +377,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                     Aparência e Sistema
                 </h3>
 
-                <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900 rounded-lg flex items-center justify-between">
+                <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>
                         <h4 className="text-sm font-bold text-blue-900 dark:text-blue-100 flex items-center gap-2">
                             <Bell size={16} /> Notificações Push
@@ -399,7 +399,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-xl">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-slate-50 dark:bg-slate-900 rounded-xl">
                         <div>
                             <p className="text-sm font-bold text-slate-800 dark:text-white">Tema Visual</p>
                             <p className="text-[11px] text-slate-500">Claro ou Escuro</p>
@@ -409,7 +409,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                             <button onClick={() => onUpdateConfig({ ...config, theme: 'dark' })} className={`px-4 py-1.5 rounded-md text-xs font-black transition-all ${config.theme === 'dark' ? 'bg-blue-600 text-white' : 'text-slate-500'}`}>ESCURO</button>
                         </div>
                     </div>
-                    <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-xl">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-slate-50 dark:bg-slate-900 rounded-xl">
                         <div>
                             <p className="text-sm font-bold text-slate-800 dark:text-white">Moeda</p>
                             <p className="text-[11px] text-slate-500">Formatação de valores</p>
@@ -518,11 +518,11 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                             <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
                                 <CreditCard size={14} /> Configuração de Cartão
                             </label>
-                            <div className="flex items-center gap-4 bg-slate-50 dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
-                                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
+                            <div className="flex flex-col sm:flex-row items-center gap-4 bg-slate-50 dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
+                                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg hidden sm:block">
                                     <Calendar size={20} />
                                 </div>
-                                <div className="flex-1">
+                                <div className="flex-1 text-center sm:text-left">
                                     <p className="text-sm font-bold text-slate-800 dark:text-white">Dia do Vencimento</p>
                                     <p className="text-[10px] text-slate-500">Para alertas de fatura</p>
                                 </div>
@@ -532,7 +532,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                                     max="31"
                                     value={dueDate}
                                     onChange={(e) => handleDueDateChange(e.target.value)}
-                                    className="w-16 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1 text-center font-bold text-slate-800 dark:text-white outline-none focus:border-blue-500"
+                                    className="w-full sm:w-16 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-2 sm:py-1 text-center font-bold text-slate-800 dark:text-white outline-none focus:border-blue-500"
                                 />
                             </div>
                         </div>
