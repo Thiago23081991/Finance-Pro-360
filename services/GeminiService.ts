@@ -68,10 +68,22 @@ export const GeminiService = {
 
         // Enhanced Regex to capture amounts like: R$ 30, 30 reais, 30.50, 30,00
         // 1. Look for explicit currency (R$ 30) or suffix (30 reais)
+        // Matches "r$", "r$ ", "rs", "rs " followed optionally by space, then digits
         const currencyMatch = lowerText.match(/(?:r\$|rs)\s*([\d.,]+)/) || lowerText.match(/([\d.,]+)\s*(?:reais|real|conto)/);
 
         if (currencyMatch) {
-            amount = parseFloat(currencyMatch[1].replace(',', '.'));
+            // Replace all dots with nothing, then comma with dot IF it's likely thousands separator?
+            // Actually, for simple amounts like 1.200,50 vs 1,200.50 vs 300, it's tricky.
+            // But for "200" or "30,00" or "30.00":
+            let valStr = currencyMatch[1];
+            // If strictly integer (no dot/comma), easy.
+            if (!valStr.includes(',') && !valStr.includes('.')) {
+                amount = parseFloat(valStr);
+            } else {
+                // Replace comma with dot for standard JS parsing
+                valStr = valStr.replace(',', '.');
+                amount = parseFloat(valStr);
+            }
         } else {
             // 2. Fallback: look for the first standalone number that isn't a date (simple heuristic)
             // This is risky but helps for "Uber 15.90"
@@ -113,7 +125,7 @@ export const GeminiService = {
         // Description Cleanup
         let description = text;
         // Remove common stop words at start
-        description = description.replace(/^(gastei|paguei|comprei|foi|fiz|recebi)\s+/i, '');
+        description = description.replace(/^(gastei|paguei|comprei|foi|fiz|recebi|incluir|add|adicionar|inserir)\s+/i, '');
         // Remove amount if present in text to clean up description slightly (optional, but nice)
         // For now, let's just capitalize first letter
         if (description.length > 0) {
