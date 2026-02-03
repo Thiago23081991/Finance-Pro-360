@@ -7,7 +7,7 @@ import {
     Eye, EyeOff, RefreshCw, Key, Copy, Smartphone, Lock, Loader2,
     Users, BarChart3, Wallet, Database, ShieldOff, ShieldCheck,
     Wrench, UserPlus, AlertTriangle, Megaphone, Search, Bell,
-    LayoutDashboard, LogOut, ChevronRight
+    LayoutDashboard, LogOut, ChevronRight, Download
 } from 'lucide-react';
 import { generateId, generateLicenseKey, formatCurrency } from '../utils';
 
@@ -106,6 +106,45 @@ export const AdminPanel: React.FC = () => {
         } catch (e: any) {
             alert(e.message);
         }
+    };
+
+    const handleExportLeads = () => {
+        // Filter users who are not active premium (leads)
+        const leads = profiles.filter(p => p.licenseStatus !== 'active');
+
+        if (leads.length === 0) {
+            alert("Nenhum lead encontrado para exportação.");
+            return;
+        }
+
+        // CSV Header
+        const headers = ['Nome', 'Email', 'Telefone', 'Data Cadastro', 'Status'];
+
+        // CSV Rows
+        const rows = leads.map(p => [
+            p.name || 'Sem Nome',
+            p.email,
+            p.phone || '',
+            p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '',
+            'Inativo'
+        ]);
+
+        // Combine into CSV string
+        const csvContent = [
+            headers.join(','),
+            ...rows.map(row => row.join(','))
+        ].join('\n');
+
+        // Trigger Download
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `leads_export_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
 
     const filteredUsers = profiles.filter(p =>
@@ -267,6 +306,12 @@ export const AdminPanel: React.FC = () => {
                                     className="bg-transparent outline-none text-sm w-full dark:text-white"
                                 />
                             </div>
+                            <button
+                                onClick={handleExportLeads}
+                                className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold text-sm flex items-center gap-2 shadow-emerald-500/20 shadow-lg transition-all active:scale-95 whitespace-nowrap"
+                            >
+                                <Download size={18} /> Exportar Leads (CSV)
+                            </button>
                         </div>
 
                         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">

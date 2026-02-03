@@ -559,14 +559,16 @@ export class DBService {
   }
 
   static async getAllProfiles(): Promise<UserProfile[]> {
-    const { data, error } = await supabase.from('profiles').select('id, email, username, license_status, created_at');
+    // Attempt to fetch phone if it exists (using * is safer if schema varies)
+    const { data, error } = await supabase.from('profiles').select('*');
     if (error) throw new Error(error.message);
 
     return data.map((p: any) => ({
       id: p.id,
-      name: p.username,
+      name: p.username, // mapping username column to name prop as per legacy
       email: p.email,
       username: p.username,
+      phone: p.phone, // Include phone
       licenseStatus: p.license_status,
       createdAt: p.created_at
     }));

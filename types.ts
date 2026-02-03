@@ -140,6 +140,7 @@ export interface UserProfile {
   name?: string; // Nome completo
   email: string;
   username: string;
+  phone?: string; // New field for remarketing
   licenseStatus?: string;
   createdAt?: string; // If available
   isGhost?: boolean; // Flag para usuários detectados via pedidos mas sem perfil

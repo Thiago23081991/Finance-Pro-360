@@ -9,6 +9,7 @@ import { DBService } from '../db';
 import { MonthlyReportModal } from './MonthlyReportModal';
 import { ProspectingModal } from './ProspectingModal';
 import { PremiumBanner } from './PremiumBanner';
+import { AIAdvisor } from './AIAdvisor';
 
 interface DashboardProps {
     transactions: Transaction[];
@@ -496,6 +497,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
 
             {/* Premium Banner (Show only for free users) */}
             {!isPremium && <PremiumBanner />}
+
+            {/* AI Advisor (CFO) */}
+            < AIAdvisor transactions={transactions} goals={goals} isPremium={isPremium} />
 
             {/* Action Bar / Header */}
             <motion.div variants={itemVariants} className="flex justify-between items-center bg-gradient-to-r from-surfaceHighlight to-surface p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">

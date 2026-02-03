@@ -1,0 +1,133 @@
+Sub GerarFinanceProLite()
+    ' ==========================================
+    ' GERADOR AUTOMÁTICO - FINANCE PRO 360 LITE
+    ' ==========================================
+    Dim wsDash As Worksheet
+    Dim wsLanc As Worksheet
+    Dim wsMeta As Worksheet
+    Dim wsConfig As Worksheet
+    Dim wb As Workbook
+    
+    Application.ScreenUpdating = False
+    
+    ' Criar novo arquivo
+    Set wb = Workbooks.Add
+    
+    ' --- 1. CONFIGURAÇÕES ---
+    Set wsConfig = wb.Sheets.Add(After:=wb.Sheets(wb.Sheets.Count))
+    wsConfig.Name = "Config"
+    
+    ' Categorias
+    wsConfig.Range("A1").Value = "Categorias Receita"
+    wsConfig.Range("A2").Value = "Salário"
+    wsConfig.Range("A3").Value = "Freelance"
+    wsConfig.Range("A4").Value = "Investimentos"
+    wsConfig.Range("A5").Value = "Outros"
+    
+    wsConfig.Range("B1").Value = "Categorias Despesa"
+    wsConfig.Range("B2").Value = "Alimentação"
+    wsConfig.Range("B3").Value = "Moradia"
+    wsConfig.Range("B4").Value = "Transporte"
+    wsConfig.Range("B5").Value = "Lazer"
+    wsConfig.Range("B6").Value = "Saúde"
+    wsConfig.Range("B7").Value = "Educação"
+    
+    wsConfig.Range("C1").Value = "Bancos / Carteiras"
+    wsConfig.Range("C2").Value = "Nubank"
+    wsConfig.Range("C3").Value = "Itaú"
+    wsConfig.Range("C4").Value = "Dinheiro"
+    wsConfig.Range("C5").Value = "Outros"
+    
+    ' Formatar Config
+    formatarCabecalho wsConfig.Range("A1:C1")
+    
+    ' --- 2. LANÇAMENTOS ---
+    Set wsLanc = wb.Sheets.Add(Before:=wsConfig)
+    wsLanc.Name = "Lançamentos"
+    
+    ' Cabeçalhos
+    wsLanc.Range("B2").Value = "Data"
+    wsLanc.Range("C2").Value = "Descrição"
+    wsLanc.Range("D2").Value = "Categoria"
+    wsLanc.Range("E2").Value = "Tipo"
+    wsLanc.Range("F2").Value = "Valor"
+    wsLanc.Range("G2").Value = "Conta/Banco"
+    wsLanc.Range("H2").Value = "Status"
+    
+    ' Formatar Tabela
+    Dim tblLanc As ListObject
+    Set tblLanc = wsLanc.ListObjects.Add(xlSrcRange, wsLanc.Range("B2:H10"), , xlYes)
+    tblLanc.Name = "TabelaLancamentos"
+    tblLanc.TableStyle = "TableStyleMedium9" ' Azul
+    
+    ' Validação de Dados (Tipo)
+    With wsLanc.Range("E3:E1000").Validation
+        .Delete
+        .Add Type:=xlValidateList, AlertStyle:=xlValidAlertStop, Formula1:="Receita,Despesa"
+    End With
+    
+    ' Validação (Status)
+    With wsLanc.Range("H3:H1000").Validation
+        .Delete
+        .Add Type:=xlValidateList, AlertStyle:=xlValidAlertStop, Formula1:="Pago,Pendente"
+    End With
+    
+    ' Formatação Numerica
+    wsLanc.Range("F3:F1000").NumberFormat = "R$ #,##0.00"
+    wsLanc.Columns("B:H").AutoFit
+    
+    ' --- 3. DASHBOARD ---
+    Set wsDash = wb.Sheets.Add(Before:=wsLanc)
+    wsDash.Name = "Dashboard"
+    
+    ' Título
+    wsDash.Range("B2").Value = "FINANCE PRO 360 LITE"
+    wsDash.Range("B2").Font.Size = 24
+    wsDash.Range("B2").Font.Bold = True
+    wsDash.Range("B2").Font.Color = RGB(30, 58, 138) ' Azul Profundo
+    
+    ' Cards KPI
+    criarCard wsDash, "B5", "RECEITAS", "=SUMIF(TabelaLancamentos[Tipo],""Receita"",TabelaLancamentos[Valor])", RGB(16, 185, 129) ' Verde
+    criarCard wsDash, "E5", "DESPESAS", "=SUMIF(TabelaLancamentos[Tipo],""Despesa"",TabelaLancamentos[Valor])", RGB(239, 68, 68) ' Vermelho
+    criarCard wsDash, "H5", "SALDO ATUAL", "=B7-E7", RGB(59, 130, 246) ' Azul
+    
+    ' Remover linhas de grade
+    ActiveWindow.DisplayGridlines = False
+    
+    MsgBox "Planilha Finance Pro 360 Lite gerada com sucesso!", vbInformation
+    Application.ScreenUpdating = True
+End Sub
+
+Sub formatarCabecalho(rng As Range)
+    With rng
+        .Interior.Color = RGB(30, 58, 138)
+        .Font.Color = vbWhite
+        .Font.Bold = True
+        .HorizontalAlignment = xlCenter
+    End With
+End Sub
+
+Sub criarCard(ws As Worksheet, cellAddr As String, titulo As String, formula As String, cor As Long)
+    Dim rng As Range
+    Set rng = ws.Range(cellAddr)
+    
+    ' Titulo
+    rng.Value = titulo
+    rng.Font.Bold = True
+    rng.Font.Color = vbWhite
+    rng.Interior.Color = cor
+    rng.HorizontalAlignment = xlCenter
+    
+    ' Valor
+    Dim valorRng As Range
+    Set valorRng = rng.Offset(2, 0)
+    valorRng.Formula = formula
+    valorRng.NumberFormat = "R$ #,##0.00"
+    valorRng.Font.Size = 16
+    valorRng.Font.Bold = True
+    
+    ' Borda
+    With ws.Range(rng, rng.Offset(3, 1))
+        .BorderAround xlContinuous, xlMedium
+    End With
+End Sub

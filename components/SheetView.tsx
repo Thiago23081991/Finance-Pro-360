@@ -1,8 +1,8 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
+import { SmartInputModal } from './SmartInputModal';
 import { Transaction, TransactionType } from '../types';
 import { formatCurrency, generateId, formatDateRaw } from '../utils';
-import { Plus, Trash2, Save, X, CalendarClock, AlertCircle, Search, Filter, XCircle, Utensils, Car, Home, HeartPulse, PartyPopper, GraduationCap, Banknote, ShoppingBag, Zap, CircleDollarSign, Edit2, ArrowUp, ArrowDown, Calendar, CreditCard, RefreshCw } from 'lucide-react';
+import { Plus, Trash2, Save, X, CalendarClock, AlertCircle, Search, Filter, XCircle, Utensils, Car, Home, HeartPulse, PartyPopper, GraduationCap, Banknote, ShoppingBag, Zap, CircleDollarSign, Edit2, ArrowUp, ArrowDown, Calendar, CreditCard, RefreshCw, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface SheetViewProps {
@@ -60,6 +60,56 @@ export const SheetView: React.FC<SheetViewProps> = ({
         };
     }, []);
 
+    useEffect(() => {
+        setIsAdding(false);
+        setEditingId(null);
+        setShowFilters(false);
+        setSearchTerm('');
+        setFilterCategory('');
+        setFilterPaymentMethod('');
+        // Reset to current month range, but allow future dates by default
+        setStartDate(firstDayOfMonth);
+        setEndDate(''); // Allow future dates to show up by default
+        setMinValue('');
+        setMaxValue('');
+        setNewDate(todayStr);
+        setNewAmount('');
+        setNewDesc('');
+        setInstallments(1);
+        setIsRecurring(false);
+        setDateError('');
+        // Ensure default category is valid if list changes (optional, but good practice)
+        if (categories.length > 0) setNewCategory(categories[0]);
+        if (paymentMethods.length > 0) setNewPayment(paymentMethods[0]);
+    }, [type, categories, paymentMethods, todayStr, firstDayOfMonth, lastDayOfMonth]);
+
+    const [isSmartInputOpen, setIsSmartInputOpen] = useState(false);
+
+    const handleSmartSave = (partialT: Partial<Transaction>) => {
+        const t: Transaction = {
+            id: generateId(),
+            userId: 'temp',
+            type: type, // Force current sheet type for safety, or we could trust the AI
+            date: partialT.date || todayStr,
+            amount: partialT.amount || 0,
+            category: partialT.category || categories[0],
+            description: partialT.description || 'Smart Input',
+            paymentMethod: partialT.paymentMethod,
+            isRecurring: false
+        };
+
+        onAdd(t);
+
+        // Check visibility
+        const isOutsideView = (t.date < startDate) || (t.date > endDate && endDate !== '');
+        if (isOutsideView) {
+            setStartDate('');
+            setEndDate('');
+            setSortConfig({ key: 'date', direction: 'desc' });
+            setShowFilters(true);
+        }
+    };
+
     const [isAdding, setIsAdding] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -69,12 +119,12 @@ export const SheetView: React.FC<SheetViewProps> = ({
     const [filterCategory, setFilterCategory] = useState('');
     const [filterPaymentMethod, setFilterPaymentMethod] = useState(''); // New Payment Filter
     const [startDate, setStartDate] = useState(firstDayOfMonth); // Default to current month start
-    const [endDate, setEndDate] = useState(lastDayOfMonth);     // Default to current month end
+    const [endDate, setEndDate] = useState('');     // Default: No end date limit (shows future)
     const [minValue, setMinValue] = useState('');
     const [maxValue, setMaxValue] = useState('');
 
     // --- Sorting State ---
-    const [sortConfig, setSortConfig] = useState<{ key: 'date' | 'amount'; direction: 'asc' | 'desc' }>({ key: 'date', direction: 'asc' });
+    const [sortConfig, setSortConfig] = useState<{ key: 'date' | 'amount'; direction: 'asc' | 'desc' }>({ key: 'date', direction: 'desc' });
 
     // --- New Transaction State ---
     const [newDate, setNewDate] = useState(todayStr);
@@ -98,9 +148,9 @@ export const SheetView: React.FC<SheetViewProps> = ({
         setSearchTerm('');
         setFilterCategory('');
         setFilterPaymentMethod('');
-        // Reset to current month range instead of showing all
+        // Reset to current month range, but allow future dates by default
         setStartDate(firstDayOfMonth);
-        setEndDate(lastDayOfMonth);
+        setEndDate(''); // Allow future dates to show up by default
         setMinValue('');
         setMaxValue('');
         setNewDate(todayStr);
@@ -134,20 +184,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
         // Basic fields check
         if (!newAmount || !newCategory || !newDate) return;
 
-        // Future Date Validation
-        const [y, m, d] = newDate.split('-').map(Number);
-        // Create date object treating input as local time (00:00:00)
-        const inputDate = new Date(y, m - 1, d);
 
-        // Get today's date normalized to 00:00:00 for comparison
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        // Logic: If date is in the future AND it is NOT an installment (installments <= 1) AND NOT RECURRING
-        if (inputDate > today && installments <= 1 && !isRecurring) {
-            setDateError('Data futura não permitida para lançamentos únicos.');
-            return;
-        }
 
         const amountVal = parseFloat(newAmount);
 
@@ -219,6 +256,17 @@ export const SheetView: React.FC<SheetViewProps> = ({
             } else {
                 transactionsToAdd.forEach(t => onAdd(t));
             }
+        }
+
+        // Check if the new date is outside the current view
+        const isOutsideView = (newDate < startDate) || (newDate > endDate);
+
+        // If outside view, clear filters to show everything and ensure visibility
+        if (isOutsideView) {
+            setStartDate('');
+            setEndDate('');
+            setSortConfig({ key: 'date', direction: 'desc' });
+            setShowFilters(true);
         }
 
         // Reset form
@@ -364,6 +412,14 @@ export const SheetView: React.FC<SheetViewProps> = ({
                     </button>
                     {/* Desktop Button */}
                     <button
+                        onClick={() => setIsSmartInputOpen(true)}
+                        className="hidden md:flex items-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-4 py-1.5 rounded-sm text-xs font-bold hover:shadow-lg hover:shadow-indigo-500/30 transition-all active:scale-95 whitespace-nowrap border border-white/10"
+                    >
+                        <Sparkles size={14} className="text-yellow-300" />
+                        Smart Add
+                    </button>
+
+                    <button
                         onClick={() => { setIsAdding(true); setEditingId(null); setInstallments(1); setIsRecurring(false); setNewDesc(''); setNewAmount(''); }}
                         className="hidden md:flex items-center gap-2 bg-emerald-600 text-white px-4 py-1.5 rounded-sm text-xs font-medium hover:bg-emerald-700 transition-colors shadow-sm whitespace-nowrap"
                     >
@@ -494,12 +550,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
                             onChange={(e) => { setNewDate(e.target.value); setDateError(''); }}
                             className={`w-full border ${dateError ? 'border-rose-500' : 'border-slate-300 dark:border-slate-600'} dark:bg-slate-800 dark:text-white rounded-sm px-2 py-1.5 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none`}
                         />
-                        {dateError && (
-                            <div className="absolute top-full mt-1 left-4 z-10 bg-rose-100 text-rose-700 text-[10px] px-2 py-1 rounded shadow-md border border-rose-200 flex items-center gap-1">
-                                <AlertCircle size={10} />
-                                {dateError}
-                            </div>
-                        )}
+
                     </div>
                     <div className="col-span-6 md:col-span-2">
                         <label className="block text-[10px] font-bold text-textMuted mb-1 uppercase">Valor {installments > 1 ? '(Mensal)' : ''}</label>
@@ -795,6 +846,13 @@ export const SheetView: React.FC<SheetViewProps> = ({
                     <Plus size={28} />
                 </button>
             )}
+
+            <SmartInputModal
+                isOpen={isSmartInputOpen}
+                onClose={() => setIsSmartInputOpen(false)}
+                onSave={handleSmartSave}
+                categories={categories}
+            />
         </div>
     );
 };
