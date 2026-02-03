@@ -61,42 +61,77 @@ export const GeminiService = {
 
     async parseTransaction(text: string): Promise<Partial<Transaction>> {
         console.log("Parsing transaction from text:", text);
-        await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate processing delay
+        await new Promise(resolve => setTimeout(resolve, 800)); // Simulate processing delay
 
-        // Simple Regex Mock Logic for Demo Purposes
-        // Extracts amount (R$ XX,XX or XX.XX), date (DD/MM), and guesses category
         const lowerText = text.toLowerCase();
-
         let amount = 0;
-        const amountMatch = text.match(/R\$\s?(\d+[,.]\d+)/i) || text.match(/(\d+[,.]\d+)/);
-        if (amountMatch) {
-            amount = parseFloat(amountMatch[1].replace(',', '.'));
+
+        // Enhanced Regex to capture amounts like: R$ 30, 30 reais, 30.50, 30,00
+        // 1. Look for explicit currency (R$ 30) or suffix (30 reais)
+        const currencyMatch = lowerText.match(/(?:r\$|rs)\s*([\d.,]+)/) || lowerText.match(/([\d.,]+)\s*(?:reais|real|conto)/);
+
+        if (currencyMatch) {
+            amount = parseFloat(currencyMatch[1].replace(',', '.'));
+        } else {
+            // 2. Fallback: look for the first standalone number that isn't a date (simple heuristic)
+            // This is risky but helps for "Uber 15.90"
+            const numberMatch = text.match(/\b(\d+[,.]?\d*)\b/);
+            if (numberMatch) {
+                // Verify it's not part of a date like 03/02
+                if (!text.includes(numberMatch[0] + '/')) {
+                    amount = parseFloat(numberMatch[0].replace(',', '.'));
+                }
+            }
         }
 
         let date = new Date().toISOString().split('T')[0]; // Default to today
-        const dateMatch = text.match(/(\d{1,2})\/(\d{1,2})/);
-        if (dateMatch) {
-            const currentYear = new Date().getFullYear();
-            date = `${currentYear}-${dateMatch[2].padStart(2, '0')}-${dateMatch[1].padStart(2, '0')}`;
+
+        // Match today/yesterday
+        if (lowerText.includes('ontem')) {
+            const d = new Date();
+            d.setDate(d.getDate() - 1);
+            date = d.toISOString().split('T')[0];
+        } else {
+            // Match DD/MM
+            const dateMatch = text.match(/(\d{1,2})\/(\d{1,2})/);
+            if (dateMatch) {
+                const currentYear = new Date().getFullYear();
+                date = `${currentYear}-${dateMatch[2].padStart(2, '0')}-${dateMatch[1].padStart(2, '0')}`;
+            }
         }
 
         let category = 'Outros';
-        if (lowerText.includes('uber') || lowerText.includes('taxi') || lowerText.includes('combustivel')) category = 'Transporte';
-        if (lowerText.includes('ifood') || lowerText.includes('restaurante') || lowerText.includes('mercado')) category = 'Alimentação';
-        if (lowerText.includes('luz') || lowerText.includes('internet') || lowerText.includes('aluguel')) category = 'Moradia';
-        if (lowerText.includes('cinema') || lowerText.includes('netflix')) category = 'Lazer';
+        // Expanded Keywords
+        if (lowerText.match(/(uber|taxi|99|combustivel|gasolina|posto|onibus|passagem|transporte)/)) category = 'Transporte';
+        if (lowerText.match(/(ifood|rappi|restaurante|mercado|almoço|jantar|lanche|pizza|açaí|padaria|supermercado|comida)/)) category = 'Alimentação';
+        if (lowerText.match(/(aluguel|condominio|luz|agua|energia|internet|net|claro|vivo|tim|oi|casa|limpeza)/)) category = 'Moradia';
+        if (lowerText.match(/(cinema|netflix|spotify|prime|hbo|jogo|steam|teatro|show|lazer|viagem)/)) category = 'Lazer';
+        if (lowerText.match(/(farmacia|remedio|medico|dentista|exame|saude|convênio)/)) category = 'Saúde';
+        if (lowerText.match(/(curso|livro|escola|faculdade|aula|educacao)/)) category = 'Educação';
+        if (lowerText.match(/(salario|renda|deposito|pix recebido|lucro|venda)/)) category = 'Receitas'; // Though type needs separate handling
 
-        let description = 'Despesa identificada';
-        // Simple heuristic: take the first 3 words
-        const words = text.split(' ');
-        if (words.length > 0) description = words.slice(0, 4).join(' ');
+        // Description Cleanup
+        let description = text;
+        // Remove common stop words at start
+        description = description.replace(/^(gastei|paguei|comprei|foi|fiz|recebi)\s+/i, '');
+        // Remove amount if present in text to clean up description slightly (optional, but nice)
+        // For now, let's just capitalize first letter
+        if (description.length > 0) {
+            description = description.charAt(0).toUpperCase() + description.slice(1);
+        }
+
+        // Guess Type based on keywords or category
+        let type: 'income' | 'expense' = 'expense';
+        if (category === 'Receitas' || lowerText.match(/(recebi|ganhei|salario|pagamento)/)) {
+            type = 'income';
+        }
 
         return {
             amount,
             date,
-            category,
+            category: category === 'Receitas' && type === 'income' ? 'Salário' : category, // Default income cat
             description,
-            type: 'expense' // Default assumption
+            type
         };
     }
 };
