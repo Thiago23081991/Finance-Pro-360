@@ -83,6 +83,12 @@ export interface AppConfig {
   licenseStatus?: 'active' | 'inactive';
   // Added createdAt to allow checking if the config record exists in the database
   createdAt?: string;
+  // Gamification Fields
+  xp?: number;
+  level?: string;
+  streak?: number;
+  lastLoginDate?: string; // To calculate streak
+  unlockedBadges?: string[]; // IDs of unlocked badges
 }
 
 export interface FilterState {

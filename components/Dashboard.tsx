@@ -13,6 +13,8 @@ import { AIAdvisor } from './AIAdvisor';
 import { ForecastingService } from '../services/ForecastingService';
 import { CashFlowChart } from './CashFlowChart';
 import { ForecastItem } from '../types';
+import { GamificationWidget } from './GamificationWidget';
+import { AchievementsModal } from './AchievementsModal';
 
 interface DashboardProps {
     transactions: Transaction[];
@@ -20,6 +22,7 @@ interface DashboardProps {
     filter: FilterState;
     currency?: string;
     isPremium?: boolean;
+    config?: AppConfig;
 }
 
 const getCategoryIcon = (category: string) => {
@@ -39,8 +42,9 @@ const getCategoryIcon = (category: string) => {
 
 const CATEGORY_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#f43f5e'];
 
-export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filter, currency = 'BRL', isPremium = false }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filter, currency = 'BRL', isPremium = false, config }) => {
     const [selectedTrendCategory, setSelectedTrendCategory] = useState<string>('Alimentação');
+    const [showAchievements, setShowAchievements] = useState(false);
 
     const filteredTransactions = useMemo<Transaction[]>(() => {
         return transactions.filter(t => {
@@ -512,6 +516,22 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
 
             {/* AI Advisor (CFO) */}
             < AIAdvisor transactions={transactions} goals={goals} isPremium={isPremium} />
+
+            {/* Gamification Widget */}
+            <GamificationWidget
+                xp={config?.xp || 0}
+                levelName={config?.level || 'Bronze'}
+                streak={config?.streak || 0}
+                onClick={() => setShowAchievements(true)}
+            />
+
+            <AchievementsModal
+                isOpen={showAchievements}
+                onClose={() => setShowAchievements(false)}
+                unlockedBadges={config?.unlockedBadges || []}
+                xp={config?.xp || 0}
+                levelName={config?.level || 'Bronze'}
+            />
 
             {/* Action Bar / Header */}
             <motion.div variants={itemVariants} className="flex justify-between items-center bg-gradient-to-r from-surfaceHighlight to-surface p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">

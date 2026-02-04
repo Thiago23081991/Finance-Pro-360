@@ -27,6 +27,7 @@ import { AIAdvisor } from './components/AIAdvisor';
 import { Budget } from './components/Budget';
 import { Logo } from './components/Logo';
 import { DBService } from './db';
+import { GamificationService } from './services/GamificationService';
 import { supabase } from './supabaseClient';
 import { SubscriptionWall } from './components/SubscriptionWall';
 import { TrialModal } from './components/TrialModal';
@@ -127,6 +128,43 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
 
                 checkUnreadMessages();
 
+                // Gamification: Streak Logic
+                const todayStr = new Date().toISOString().split('T')[0];
+                const lastLoginStr = cfg.lastLoginDate ? cfg.lastLoginDate.split('T')[0] : '';
+
+                if (lastLoginStr !== todayStr) {
+                    let newStreak = 1;
+                    const yesterday = new Date();
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+                    if (lastLoginStr === yesterdayStr) {
+                        newStreak = (cfg.streak || 0) + 1;
+                    }
+
+                    const streakCfg = { ...DEFAULT_CONFIG, ...cfg, userId: user, lastLoginDate: new Date().toISOString(), streak: newStreak };
+
+                    // Check Streak Badges immediately
+                    const newBadges = GamificationService.checkAchievements(
+                        streakCfg.unlockedBadges || [],
+                        { transactions: txs, goals: gls, streak: newStreak }
+                    );
+
+                    if (newBadges.length > 0) {
+                        newBadges.forEach(b => {
+                            streakCfg.xp = (streakCfg.xp || 0) + b.xpReward;
+                            if (!streakCfg.unlockedBadges) streakCfg.unlockedBadges = [];
+                            streakCfg.unlockedBadges.push(b.id);
+                            setTimeout(() => setToastMessage(`🏆 ${b.name} (+${b.xpReward} XP)`), 1500);
+                        });
+                    }
+
+                    await DBService.saveConfig(streakCfg);
+                    setConfig(streakCfg);
+
+                    if (newStreak > 1) setTimeout(() => setToastMessage(`🔥 ${newStreak} dias em chamas!`), 1000);
+                }
+
                 // Trial Logic Implementation
                 if (cfg.licenseStatus !== 'active') {
                     const createdAt = cfg.createdAt ? new Date(cfg.createdAt) : new Date();
@@ -202,7 +240,51 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
         } catch (error) { } finally { setContentLoading(false); }
     };
 
-    const addTransaction = async (t: Transaction) => { const tWithUser = { ...t, userId: user }; await DBService.addTransaction(tWithUser); setTransactions(prev => [...prev, tWithUser]); };
+    const addTransaction = async (t: Transaction) => {
+        const tWithUser = { ...t, userId: user };
+        await DBService.addTransaction(tWithUser);
+
+        // Optimistic Update
+        const newTxs = [...transactions, tWithUser];
+        setTransactions(prev => [...prev, tWithUser]);
+
+        try {
+            // Gamification Logic
+            let newConfig = { ...config };
+            newConfig.xp = (newConfig.xp || 0) + 10;
+            const oldLevel = newConfig.level || 'Bronze';
+
+            const calculatedLevel = GamificationService.calculateLevel(newConfig.xp);
+            let levelUpMsg = '';
+            if (calculatedLevel.name !== oldLevel) {
+                newConfig.level = calculatedLevel.name;
+                levelUpMsg = `🎉 Level Up! Você agora é ${calculatedLevel.name}!`;
+            }
+
+            // Msg Priority: Level Up > Badge > Simple XP
+            if (levelUpMsg) setToastMessage(levelUpMsg);
+            else setToastMessage(`✅ Transação Salva! (+10 XP)`);
+
+            const currentBadges = newConfig.unlockedBadges || [];
+            const newBadges = GamificationService.checkAchievements(
+                currentBadges,
+                { transactions: newTxs, goals, streak: newConfig.streak || 0 }
+            );
+
+            if (newBadges.length > 0) {
+                newBadges.forEach((b, index) => {
+                    setTimeout(() => setToastMessage(`🏆 Conquista: ${b.name} (+${b.xpReward} XP)`), 2500 + (index * 2000));
+                    newConfig.xp = (newConfig.xp || 0) + b.xpReward;
+                    currentBadges.push(b.id);
+                });
+                newConfig.unlockedBadges = currentBadges;
+            }
+
+            await updateConfig(newConfig);
+        } catch (e) {
+            console.error("Gamification Error", e);
+        }
+    };
     const handleBatchImport = async (newTransactions: Transaction[]) => {
         const txsWithUser = newTransactions.map(t => ({ ...t, userId: user }));
         await DBService.addTransactions(txsWithUser);
@@ -315,7 +397,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                         <AnimatePresence mode="wait">
                             {activeTab === 'controle' && (
                                 <MotionWrapper key="controle">
-                                    <Dashboard transactions={transactions} goals={goals} filter={filter} currency={config.currency} isPremium={config.licenseStatus === 'active'} />
+                                    <Dashboard transactions={transactions} goals={goals} filter={filter} currency={config.currency} isPremium={config.licenseStatus === 'active'} config={config} />
                                 </MotionWrapper>
                             )}
                             {activeTab === 'receitas' && (
