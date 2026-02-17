@@ -856,7 +856,24 @@ export const SheetView: React.FC<SheetViewProps> = ({
             {/* Mobile Floating Action Button (FAB) - Keep existing style */}
             {!isAdding && (
                 <button
-                    onClick={() => { setIsAdding(true); setEditingId(null); setInstallments(1); setNewDesc(''); setNewAmount(''); }}
+                    onClick={() => {
+                        // Reset everything first
+                        setIsAdding(true);
+                        setEditingId(null);
+                        setInstallments(1);
+                        setIsRecurring(false);
+                        setNewDesc('');
+                        setNewAmount('');
+                        setSearchTerm('');
+                        setFilterCategory('');
+                        setFilterPaymentMethod('');
+
+                        // FORCE CURRENT MONTH VIEW
+                        setStartDate(firstDayOfMonth);
+                        setEndDate(lastDayOfMonth); // Explicitly limit to end of month
+
+                        setNewDate(todayStr);
+                    }}
                     className="md:hidden fixed bottom-24 right-6 w-14 h-14 bg-indigo-600 text-white rounded-full shadow-xl shadow-indigo-900/40 flex items-center justify-center hover:scale-105 transition-transform z-50 border-2 border-white dark:border-slate-800"
                     title="Adicionar Linha"
                 >
