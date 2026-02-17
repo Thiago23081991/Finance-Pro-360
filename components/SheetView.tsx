@@ -420,7 +420,20 @@ export const SheetView: React.FC<SheetViewProps> = ({
                     </button>
 
                     <button
-                        onClick={() => { setIsAdding(true); setEditingId(null); setInstallments(1); setIsRecurring(false); setNewDesc(''); setNewAmount(''); }}
+                        onClick={() => {
+                            setIsAdding(true);
+                            setEditingId(null);
+                            setInstallments(1);
+                            setIsRecurring(false);
+                            setNewDesc('');
+                            setNewAmount('');
+                            setStartDate(firstDayOfMonth);
+                            setEndDate('');
+                            setSearchTerm('');
+                            setFilterCategory('');
+                            setFilterPaymentMethod('');
+                            setNewDate(todayStr);
+                        }}
                         className="hidden md:flex items-center gap-2 bg-emerald-600 text-white px-4 py-1.5 rounded-sm text-xs font-medium hover:bg-emerald-700 transition-colors shadow-sm whitespace-nowrap"
                     >
                         <Plus size={14} />
