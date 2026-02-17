@@ -60,6 +60,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
         };
     }, []);
 
+    // Unified initialization logic
     useEffect(() => {
         setIsAdding(false);
         setEditingId(null);
@@ -67,9 +68,9 @@ export const SheetView: React.FC<SheetViewProps> = ({
         setSearchTerm('');
         setFilterCategory('');
         setFilterPaymentMethod('');
-        // Reset to current month range, but allow future dates by default
+        // STRICTLY CURRENT MONTH (User request: "apenas ... do mês atual")
         setStartDate(firstDayOfMonth);
-        setEndDate(''); // Allow future dates to show up by default
+        setEndDate(lastDayOfMonth);
         setMinValue('');
         setMaxValue('');
         setNewDate(todayStr);
@@ -78,7 +79,6 @@ export const SheetView: React.FC<SheetViewProps> = ({
         setInstallments(1);
         setIsRecurring(false);
         setDateError('');
-        // Ensure default category is valid if list changes (optional, but good practice)
         if (categories.length > 0) setNewCategory(categories[0]);
         if (paymentMethods.length > 0) setNewPayment(paymentMethods[0]);
     }, [type, categories, paymentMethods, todayStr, firstDayOfMonth, lastDayOfMonth]);
@@ -140,29 +140,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
     // Error state for validation
     const [dateError, setDateError] = useState('');
 
-    // Reset states when type changes (e.g. switching between Income/Expense tabs)
-    useEffect(() => {
-        setIsAdding(false);
-        setEditingId(null);
-        setShowFilters(false);
-        setSearchTerm('');
-        setFilterCategory('');
-        setFilterPaymentMethod('');
-        // Reset to current month range, but allow future dates by default
-        setStartDate(firstDayOfMonth);
-        setEndDate(''); // Allow future dates to show up by default
-        setMinValue('');
-        setMaxValue('');
-        setNewDate(todayStr);
-        setNewAmount('');
-        setNewDesc('');
-        setInstallments(1);
-        setIsRecurring(false);
-        setDateError('');
-        // Ensure default category is valid if list changes (optional, but good practice)
-        if (categories.length > 0) setNewCategory(categories[0]);
-        if (paymentMethods.length > 0) setNewPayment(paymentMethods[0]);
-    }, [type, categories, paymentMethods, todayStr, firstDayOfMonth, lastDayOfMonth]);
+
 
 
     const handleEdit = (t: Transaction) => {
