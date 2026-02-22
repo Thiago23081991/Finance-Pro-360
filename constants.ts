@@ -62,8 +62,10 @@ export const DEFAULT_CONFIG: AppConfig = {
   enableReminders: true,
   reminderFrequency: 'weekly',
   lastSeenGoals: new Date().toISOString(),
-  hasSeenTutorial: false
+  hasSeenTutorial: false,
+  requireBiometrics: false
 };
+
 
 export const MONTH_NAMES = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",

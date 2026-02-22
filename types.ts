@@ -81,6 +81,7 @@ export interface AppConfig {
   // Remote Licensing
   licenseKey?: string;
   licenseStatus?: 'active' | 'inactive';
+  requireBiometrics?: boolean; // New setting for native security
   // Added createdAt to allow checking if the config record exists in the database
   createdAt?: string;
   // Gamification Fields

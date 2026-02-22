@@ -8,12 +8,22 @@ const corsHeaders = {
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-async function tryGenerate(model: string, prompt: string) {
+async function tryGenerate(model: string, prompt: string, imageBase64?: string) {
+    const parts: any[] = [{ text: prompt }];
+    if (imageBase64) {
+        parts.push({
+            inlineData: {
+                mimeType: "image/jpeg",
+                data: imageBase64
+            }
+        });
+    }
+
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiApiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }]
+            contents: [{ parts }]
         })
     });
     return response;
@@ -23,7 +33,7 @@ serve(async (req) => {
     if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
     try {
-        const { message, context } = await req.json();
+        const { message, context, image } = await req.json();
 
         if (!message) return new Response(JSON.stringify({ error: 'Missing message' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
         if (!geminiApiKey) return new Response(JSON.stringify({ error: 'Server Config Error: API Key missing' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
@@ -52,6 +62,7 @@ serve(async (req) => {
         2. If "Recurring Fixed Costs" are high, suggest reviewing subscriptions.
         3. If "Debts" are present, prioritize paying them off before investing.
         4. Be specific: cite the actual values from the data.
+        5. If given an image (e.g. receipt or barcode), extract the relevant exact financial data.
         
         ${financialContext}
         
@@ -59,12 +70,12 @@ serve(async (req) => {
         `;
 
         // 1. Try Primary Model (Standard Flash)
-        let response = await tryGenerate('gemini-flash-latest', fullPrompt);
+        let response = await tryGenerate('gemini-1.5-flash', fullPrompt, image);
 
         // 2. Fallback to Pro Latest if 404 or 429
         if (!response.ok && (response.status === 404 || response.status === 429)) {
             console.log(`Primary failed (${response.status}), trying Gemini Pro Latest...`);
-            response = await tryGenerate('gemini-pro-latest', fullPrompt);
+            response = await tryGenerate('gemini-1.5-pro', fullPrompt, image);
         }
 
         // 3. If still failing, list models for debugging

@@ -90,9 +90,9 @@ export const AIAdvisor: React.FC<AIAdvisorProps> = ({ transactions, goals, userN
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={() => setIsOpen(true)}
-                    className="fixed bottom-6 right-6 z-50 p-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full shadow-2xl shadow-indigo-500/40 text-white flex items-center justify-center group"
+                    className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-50 w-12 h-12 md:w-14 md:h-14 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full shadow-2xl shadow-indigo-500/40 text-white flex items-center justify-center group"
                 >
-                    <Bot size={28} className="animate-pulse" />
+                    <Bot size={24} className="animate-pulse" />
                     <span className="absolute right-full mr-3 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
                         Falar com IA Coach
                     </span>

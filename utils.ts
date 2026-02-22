@@ -46,7 +46,11 @@ export const formatDateRaw = (dateString: string) => {
   return `${day}/${month}/${year}`;
 };
 
-export const exportToCSV = (transactions: Transaction[]) => {
+import { Capacitor } from '@capacitor/core';
+import { Share as CapacitorShare } from '@capacitor/share';
+import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
+
+export const exportToCSV = async (transactions: Transaction[]) => {
   // Define headers
   const headers = ['Data', 'Tipo', 'Categoria', 'Valor', 'Descrição', 'Forma de Pagamento'];
 
@@ -66,20 +70,40 @@ export const exportToCSV = (transactions: Transaction[]) => {
     ...rows.map(row => row.join(';'))
   ].join('\n');
 
-  // Create blob with BOM for UTF-8 (fixes accents in Excel)
-  const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const fileContent = '\uFEFF' + csvContent; // BOM for UTF-8
+  const fileName = `finance_pro_relatorio_${new Date().toISOString().split('T')[0]}.csv`;
 
-  // Create download link
-  const link = document.createElement('a');
-  const url = URL.createObjectURL(blob);
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const result = await Filesystem.writeFile({
+        path: fileName,
+        data: fileContent,
+        directory: Directory.Cache,
+        encoding: Encoding.UTF8
+      });
+      await CapacitorShare.share({
+        title: 'Relatório Mensal Finance Pro',
+        url: result.uri,
+        dialogTitle: 'Exportar CSV'
+      });
+    } catch (e: any) {
+      console.error('Error sharing CSV natively', e);
+      alert('Erro ao compartilhar relatório nativo: ' + e.message);
+    }
+  } else {
+    // Web logic
+    const blob = new Blob([fileContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
 
-  link.setAttribute('href', url);
-  link.setAttribute('download', `finance_pro_360_relatorio_${new Date().toISOString().split('T')[0]}.csv`);
-  link.style.visibility = 'hidden';
+    link.setAttribute('href', url);
+    link.setAttribute('download', fileName);
+    link.style.visibility = 'hidden';
 
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
 };
 
 // Simple License Key Generator based on User ID

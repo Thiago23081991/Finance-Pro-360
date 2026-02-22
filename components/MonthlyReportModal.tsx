@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { X, Printer, Sparkles, AlertCircle, Loader2, FileText } from 'lucide-react';
+import { X, Printer, Sparkles, AlertCircle, Loader2, FileText, Share2 } from 'lucide-react';
 import { Transaction, Goal, AppConfig } from '../types';
 import { formatCurrency, exportToCSV } from '../utils';
 import { DBService } from '../db';
 import { supabase } from '../supabaseClient';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+import { Capacitor } from '@capacitor/core';
+import { Share as CapacitorShare } from '@capacitor/share';
 
 interface MonthlyReportModalProps {
     isOpen: boolean;
@@ -111,6 +113,31 @@ export const MonthlyReportModal: React.FC<MonthlyReportModalProps> = ({
         }
     };
 
+    const handleShareWhatsApp = async () => {
+        if (!reportData) return;
+        const text = `📊 *Resumo Mensal - Finance Pro 360*\n` +
+            `Mês: ${monthName} de ${currentYear}\n\n` +
+            `🔹 *Receitas:* ${formatCurrency(reportData.income, currency)}\n` +
+            `🔻 *Despesas:* ${formatCurrency(reportData.expense, currency)}\n` +
+            `💰 *Saldo:* ${formatCurrency(reportData.balance, currency)}\n\n` +
+            `Gerado pelo meu app de gestão financeira 🚀`;
+
+        if (Capacitor.isNativePlatform()) {
+            try {
+                await CapacitorShare.share({
+                    title: 'Resumo Financeiro',
+                    text: text,
+                    dialogTitle: 'Compartilhar Resumo',
+                });
+            } catch (err) {
+                console.error('Error sharing:', err);
+            }
+        } else {
+            // Web fallback: Open WhatsApp Web/App
+            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+        }
+    };
+
     if (!isOpen) return null;
 
     return (
@@ -123,11 +150,20 @@ export const MonthlyReportModal: React.FC<MonthlyReportModalProps> = ({
                     <h2 className="text-lg font-bold flex items-center gap-2 text-slate-800 dark:text-white">
                         <FileText className="text-blue-600" size={20} /> Relatório Mensal
                     </h2>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 relative">
+                        {reportData && (
+                            <button
+                                onClick={handleShareWhatsApp}
+                                className="flex items-center gap-2 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold transition-colors shadow-sm"
+                                title="Compartilhar Resumo via WhatsApp"
+                            >
+                                <Share2 size={16} /> <span className="hidden sm:inline">WhatsApp</span>
+                            </button>
+                        )}
                         <button
                             onClick={() => window.print()}
-                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold transition-colors">
-                            <Printer size={16} /> Imprimir / PDF
+                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold transition-colors shadow-sm">
+                            <Printer size={16} /> <span className="hidden sm:inline">Imprimir / PDF</span>
                         </button>
                         <button onClick={onClose} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500">
                             <X size={20} />

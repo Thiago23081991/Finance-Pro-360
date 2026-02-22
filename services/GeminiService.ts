@@ -59,9 +59,33 @@ export const GeminiService = {
         return "Interessante! Estou aprendendo sobre seus hábitos financeiros. Por enquanto, sugiro focar em manter suas despesas essenciais abaixo de 50% da renda.";
     },
 
+    async analyzeReceipt(imageBase64: string): Promise<Partial<Transaction>> {
+        console.log("Analyzing receipt image...");
+        // Call Edge Function
+        const { supabase } = await import('../supabaseClient');
+        const { data, error } = await supabase.functions.invoke('financial-advisor', {
+            body: {
+                message: "Analise esta imagem (recibo/boleto) e extraia os seguintes dados em JSON estrito (apenas as chaves, sem formatação markdown extra): { amount: number, date: 'YYYY-MM-DD', description: string, category: string, type: 'expense' | 'income' }. Use categorias como Alimentação, Transporte, Moradia, etc. Caso não encontre a data puxe a de hoje.",
+                image: imageBase64
+            }
+        });
+        if (error) throw error;
+
+        try {
+            const rawText = data.reply;
+            let cleanJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+            const start = cleanJson.indexOf('{');
+            const end = cleanJson.lastIndexOf('}');
+            cleanJson = cleanJson.substring(start, end + 1);
+            return JSON.parse(cleanJson);
+        } catch (e) {
+            console.error("Failed to parse AI response as JSON", data.reply);
+            throw new Error("Não foi possível extrair os dados da imagem.");
+        }
+    },
+
     async parseTransaction(text: string): Promise<Partial<Transaction>> {
         console.log("Parsing transaction from text:", text);
-        await new Promise(resolve => setTimeout(resolve, 800)); // Simulate processing delay
 
         const lowerText = text.toLowerCase();
         let amount = 0;

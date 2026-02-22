@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { SmartInputModal } from './SmartInputModal';
 import { Transaction, TransactionType } from '../types';
 import { formatCurrency, generateId, formatDateRaw } from '../utils';
-import { Plus, Trash2, Save, X, CalendarClock, AlertCircle, Search, Filter, XCircle, Utensils, Car, Home, HeartPulse, PartyPopper, GraduationCap, Banknote, ShoppingBag, Zap, CircleDollarSign, Edit2, ArrowUp, ArrowDown, Calendar, CreditCard, RefreshCw, Sparkles } from 'lucide-react';
+import { Plus, Trash2, Save, X, CalendarClock, AlertCircle, Search, Filter, XCircle, Utensils, Car, Home, HeartPulse, PartyPopper, GraduationCap, Banknote, ShoppingBag, Zap, CircleDollarSign, Edit2, ArrowUp, ArrowDown, Calendar, CreditCard, RefreshCw, Sparkles, ArrowLeftRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface SheetViewProps {
@@ -54,9 +54,9 @@ export const SheetView: React.FC<SheetViewProps> = ({
         const lastDay = new Date(year, now.getMonth() + 1, 0).getDate();
 
         return {
-            todayStr: `${year}-${month}-${day}`,
-            firstDayOfMonth: `${year}-${month}-01`,
-            lastDayOfMonth: `${year}-${month}-${lastDay}`
+            todayStr: `${year} -${month} -${day} `,
+            firstDayOfMonth: `${year} -${month}-01`,
+            lastDayOfMonth: `${year} -${month} -${lastDay} `
         };
     }, []);
 
@@ -355,7 +355,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
             <div className="p-3 border-b border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-center gap-3 bg-surfaceHighlight/50">
                 <div className="flex items-center gap-4 w-full sm:w-auto">
                     <h2 className="font-semibold text-textMain flex items-center gap-2 whitespace-nowrap text-sm uppercase tracking-wide">
-                        <div className={`w-2.5 h-2.5 rounded-full ${type === 'income' ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
+                        <div className={`w - 2.5 h - 2.5 rounded - full ${type === 'income' ? 'bg-emerald-500' : 'bg-rose-500'} `}></div>
                         {type === 'income' ? 'Planilha de Receitas' : 'Planilha de Despesas'}
                     </h2>
 
@@ -375,10 +375,10 @@ export const SheetView: React.FC<SheetViewProps> = ({
                 <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                     <button
                         onClick={() => setShowFilters(!showFilters)}
-                        className={`flex items-center gap-2 px-3 py-1.5 rounded-sm text-xs font-medium transition-colors border relative ${showFilters || activeFiltersCount > 0
-                            ? 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800'
-                            : 'bg-white text-slate-600 border-slate-300 hover:bg-surfaceHighlight dark:text-slate-300 dark:border-slate-600 dark:hover:bg-slate-700'
-                            }`}
+                        className={`flex items - center gap - 2 px - 3 py - 1.5 rounded - sm text - xs font - medium transition - colors border relative ${showFilters || activeFiltersCount > 0
+                                ? 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800'
+                                : 'bg-white text-slate-600 border-slate-300 hover:bg-surfaceHighlight dark:text-slate-300 dark:border-slate-600 dark:hover:bg-slate-700'
+                            } `}
                     >
                         <Filter size={14} />
                         <span className="hidden sm:inline">Filtros</span>
@@ -427,7 +427,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
             {/* Filters Panel */}
             {showFilters && (
                 <div className="p-4 bg-surfaceHighlight border-b border-slate-200 dark:border-slate-700 animate-fade-in">
-                    <div className={`grid grid-cols-1 gap-4 ${type === 'expense' ? 'md:grid-cols-5' : 'md:grid-cols-4'}`}>
+                    <div className={`grid grid - cols - 1 gap - 4 ${type === 'expense' ? 'md:grid-cols-5' : 'md:grid-cols-4'} `}>
                         {/* Mobile Search - Only visible on small screens */}
                         <div className="md:hidden col-span-1">
                             <label className="block text-xs font-semibold text-textMuted mb-1">Buscar</label>
@@ -513,10 +513,10 @@ export const SheetView: React.FC<SheetViewProps> = ({
                             <button
                                 onClick={clearFilters}
                                 disabled={activeFiltersCount === 0}
-                                className={`w-full px-3 py-1.5 text-xs font-medium border rounded-sm transition-colors flex items-center justify-center gap-1 ${activeFiltersCount > 0
-                                    ? 'text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-900 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 dark:hover:bg-rose-900/40'
-                                    : 'text-slate-400 border-slate-200 dark:border-slate-700 bg-surfaceHighlight cursor-not-allowed'
-                                    }`}
+                                className={`w - full px - 3 py - 1.5 text - xs font - medium border rounded - sm transition - colors flex items - center justify - center gap - 1 ${activeFiltersCount > 0
+                                        ? 'text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-900 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 dark:hover:bg-rose-900/40'
+                                        : 'text-slate-400 border-slate-200 dark:border-slate-700 bg-surfaceHighlight cursor-not-allowed'
+                                    } `}
                             >
                                 <XCircle size={14} /> Limpar Filtros
                             </button>
@@ -527,10 +527,10 @@ export const SheetView: React.FC<SheetViewProps> = ({
 
             {/* Input Row (Sheet Style) - Only visible when adding */}
             {isAdding && (
-                <div className={`p-4 border-b grid grid-cols-12 gap-3 items-start animate-fade-in relative z-20 ${editingId
-                    ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800'
-                    : 'bg-emerald-50 dark:bg-emerald-900/10 border-emerald-100 dark:border-emerald-800'
-                    }`}>
+                <div className={`p - 4 border - b grid grid - cols - 12 gap - 3 items - start animate - fade -in relative z - 20 ${editingId
+                        ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800'
+                        : 'bg-emerald-50 dark:bg-emerald-900/10 border-emerald-100 dark:border-emerald-800'
+                    } `}>
                     {editingId && (
                         <div className="col-span-12 mb-2 flex items-center gap-2 text-amber-600 dark:text-amber-400 font-bold text-xs uppercase tracking-wide">
                             <Edit2 size={14} /> Editando Linha
@@ -543,7 +543,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
                             type="date"
                             value={newDate}
                             onChange={(e) => { setNewDate(e.target.value); setDateError(''); }}
-                            className={`w-full border ${dateError ? 'border-rose-500' : 'border-slate-300 dark:border-slate-600'} dark:bg-slate-800 dark:text-white rounded-sm px-2 py-1.5 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none`}
+                            className={`w - full border ${dateError ? 'border-rose-500' : 'border-slate-300 dark:border-slate-600'} dark: bg - slate - 800 dark: text - white rounded - sm px - 2 py - 1.5 text - xs focus: border - blue - 500 focus: ring - 1 focus: ring - blue - 500 outline - none`}
                         />
 
                     </div>
@@ -599,7 +599,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
                                     setInstallments(parseInt(e.target.value) || 1);
                                     setDateError('');
                                 }}
-                                className={`w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-sm px-2 py-1.5 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none text-center ${(editingId || isRecurring) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                className={`w - full border border - slate - 300 dark: border - slate - 600 dark: bg - slate - 800 dark: text - white rounded - sm px - 2 py - 1.5 text - xs focus: border - blue - 500 focus: ring - 1 focus: ring - blue - 500 outline - none text - center ${(editingId || isRecurring) ? 'opacity-50 cursor-not-allowed' : ''} `}
                             />
                         </div>
                         <div className="flex items-center h-full pt-4">
@@ -632,7 +632,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
                     <div className="col-span-12 flex justify-end gap-2 mt-2">
                         <button
                             onClick={handleSave}
-                            className={`flex-1 md:flex-none px-4 py-2 text-white rounded-sm transition-colors flex items-center justify-center gap-2 ${editingId ? 'bg-amber-500 hover:bg-amber-600' : 'bg-emerald-500 hover:bg-emerald-600'}`}
+                            className={`flex - 1 md: flex - none px - 4 py - 2 text - white rounded - sm transition - colors flex items - center justify - center gap - 2 ${editingId ? 'bg-amber-500 hover:bg-amber-600' : 'bg-emerald-500 hover:bg-emerald-600'} `}
                         >
                             <Save size={16} />
                             {editingId ? 'Atualizar' : 'Salvar'}
@@ -698,14 +698,14 @@ export const SheetView: React.FC<SheetViewProps> = ({
                                                 )}
                                             </div>
                                         </td>
-                                        <td className={`py-3 px-4 text-sm font-bold text-right font-mono tabular-nums pr-6 ${type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-textMain'}`}>
+                                        <td className={`py - 3 px - 4 text - sm font - bold text - right font - mono tabular - nums pr - 6 ${type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-textMain'} `}>
                                             {formatCurrency(t.amount, currency)}
                                         </td>
                                         <td className="py-3 px-4">
-                                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide border ${type === 'income'
-                                                ? 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-900'
-                                                : 'bg-indigo-50 text-indigo-700 border-indigo-100 dark:bg-indigo-900/20 dark:text-indigo-400 dark:border-indigo-900'
-                                                }`}>
+                                            <span className={`inline - flex items - center gap - 1.5 px - 2.5 py - 0.5 rounded - full text - [10px] font - bold uppercase tracking - wide border ${type === 'income'
+                                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-900'
+                                                    : 'bg-indigo-50 text-indigo-700 border-indigo-100 dark:bg-indigo-900/20 dark:text-indigo-400 dark:border-indigo-900'
+                                                } `}>
                                                 {getCategoryIcon(t.category)}
                                                 {t.category}
                                             </span>
@@ -743,8 +743,8 @@ export const SheetView: React.FC<SheetViewProps> = ({
                         <tfoot className="bg-slate-50 dark:bg-slate-900 sticky bottom-0 z-10 border-t border-slate-200 dark:border-slate-700">
                             <tr>
                                 <td className="py-3 px-4 text-xs font-bold text-slate-500 uppercase tracking-widest text-right">Total</td>
-                                <td className={`py-3 px-4 text-sm font-black font-mono text-right tabular-nums pr-6 ${type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
-                                    }`}>
+                                <td className={`py - 3 px - 4 text - sm font - black font - mono text - right tabular - nums pr - 6 ${type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+                                    } `}>
                                     {formatCurrency(totalValue, currency)}
                                 </td>
                                 <td colSpan={10}></td>
@@ -763,43 +763,61 @@ export const SheetView: React.FC<SheetViewProps> = ({
                     ) : (
                         <AnimatePresence>
                             {sheetData.map((t) => (
-                                <motion.div
-                                    key={t.id}
-                                    layout
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, scale: 0.95 }}
-                                    className="bg-surface p-4 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 flex justify-between items-start"
-                                >
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <span className={`p-1.5 rounded-full ${type === 'income' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'} dark:bg-opacity-20`}>
-                                                {getCategoryIcon(t.category)}
-                                            </span>
-                                            <span className="text-xs font-bold text-textMuted uppercase tracking-wider px-2 py-0.5 bg-slate-100 dark:bg-slate-700 rounded-full">
-                                                {t.category}
-                                            </span>
-                                        </div>
-                                        <h4 className="font-bold text-slate-800 dark:text-white text-sm mb-1">{t.description || 'Sem descrição'}</h4>
-                                        <div className="flex items-center gap-3 text-xs text-slate-400">
-                                            <span className="flex items-center gap-1"><Calendar size={10} /> {formatDateRaw(t.date)}</span>
-                                            {t.paymentMethod && <span>• {t.paymentMethod}</span>}
-                                        </div>
+                                <div key={t.id} className="relative overflow-hidden rounded-xl bg-rose-500 shadow-sm border border-slate-100 dark:border-slate-700">
+                                    <div className="absolute inset-y-0 right-0 w-24 flex items-center justify-center text-white font-bold text-sm">
+                                        <Trash2 size={24} />
                                     </div>
-                                    <div className="flex flex-col items-end gap-2">
-                                        <span className={`text-sm font-black font-mono ${type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                                            {formatCurrency(t.amount, currency)}
-                                        </span>
-                                        <div className="flex gap-2">
-                                            <button onClick={() => handleEdit(t)} className="p-1.5 text-slate-400 hover:text-blue-500 bg-slate-50 dark:bg-slate-700 rounded-lg transition-colors">
-                                                <Edit2 size={14} />
-                                            </button>
-                                            <button onClick={() => onDelete(t.id)} className="p-1.5 text-slate-400 hover:text-rose-500 bg-slate-50 dark:bg-slate-700 rounded-lg transition-colors">
-                                                <Trash2 size={14} />
-                                            </button>
+                                    <motion.div
+                                        layout
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, scale: 0.95 }}
+                                        drag="x"
+                                        dragConstraints={{ left: 0, right: 0 }}
+                                        dragElastic={{ left: 0.5, right: 0 }}
+                                        onDragEnd={(e, { offset, velocity }) => {
+                                            const swipe = offset.x;
+                                            if (swipe < -100 || velocity.x < -500) {
+                                                onDelete(t.id);
+                                            }
+                                        }}
+                                        whileDrag={{ scale: 0.98 }}
+                                        className="bg-surface p-4 rounded-xl flex justify-between items-start relative z-10 w-full"
+                                    >
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className={`p - 1.5 rounded - full ${type === 'income' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'} dark: bg - opacity - 20`}>
+                                                    {getCategoryIcon(t.category)}
+                                                </span>
+                                                <span className="text-xs font-bold text-textMuted uppercase tracking-wider px-2 py-0.5 bg-slate-100 dark:bg-slate-700 rounded-full">
+                                                    {t.category}
+                                                </span>
+                                            </div>
+                                            <h4 className="font-bold text-slate-800 dark:text-white text-sm mb-1">{t.description || 'Sem descrição'}</h4>
+                                            <div className="flex items-center gap-3 text-xs text-slate-400">
+                                                <span className="flex items-center gap-1"><Calendar size={10} /> {formatDateRaw(t.date)}</span>
+                                                {t.paymentMethod && <span>• {t.paymentMethod}</span>}
+                                            </div>
+                                            <div className="text-[10px] text-slate-400 mt-2 flex items-center gap-1">
+                                                <ArrowLeftRight size={10} /> Deslize para a esquerda para apagar
+                                            </div>
                                         </div>
-                                    </div>
-                                </motion.div>
+                                        <div className="flex flex-col items-end gap-2">
+                                            <span className={`text - sm font - black font - mono ${type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'} `}>
+                                                {formatCurrency(t.amount, currency)}
+                                            </span>
+                                            <div className="flex gap-2">
+                                                <button onClick={() => handleEdit(t)} className="p-1.5 text-slate-400 hover:text-blue-500 bg-slate-50 dark:bg-slate-700 rounded-lg transition-colors z-20">
+                                                    <Edit2 size={14} />
+                                                </button>
+                                                {/* Botão de excluir original escondido se preferir apenas o swipe, mas mantido pra acessibilidade */}
+                                                <button onClick={() => onDelete(t.id)} className="p-1.5 text-slate-400 hover:text-rose-500 bg-slate-50 dark:bg-slate-700 rounded-lg transition-colors z-20">
+                                                    <Trash2 size={14} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                </div>
                             ))}
                         </AnimatePresence>
                     )}
@@ -808,7 +826,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
                     {sheetData.length > 0 && (
                         <div className="fixed bottom-0 left-0 w-full bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 p-4 shadow-lg z-10 flex justify-between items-center mb-[56px] md:mb-0">
                             <span className="text-xs font-bold text-textMuted uppercase">Total ({sheetData.length})</span>
-                            <span className={`text-lg font-black font-mono ${type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                            <span className={`text - lg font - black font - mono ${type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'} `}>
                                 {formatCurrency(totalValue, currency)}
                             </span>
                         </div>
@@ -852,10 +870,10 @@ export const SheetView: React.FC<SheetViewProps> = ({
 
                         setNewDate(todayStr);
                     }}
-                    className="md:hidden fixed bottom-24 right-6 w-14 h-14 bg-indigo-600 text-white rounded-full shadow-xl shadow-indigo-900/40 flex items-center justify-center hover:scale-105 transition-transform z-50 border-2 border-white dark:border-slate-800"
+                    className="md:hidden fixed bottom-52 right-4 w-12 h-12 bg-indigo-600 text-white rounded-full shadow-xl shadow-indigo-900/40 flex items-center justify-center hover:scale-105 transition-transform z-50 border-2 border-white dark:border-slate-800"
                     title="Adicionar Linha"
                 >
-                    <Plus size={28} />
+                    <Plus size={24} />
                 </button>
             )}
 

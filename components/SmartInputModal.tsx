@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, X, Check, ArrowRight, Loader2, AlertCircle, Mic } from 'lucide-react';
+import { Sparkles, X, Check, ArrowRight, Loader2, AlertCircle, Mic, Camera as CameraIcon } from 'lucide-react';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { GeminiService } from '../services/GeminiService';
 import { Transaction } from '../types';
 
@@ -61,6 +62,31 @@ export const SmartInputModal: React.FC<SmartInputModalProps> = ({ isOpen, onClos
         }
     };
 
+    const handleCamera = async () => {
+        try {
+            const image = await Camera.getPhoto({
+                quality: 60,
+                allowEditing: false,
+                resultType: CameraResultType.Base64,
+                source: CameraSource.Camera
+            });
+
+            if (image.base64String) {
+                setIsProcessing(true);
+                setError('');
+                const result = await GeminiService.analyzeReceipt(image.base64String);
+                setParsedData(result);
+            }
+        } catch (error: any) {
+            console.error(error);
+            if (error.message !== 'User cancelled photos app') {
+                setError('Erro ao capturar imagem ou IA indisponível.');
+            }
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
     const handleConfirm = () => {
         if (parsedData) {
             onSave(parsedData);
@@ -113,13 +139,22 @@ export const SmartInputModal: React.FC<SmartInputModalProps> = ({ isOpen, onClos
                                             className="w-full h-32 p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 focus:border-violet-500 focus:ring-0 outline-none resize-none text-lg transition-colors"
                                             autoFocus
                                         />
-                                        <button
-                                            onClick={startListening}
-                                            className={`absolute bottom-4 right-4 p-3 rounded-full shadow-md transition-all ${isListening ? 'bg-rose-500 text-white animate-pulse' : 'bg-white dark:bg-slate-700 text-slate-500 hover:text-violet-600'}`}
-                                            title="Falar"
-                                        >
-                                            <Mic size={20} />
-                                        </button>
+                                        <div className="absolute bottom-4 right-4 flex gap-2">
+                                            <button
+                                                onClick={handleCamera}
+                                                className="p-3 bg-white dark:bg-slate-700 text-slate-500 hover:text-blue-600 rounded-full shadow-md transition-all"
+                                                title="Tirar foto de Recibo/Boleto"
+                                            >
+                                                <CameraIcon size={20} />
+                                            </button>
+                                            <button
+                                                onClick={startListening}
+                                                className={`p-3 rounded-full shadow-md transition-all ${isListening ? 'bg-rose-500 text-white animate-pulse' : 'bg-white dark:bg-slate-700 text-slate-500 hover:text-violet-600'}`}
+                                                title="Falar"
+                                            >
+                                                <Mic size={20} />
+                                            </button>
+                                        </div>
                                     </div>
 
                                     {error && (

@@ -4,6 +4,9 @@ import { AppConfig, Transaction, PurchaseRequest } from '../types';
 import { Trash2, Plus, FileSpreadsheet, Download, Bell, CreditCard, CheckCircle, Upload, Shield, Key, Lock, Moon, Sun, AlertTriangle, FileText, ArrowRight, DollarSign, Rocket, Star, ExternalLink, TableProperties, Info, Copy, Smartphone, Timer, QrCode, Loader2, Target, Scale, User, Edit2, Save, MessageCircle, Zap, Tag, Wallet, Calendar, TrendingUp } from 'lucide-react';
 import { exportToCSV, validateLicenseKey, generateId } from '../utils';
 import { DBService } from '../db';
+import { Capacitor } from '@capacitor/core';
+import { Share as CapacitorShare } from '@capacitor/share';
+import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { PrivacyModal } from './PrivacyModal';
 import { PLANS_CONFIG } from '../constants';
 
@@ -186,16 +189,32 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
     const handleBackup = async () => {
         try {
             const data = await DBService.createBackup();
-            const blob = new Blob([data], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `finance360_backup_${new Date().toISOString().split('T')[0]}.json`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        } catch (e) {
-            alert('Erro ao criar backup: ' + e);
+            const fileName = `finance360_backup_${new Date().toISOString().split('T')[0]}.json`;
+
+            if (Capacitor.isNativePlatform()) {
+                const result = await Filesystem.writeFile({
+                    path: fileName,
+                    data: data,
+                    directory: Directory.Cache,
+                    encoding: Encoding.UTF8
+                });
+                await CapacitorShare.share({
+                    title: 'Backup Finance Pro 360',
+                    url: result.uri,
+                    dialogTitle: 'Salvar Banco de Dados'
+                });
+            } else {
+                const blob = new Blob([data], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        } catch (e: any) {
+            alert('Erro ao criar backup: ' + e.message);
         }
     };
 
@@ -543,6 +562,27 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
             {/* Segurança e Dados */}
             <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
                 <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2 mb-6"><Shield className="text-brand-blue dark:text-brand-gold" size={20} />Proteção e Backup</h3>
+
+                <div className="mb-6 p-4 bg-indigo-50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-900 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div>
+                        <h4 className="text-sm font-bold text-indigo-900 dark:text-indigo-100 flex items-center gap-2">
+                            <Lock size={16} /> Bloqueio Biométrico
+                        </h4>
+                        <p className="text-xs text-indigo-700 dark:text-indigo-300 mt-1">
+                            Exigir sua digital ou Face ID para abrir o aplicativo.
+                        </p>
+                    </div>
+                    <button
+                        onClick={() => onUpdateConfig({ ...config, requireBiometrics: !config.requireBiometrics })}
+                        className={`px-4 py-2 rounded-lg text-xs font-black transition-all shadow-sm ${config.requireBiometrics
+                            ? 'bg-indigo-600 text-white'
+                            : 'bg-white text-indigo-600 border border-indigo-200'
+                            }`}
+                    >
+                        {config.requireBiometrics ? 'ATIVADO ✓' : 'ATIVAR AGORA'}
+                    </button>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-4">
                         <label className="block text-xs font-black text-slate-400 uppercase tracking-widest">Alterar Senha de Acesso</label>
