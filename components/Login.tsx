@@ -140,20 +140,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin, initialMessage, messageTy
           <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-[#0a192f] to-transparent hidden lg:block"></div>
         </div>
 
-        {/* Optional Logo overlay on Desktop */}
-        <div className="relative z-10 p-8 lg:p-14 w-full h-full flex flex-col justify-end pb-12 opacity-0 animate-fade-in [animation-fill-mode:forwards] [animation-delay:400ms] hidden lg:flex">
-          <div className="max-w-xl">
-            <div className="mb-6">
-              <div className="w-16 h-1 w-12 bg-brand-gold rounded-full mb-6 relative overflow-hidden"><div className="absolute top-0 left-0 w-full h-full bg-white/50 animate-shimmer"></div></div>
-            </div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.1] mb-6 drop-shadow-xl">
-              Domine suas <br /><span className="text-brand-gold bg-clip-text text-transparent bg-gradient-to-r from-brand-gold to-amber-300">plano de ação.</span>
-            </h1>
-            <p className="text-lg text-slate-300/90 font-medium leading-relaxed max-w-lg drop-shadow-md">
-              O Finance Pro 360 centraliza sua gestão financeira e estratégica em um ecossistema de alta performance.
-            </p>
-          </div>
-        </div>
+        {/* Optional Logo overlay on Desktop is removed as the image already contains the logo and text */}
       </div>
 
       {/* Right Side: Authentication Form */}
