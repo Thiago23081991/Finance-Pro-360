@@ -494,13 +494,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
         hidden: { opacity: 0 },
         visible: {
             opacity: 1,
-            transition: { staggerChildren: 0.1 }
+            transition: { staggerChildren: 0.15, ease: "easeOut" as const }
         }
     };
 
     const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+        hidden: { opacity: 0, y: 30, scale: 0.95 },
+        visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.6, ease: "easeOut" as const } }
     };
 
     return (
@@ -571,64 +571,64 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                 {/* Coluna 1: KPIs Principais (Receita, Despesa, Saldo) */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-3 content-start">
                     {/* Receita */}
-                    <div className="bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-900/20 dark:to-slate-800 p-4 md:p-5 rounded-2xl shadow-sm border border-emerald-100 dark:border-emerald-900/30 flex justify-between items-center relative overflow-hidden group hover:shadow-md transition-all duration-300">
+                    <div className="bg-gradient-to-br from-emerald-500/10 via-white to-emerald-50/50 dark:from-emerald-900/40 dark:via-slate-900 dark:to-slate-800 p-5 md:p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] border border-emerald-100/50 dark:border-emerald-800/30 flex justify-between items-center relative overflow-hidden group hover:-translate-y-1 transition-all duration-300 backdrop-blur-xl">
                         <div className="z-10 relative">
-                            <div className="flex items-center gap-2 mb-2">
-                                <div className="p-1.5 bg-emerald-100 dark:bg-emerald-500/20 rounded-lg text-emerald-600 dark:text-emerald-400">
-                                    <TrendingUp size={14} />
+                            <div className="flex items-center gap-2 mb-3">
+                                <div className="p-2 bg-emerald-100/80 dark:bg-emerald-500/20 rounded-xl text-emerald-600 dark:text-emerald-400 shadow-sm">
+                                    <TrendingUp size={16} />
                                 </div>
-                                <p className="text-[10px] font-bold text-textMuted uppercase tracking-widest">Receitas</p>
+                                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Receitas</p>
                             </div>
-                            <h3 className="text-2xl md:text-3xl font-black text-textMain tracking-tight">{formatCurrency(kpiData.income, currency)}</h3>
-                            <div className="flex items-center gap-2 mt-2">
-                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 border ${momComparison.incomePct >= 0 ? 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30' : 'bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-500/20 dark:text-rose-300 dark:border-rose-500/30'}`}>
+                            <h3 className="text-3xl md:text-4xl font-black text-slate-800 dark:text-white tracking-tight leading-none">{formatCurrency(kpiData.income, currency)}</h3>
+                            <div className="flex items-center gap-2 mt-3">
+                                <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 border ${momComparison.incomePct >= 0 ? 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30' : 'bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-500/20 dark:text-rose-300 dark:border-rose-500/30'}`}>
                                     {momComparison.incomePct >= 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
                                     {Math.abs(momComparison.incomePct).toFixed(0)}%
                                 </span>
                                 <span className="text-[10px] font-medium text-slate-400">vs. mês anterior</span>
                             </div>
                         </div>
-                        <div className="absolute right-[-10%] top-[-10%] w-[100px] h-[100px] bg-emerald-400/10 rounded-full blur-2xl group-hover:bg-emerald-400/20 transition-all"></div>
+                        <div className="absolute right-[-15%] top-[-15%] w-[120px] h-[120px] bg-emerald-400/20 rounded-full blur-3xl group-hover:bg-emerald-400/30 group-hover:scale-110 transition-all duration-500"></div>
                     </div>
 
                     {/* Despesa */}
-                    <div className="bg-gradient-to-br from-rose-50 to-white dark:from-rose-900/20 dark:to-slate-800 p-4 md:p-5 rounded-2xl shadow-sm border border-rose-100 dark:border-rose-900/30 flex justify-between items-center relative overflow-hidden group hover:shadow-md transition-all duration-300">
+                    <div className="bg-gradient-to-br from-rose-500/10 via-white to-rose-50/50 dark:from-rose-900/40 dark:via-slate-900 dark:to-slate-800 p-5 md:p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] border border-rose-100/50 dark:border-rose-800/30 flex justify-between items-center relative overflow-hidden group hover:-translate-y-1 transition-all duration-300 backdrop-blur-xl">
                         <div className="z-10 relative">
-                            <div className="flex items-center gap-2 mb-2">
-                                <div className="p-1.5 bg-rose-100 dark:bg-rose-500/20 rounded-lg text-rose-600 dark:text-rose-400">
-                                    <TrendingDown size={14} />
+                            <div className="flex items-center gap-2 mb-3">
+                                <div className="p-2 bg-rose-100/80 dark:bg-rose-500/20 rounded-xl text-rose-600 dark:text-rose-400 shadow-sm">
+                                    <TrendingDown size={16} />
                                 </div>
-                                <p className="text-[10px] font-bold text-textMuted uppercase tracking-widest">Despesas</p>
+                                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Despesas</p>
                             </div>
-                            <h3 className="text-2xl md:text-3xl font-black text-textMain tracking-tight">{formatCurrency(kpiData.expense, currency)}</h3>
-                            <div className="flex items-center gap-2 mt-2">
-                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 border ${momComparison.expensePct <= 0 ? 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30' : 'bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-500/20 dark:text-rose-300 dark:border-rose-500/30'}`}>
+                            <h3 className="text-3xl md:text-4xl font-black text-slate-800 dark:text-white tracking-tight leading-none">{formatCurrency(kpiData.expense, currency)}</h3>
+                            <div className="flex items-center gap-2 mt-3">
+                                <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 border ${momComparison.expensePct <= 0 ? 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30' : 'bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-500/20 dark:text-rose-300 dark:border-rose-500/30'}`}>
                                     {momComparison.expensePct > 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
                                     {Math.abs(momComparison.expensePct).toFixed(0)}%
                                 </span>
                                 <span className="text-[10px] font-medium text-slate-400">vs. mês anterior</span>
                             </div>
                         </div>
-                        <div className="absolute right-[-10%] top-[-10%] w-[100px] h-[100px] bg-rose-400/10 rounded-full blur-2xl group-hover:bg-rose-400/20 transition-all"></div>
+                        <div className="absolute right-[-15%] top-[-15%] w-[120px] h-[120px] bg-rose-400/20 rounded-full blur-3xl group-hover:bg-rose-400/30 group-hover:scale-110 transition-all duration-500"></div>
                     </div>
 
                     {/* Saldo */}
-                    <div className="bg-gradient-to-br from-blue-50 to-white dark:from-blue-900/20 dark:to-slate-800 p-4 md:p-5 rounded-2xl shadow-sm border border-blue-100 dark:border-blue-900/30 flex justify-between items-center relative overflow-hidden group hover:shadow-md transition-all duration-300">
+                    <div className="bg-gradient-to-br from-brand-blue via-brand-blue to-slate-900 p-5 md:p-6 rounded-3xl shadow-[0_8px_30px_rgb(5,27,53,0.3)] border border-white/10 flex justify-between items-center relative overflow-hidden group hover:-translate-y-1 transition-all duration-300">
                         <div className="z-10 relative">
-                            <div className="flex items-center gap-2 mb-2">
-                                <div className="p-1.5 bg-blue-100 dark:bg-blue-500/20 rounded-lg text-blue-600 dark:text-blue-400">
-                                    <DollarSign size={14} />
+                            <div className="flex items-center gap-2 mb-3">
+                                <div className="p-2 bg-white/10 rounded-xl text-brand-gold shadow-sm backdrop-blur-md">
+                                    <DollarSign size={16} />
                                 </div>
-                                <p className="text-[10px] font-bold text-textMuted uppercase tracking-widest">Saldo Líquido</p>
+                                <p className="text-[11px] font-bold text-slate-300 uppercase tracking-widest">Saldo Líquido</p>
                             </div>
-                            <h3 className={`text-2xl md:text-3xl font-black tracking-tight ${kpiData.balance >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                            <h3 className={`text-3xl md:text-4xl font-black tracking-tight leading-none ${kpiData.balance >= 0 ? 'text-white' : 'text-rose-400'}`}>
                                 {formatCurrency(kpiData.balance, currency)}
                             </h3>
-                            <p className="text-[10px] font-medium text-slate-400 mt-2">
-                                {kpiData.balance >= 0 ? 'Excelente! Você está no verde.' : 'Atenção! Você está no vermelho.'}
+                            <p className="text-[11px] font-medium text-slate-300 mt-3 bg-white/5 inline-block px-2 py-1 rounded-md backdrop-blur-sm border border-white/5">
+                                {kpiData.balance >= 0 ? '✨ Excelente! Você está no verde.' : '⚠️ Atenção! Você está no vermelho.'}
                             </p>
                         </div>
-                        <div className="absolute right-[-10%] top-[-10%] w-[100px] h-[100px] bg-blue-400/10 rounded-full blur-2xl group-hover:bg-blue-400/20 transition-all"></div>
+                        <div className="absolute right-[-20%] bottom-[-20%] w-[150px] h-[150px] bg-brand-gold/20 rounded-full blur-3xl group-hover:bg-brand-gold/30 group-hover:scale-110 transition-all duration-500"></div>
                     </div>
                 </div>
 

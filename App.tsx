@@ -362,12 +362,12 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
 
     return (
         <BiometricGate requireBiometrics={!!config.requireBiometrics}>
-            <div className="flex h-[100dvh] bg-background text-textMain font-sans overflow-hidden transition-colors duration-300">
-                <aside className="w-64 bg-brand-blue text-white flex flex-col shadow-xl z-20 hidden md:flex border-r border-slate-800/50">
+            <div className="flex h-[100dvh] bg-slate-50 dark:bg-slate-950 text-textMain font-sans overflow-hidden transition-colors duration-300">
+                <aside className="w-64 bg-brand-blue/95 dark:bg-slate-950/95 backdrop-blur-xl text-white flex flex-col shadow-2xl z-20 hidden md:flex border-r border-white/5">
                     <div className="p-6 border-b border-white/10"><Logo className="w-9 h-9" textClassName="text-white" /></div>
                     <nav className="flex-1 px-4 space-y-1 mt-4 overflow-y-auto custom-scrollbar">
                         {(['controle', 'receitas', 'despesas', 'orcamento', 'dividas', 'metas', 'investimentos', 'cursos', 'config'] as Tab[]).concat(isAdmin ? ['admin'] : []).map(tabId => (
-                            <button key={tabId} onClick={() => handleTabChange(tabId)} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${activeTab === tabId ? 'bg-brand-gold text-white shadow-lg font-bold' : 'text-slate-300 hover:bg-white/10'}`}>
+                            <button key={tabId} onClick={() => handleTabChange(tabId)} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 ${activeTab === tabId ? 'bg-gradient-to-r from-brand-gold to-yellow-600 text-white shadow-lg shadow-amber-500/20 font-bold translate-x-1' : 'text-slate-300 hover:bg-white/10 hover:translate-x-1'}`}>
                                 {TAB_METADATA[tabId].icon}{TAB_METADATA[tabId].label}
                             </button>
                         ))}
@@ -406,18 +406,18 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                     <div className="fixed inset-0 z-50 flex md:hidden"><div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)}></div><aside className="relative w-64 bg-brand-blue text-white flex flex-col shadow-2xl h-full animate-fade-in border-r border-white/10"><div className="p-6 border-b border-white/10 flex justify-between items-center"><Logo className="w-8 h-8" textClassName="text-white" /><button onClick={() => setIsMobileMenuOpen(false)} className="text-slate-400"><X size={20} /></button></div><nav className="flex-1 px-4 mt-4 overflow-y-auto">{(['controle', 'receitas', 'despesas', 'orcamento', 'dividas', 'metas', 'investimentos', 'config'] as Tab[]).map(tabId => (<button key={tabId} onClick={() => handleTabChange(tabId)} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${activeTab === tabId ? 'bg-brand-gold text-white' : 'text-slate-300'}`}>{TAB_METADATA[tabId].icon}{TAB_METADATA[tabId].label}</button>))}</nav></aside></div>
                 )}
 
-                <main className="flex-1 flex flex-col h-full overflow-hidden relative bg-background">
-                    <header className="bg-surface h-16 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-4 shadow-sm z-30 transition-colors">
+                <main className="flex-1 flex flex-col h-full overflow-hidden relative bg-slate-50 dark:bg-slate-950">
+                    <header className="glass-header h-16 flex items-center justify-between px-4 z-30 transition-all">
                         <div className="flex items-center gap-3"><button onClick={() => setIsMobileMenuOpen(true)} className="md:hidden text-slate-500 hover:bg-slate-100 p-2 rounded-lg -ml-2"><Menu /></button><h2 className="text-lg font-semibold dark:text-white truncate max-w-[200px]">{TAB_METADATA[activeTab].pageTitle}</h2></div>
                         <div className="flex items-center gap-2 sm:gap-4">
                             <div className="hidden sm:block"><FilterBar filter={filter} setFilter={setFilter} activeTab={activeTab} config={config} /></div>
                             <div className="hidden md:block"><ThemeSelector /></div>
                             <button onClick={() => updateConfig({ ...config, theme: config.theme === 'dark' ? 'light' : 'dark' })} className="p-2 text-slate-500 dark:hover:bg-slate-800 rounded-full transition-colors">{config.theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}</button>
                             <Notifications transactions={transactions} goals={goals} debts={debts} config={config} onNavigate={(tab) => { handleTabChange(tab as Tab); if (tab === 'despesas') setExpenseSubTab('cards'); }} />
-                            <button onClick={() => setShowImportModal(true)} className="p-3 text-slate-500 dark:hover:bg-slate-800 rounded-full transition-colors active:bg-slate-100" title="Importar Extrato"><Upload size={20} /></button>
-                            <button onClick={() => setShowRecurringExpenses(true)} className="p-3 text-slate-500 dark:hover:bg-slate-800 rounded-full transition-colors active:bg-slate-100" title="Organizador de Assinaturas"><Receipt size={20} /></button>
-                            <button onClick={() => setShowCalculatorModal(true)} className="p-3 text-slate-500 dark:hover:bg-slate-800 rounded-full transition-colors active:bg-slate-100"><Calculator size={20} /></button>
-                            <button onClick={() => setShowInbox(true)} className="relative p-3 text-slate-500 dark:hover:bg-slate-800 rounded-full transition-colors active:bg-slate-100"><Mail size={20} />{unreadMessages > 0 && <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-brand-gold rounded-full border-2 border-white dark:border-slate-900 animate-pulse"></span>}</button>
+                            <button onClick={() => setShowImportModal(true)} className="p-3 text-slate-500 dark:hover:bg-slate-800 rounded-full transition-all hover:scale-105 active:scale-95" title="Importar Extrato"><Upload size={20} /></button>
+                            <button onClick={() => setShowRecurringExpenses(true)} className="p-3 text-slate-500 dark:hover:bg-slate-800 rounded-full transition-all hover:scale-105 active:scale-95" title="Organizador de Assinaturas"><Receipt size={20} /></button>
+                            <button onClick={() => setShowCalculatorModal(true)} className="p-3 text-slate-500 dark:hover:bg-slate-800 rounded-full transition-all hover:scale-105 active:scale-95"><Calculator size={20} /></button>
+                            <button onClick={() => setShowInbox(true)} className="relative p-3 text-slate-500 dark:hover:bg-slate-800 rounded-full transition-all hover:scale-105 active:scale-95"><Mail size={20} />{unreadMessages > 0 && <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-brand-gold rounded-full border-2 border-white dark:border-slate-900 animate-pulse"></span>}</button>
                         </div>
                     </header>
 
@@ -515,13 +515,13 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
 
                     <button
                         onClick={handleOpenGoalFormShortcut}
-                        className="fixed bottom-36 right-4 md:bottom-24 md:right-8 w-12 h-12 md:w-14 md:h-14 bg-brand-gold text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-all z-40 border-2 md:border-4 border-white dark:border-slate-800"
+                        className="fixed bottom-36 right-4 md:bottom-24 md:right-8 w-14 h-14 md:w-16 md:h-16 bg-gradient-to-r from-brand-gold to-yellow-500 text-white rounded-full shadow-[0_8px_30px_rgb(212,175,55,0.4)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-40 border-[3px] border-white/50 dark:border-slate-800/50 backdrop-blur-md"
                         title="Nova Meta Financeira"
                     >
                         <Plus size={24} />
                     </button>
 
-                    <nav className="md:hidden fixed bottom-0 w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 z-50 flex justify-around items-center pb-safe pt-1 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+                    <nav className="md:hidden fixed bottom-0 w-full glass-panel z-50 flex justify-around items-center pb-safe pt-1">
                         {(['controle', 'receitas', 'despesas', 'cursos', 'config'] as Tab[]).map(t => (
                             <button
                                 key={t}

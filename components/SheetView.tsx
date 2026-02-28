@@ -376,8 +376,8 @@ export const SheetView: React.FC<SheetViewProps> = ({
                     <button
                         onClick={() => setShowFilters(!showFilters)}
                         className={`flex items - center gap - 2 px - 3 py - 1.5 rounded - sm text - xs font - medium transition - colors border relative ${showFilters || activeFiltersCount > 0
-                                ? 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800'
-                                : 'bg-white text-slate-600 border-slate-300 hover:bg-surfaceHighlight dark:text-slate-300 dark:border-slate-600 dark:hover:bg-slate-700'
+                            ? 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800'
+                            : 'bg-white text-slate-600 border-slate-300 hover:bg-surfaceHighlight dark:text-slate-300 dark:border-slate-600 dark:hover:bg-slate-700'
                             } `}
                     >
                         <Filter size={14} />
@@ -514,8 +514,8 @@ export const SheetView: React.FC<SheetViewProps> = ({
                                 onClick={clearFilters}
                                 disabled={activeFiltersCount === 0}
                                 className={`w - full px - 3 py - 1.5 text - xs font - medium border rounded - sm transition - colors flex items - center justify - center gap - 1 ${activeFiltersCount > 0
-                                        ? 'text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-900 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 dark:hover:bg-rose-900/40'
-                                        : 'text-slate-400 border-slate-200 dark:border-slate-700 bg-surfaceHighlight cursor-not-allowed'
+                                    ? 'text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-900 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 dark:hover:bg-rose-900/40'
+                                    : 'text-slate-400 border-slate-200 dark:border-slate-700 bg-surfaceHighlight cursor-not-allowed'
                                     } `}
                             >
                                 <XCircle size={14} /> Limpar Filtros
@@ -528,8 +528,8 @@ export const SheetView: React.FC<SheetViewProps> = ({
             {/* Input Row (Sheet Style) - Only visible when adding */}
             {isAdding && (
                 <div className={`p - 4 border - b grid grid - cols - 12 gap - 3 items - start animate - fade -in relative z - 20 ${editingId
-                        ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800'
-                        : 'bg-emerald-50 dark:bg-emerald-900/10 border-emerald-100 dark:border-emerald-800'
+                    ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800'
+                    : 'bg-emerald-50 dark:bg-emerald-900/10 border-emerald-100 dark:border-emerald-800'
                     } `}>
                     {editingId && (
                         <div className="col-span-12 mb-2 flex items-center gap-2 text-amber-600 dark:text-amber-400 font-bold text-xs uppercase tracking-wide">
@@ -648,31 +648,51 @@ export const SheetView: React.FC<SheetViewProps> = ({
             <div className="flex-1 overflow-auto custom-scrollbar relative bg-white dark:bg-slate-900">
                 {/* Desktop Table */}
                 <table className="w-full text-left border-collapse hidden md:table">
-                    <thead className="bg-white dark:bg-slate-900 sticky top-0 z-10 shadow-sm border-b border-slate-200 dark:border-slate-700">
+                    <thead className="bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-10 border-b border-slate-200/60 dark:border-slate-800/60">
                         <tr>
-                            <th className="py-3 px-4 text-xs font-semibold text-textMuted uppercase tracking-wider w-32 cursor-pointer hover:text-blue-600 transition-colors select-none" onClick={() => handleSort('date')}>
+                            <th className="py-4 px-5 text-[11px] font-bold text-slate-500 uppercase tracking-widest w-32 cursor-pointer hover:text-blue-600 transition-colors select-none" onClick={() => handleSort('date')}>
                                 <div className="flex items-center gap-1">
                                     Data
                                     {sortConfig.key === 'date' && (sortConfig.direction === 'desc' ? <ArrowDown size={12} /> : <ArrowUp size={12} />)}
                                 </div>
                             </th>
-                            <th className="py-3 px-4 text-xs font-semibold text-textMuted uppercase tracking-wider w-40 cursor-pointer hover:text-blue-600 transition-colors select-none" onClick={() => handleSort('amount')}>
+                            <th className="py-4 px-5 text-[11px] font-bold text-slate-500 uppercase tracking-widest w-40 cursor-pointer hover:text-blue-600 transition-colors select-none" onClick={() => handleSort('amount')}>
                                 <div className="flex items-center gap-1 justify-end pr-2">
                                     Valor
                                     {sortConfig.key === 'amount' && (sortConfig.direction === 'desc' ? <ArrowDown size={12} /> : <ArrowUp size={12} />)}
                                 </div>
                             </th>
-                            <th className="py-3 px-4 text-xs font-semibold text-textMuted uppercase tracking-wider w-48">Categoria</th>
-                            {type === 'expense' && <th className="py-3 px-4 text-xs font-semibold text-textMuted uppercase tracking-wider w-40">Pagamento</th>}
-                            <th className="py-3 px-4 text-xs font-semibold text-textMuted uppercase tracking-wider">Descrição</th>
-                            <th className="py-3 px-4 text-xs font-semibold text-textMuted uppercase tracking-wider w-20 text-center">Ações</th>
+                            <th className="py-4 px-5 text-[11px] font-bold text-slate-500 uppercase tracking-widest w-48">Categoria</th>
+                            {type === 'expense' && <th className="py-4 px-5 text-[11px] font-bold text-slate-500 uppercase tracking-widest w-40">Pagamento</th>}
+                            <th className="py-4 px-5 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Descrição</th>
+                            <th className="py-4 px-5 text-[11px] font-bold text-slate-500 uppercase tracking-widest w-20 text-center">Ações</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    <tbody className="divide-y divide-slate-100/50 dark:divide-slate-800/50">
                         {sheetData.length === 0 ? (
                             <tr>
-                                <td colSpan={type === 'expense' ? 6 : 5} className="py-16 text-center text-slate-400 dark:text-slate-500 italic">
-                                    Nenhuma transação encontrada.
+                                <td colSpan={type === 'expense' ? 6 : 5} className="py-24">
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        className="flex flex-col items-center justify-center text-center p-8 max-w-sm mx-auto border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl bg-slate-50/50 dark:bg-slate-800/20"
+                                    >
+                                        <div className={`w-16 h-16 mb-4 rounded-full flex items-center justify-center ${type === 'income' ? 'bg-emerald-100 text-emerald-500' : 'bg-rose-100 text-rose-500'}`}>
+                                            <CircleDollarSign size={32} />
+                                        </div>
+                                        <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-2">
+                                            Nenhum registro encontrado
+                                        </h3>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+                                            Você ainda não adicionou nenhuma {type === 'income' ? 'receita' : 'despesa'} neste período. Que tal começar agora?
+                                        </p>
+                                        <button
+                                            onClick={() => setIsAdding(true)}
+                                            className="px-6 py-2.5 bg-brand-blue dark:bg-brand-gold dark:text-brand-blue text-white rounded-xl font-bold text-sm shadow-md hover:-translate-y-0.5 transition-transform"
+                                        >
+                                            + Adicionar Registro
+                                        </button>
+                                    </motion.div>
                                 </td>
                             </tr>
                         ) : (
@@ -698,14 +718,14 @@ export const SheetView: React.FC<SheetViewProps> = ({
                                                 )}
                                             </div>
                                         </td>
-                                        <td className={`py - 3 px - 4 text - sm font - bold text - right font - mono tabular - nums pr - 6 ${type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-textMain'} `}>
+                                        <td className={`py-4 px-5 text-sm font-black text-right font-mono tabular-nums pr-6 ${type === 'income' ? 'text-emerald-500 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-200'}`}>
                                             {formatCurrency(t.amount, currency)}
                                         </td>
-                                        <td className="py-3 px-4">
-                                            <span className={`inline - flex items - center gap - 1.5 px - 2.5 py - 0.5 rounded - full text - [10px] font - bold uppercase tracking - wide border ${type === 'income'
-                                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-900'
-                                                    : 'bg-indigo-50 text-indigo-700 border-indigo-100 dark:bg-indigo-900/20 dark:text-indigo-400 dark:border-indigo-900'
-                                                } `}>
+                                        <td className="py-4 px-5">
+                                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${type === 'income'
+                                                ? 'bg-emerald-50 text-emerald-600 border border-emerald-100/50 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20'
+                                                : 'bg-indigo-50 text-indigo-600 border border-indigo-100/50 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/20'
+                                                }`}>
                                                 {getCategoryIcon(t.category)}
                                                 {t.category}
                                             </span>
@@ -742,9 +762,9 @@ export const SheetView: React.FC<SheetViewProps> = ({
                     {sheetData.length > 0 && (
                         <tfoot className="bg-slate-50 dark:bg-slate-900 sticky bottom-0 z-10 border-t border-slate-200 dark:border-slate-700">
                             <tr>
-                                <td className="py-3 px-4 text-xs font-bold text-slate-500 uppercase tracking-widest text-right">Total</td>
-                                <td className={`py - 3 px - 4 text - sm font - black font - mono text - right tabular - nums pr - 6 ${type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
-                                    } `}>
+                                <td className="py-4 px-5 text-xs font-black text-slate-500 uppercase tracking-widest text-right">Total</td>
+                                <td className={`py-4 px-5 text-base font-black font-mono text-right tabular-nums pr-6 ${type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+                                    }`}>
                                     {formatCurrency(totalValue, currency)}
                                 </td>
                                 <td colSpan={10}></td>
@@ -756,10 +776,17 @@ export const SheetView: React.FC<SheetViewProps> = ({
                 {/* Mobile List View (Cards) */}
                 <div className="md:hidden p-4 space-y-3 pb-24">
                     {sheetData.length === 0 ? (
-                        <div className="text-center py-10 text-slate-400 dark:text-slate-500 italic">
-                            <p>Nenhuma transação encontrada.</p>
-                            <p className="text-xs mt-1">Toque em + para adicionar.</p>
-                        </div>
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="flex flex-col items-center justify-center text-center py-12 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl bg-slate-50/50 dark:bg-slate-800/20"
+                        >
+                            <div className={`w-12 h-12 mb-3 rounded-full flex items-center justify-center ${type === 'income' ? 'bg-emerald-100 text-emerald-500' : 'bg-rose-100 text-rose-500'}`}>
+                                <CircleDollarSign size={24} />
+                            </div>
+                            <p className="text-sm font-bold text-slate-600 dark:text-slate-300">Nenhum registro</p>
+                            <p className="text-xs mt-1 text-slate-400">Toque em + para adicionar.</p>
+                        </motion.div>
                     ) : (
                         <AnimatePresence>
                             {sheetData.map((t) => (
