@@ -84,12 +84,7 @@ export interface AppConfig {
   requireBiometrics?: boolean; // New setting for native security
   // Added createdAt to allow checking if the config record exists in the database
   createdAt?: string;
-  // Gamification Fields
-  xp?: number;
-  level?: string;
-  streak?: number;
-  lastLoginDate?: string; // To calculate streak
-  unlockedBadges?: string[]; // IDs of unlocked badges
+  // Removed Gamification Fields
 }
 
 export interface FilterState {
