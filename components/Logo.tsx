@@ -7,7 +7,7 @@ interface LogoProps {
 }
 
 export const Logo: React.FC<LogoProps> = ({
-  className = "w-10 h-10",
+  className = "h-10 w-auto",
   showText = true,
   textClassName = "text-slate-800 dark:text-white"
 }) => {
@@ -17,7 +17,7 @@ export const Logo: React.FC<LogoProps> = ({
         <img
           src="/logo.png"
           alt="Finance Pro 360 Logo"
-          className="w-full h-full object-contain filter drop-shadow-md hover:scale-105 transition-transform duration-300"
+          className="h-full w-auto object-contain filter drop-shadow-md hover:scale-105 transition-transform duration-300"
           onError={(e) => {
             // Fallback visual caso a imagem não seja encontrada na pasta public
             (e.target as HTMLImageElement).style.display = 'none';

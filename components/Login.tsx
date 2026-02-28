@@ -122,43 +122,44 @@ export const Login: React.FC<LoginProps> = ({ onLogin, initialMessage, messageTy
         <meta name="description" content="O Finance Pro 360 é a melhor plataforma para controle financeiro, gestão de gastos, investimentos e planejamento de metas. Transforme sua vida financeira hoje." />
         <meta name="keywords" content="finanças, controle financeiro, gestão de gastos, investimentos, metas financeiras, app financeiro, finance pro 360" />
       </Helmet>
-      <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-2xl shadow-2xl w-full max-w-md animate-fade-in relative overflow-hidden">
+      <div className="bg-white/10 backdrop-blur-2xl border border-white/20 p-8 sm:p-10 rounded-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] w-full max-w-md animate-fade-in relative overflow-hidden group">
 
-        <div className="text-center mb-10">
-          <div className="mb-4 inline-block transform hover:scale-105 transition-transform duration-500">
-            <Logo className="w-20 h-20" showText={false} />
+        {/* Subtle glow effect behind the form */}
+        <div className="absolute -top-32 -right-32 w-64 h-64 bg-brand-gold/20 rounded-full blur-[80px] group-hover:bg-brand-gold/30 transition-all duration-700 pointer-events-none"></div>
+        <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-blue-500/20 rounded-full blur-[80px] group-hover:bg-blue-500/30 transition-all duration-700 pointer-events-none"></div>
+
+        <div className="text-center mb-10 relative z-10">
+          <div className="mb-2 inline-flex justify-center w-full transform hover:scale-105 transition-transform duration-500">
+            <Logo className="h-24 sm:h-32 w-auto" showText={false} />
           </div>
-          <h1 className="text-3xl font-black text-white tracking-tight">
-            FINANCE <span className="text-brand-gold">PRO 360</span>
-          </h1>
-          <p className="text-slate-400 mt-2 text-sm">Gestão de Alta Performance</p>
+          <p className="text-slate-300/80 mt-4 text-sm font-medium tracking-wide">Gestão de Alta Performance</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5 relative z-10">
           {authMode === 'register' && (
             <div className="animate-fade-in">
-              <label className="block text-[10px] font-black text-brand-gold uppercase mb-1 ml-1 tracking-widest">Nome Completo</label>
+              <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 tracking-widest pl-1">Nome Completo</label>
               <div className="relative group">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-brand-gold" size={18} />
-                <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full bg-slate-900/50 border border-slate-700 rounded-lg py-3 pl-10 text-white focus:ring-1 focus:ring-brand-gold outline-none transition-all" placeholder="Como deseja ser chamado" required />
+                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-brand-gold transition-colors" size={18} />
+                <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full bg-slate-900/40 backdrop-blur-md border border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-white text-sm placeholder-slate-500 focus:ring-2 focus:ring-brand-gold/50 focus:border-brand-gold/50 outline-none transition-all shadow-inner" placeholder="Como deseja ser chamado" required />
               </div>
             </div>
           )}
 
           <div>
-            <label className="block text-[10px] font-black text-brand-gold uppercase mb-1 ml-1 tracking-widest">E-mail de Acesso</label>
+            <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 tracking-widest pl-1">E-mail de Acesso</label>
             <div className="relative group">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-brand-gold" size={18} />
-              <input type="email" value={username} onChange={(e) => setUsername(e.target.value)} className="w-full bg-slate-900/50 border border-slate-700 rounded-lg py-3 pl-10 text-white focus:ring-1 focus:ring-brand-gold outline-none transition-all" placeholder="exemplo@email.com" required />
+              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-brand-gold transition-colors" size={18} />
+              <input type="email" value={username} onChange={(e) => setUsername(e.target.value)} className="w-full bg-slate-900/40 backdrop-blur-md border border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-white text-sm placeholder-slate-500 focus:ring-2 focus:ring-brand-gold/50 focus:border-brand-gold/50 outline-none transition-all shadow-inner" placeholder="exemplo@email.com" required />
             </div>
           </div>
 
           {authMode !== 'recovery' && (
             <div>
-              <label className="block text-[10px] font-black text-brand-gold uppercase mb-1 ml-1 tracking-widest">Senha</label>
+              <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 tracking-widest pl-1">Senha</label>
               <div className="relative group">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-brand-gold" size={18} />
-                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-slate-900/50 border border-slate-700 rounded-lg py-3 pl-10 text-white focus:ring-1 focus:ring-brand-gold outline-none transition-all" placeholder="••••••••" required />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-brand-gold transition-colors" size={18} />
+                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-slate-900/40 backdrop-blur-md border border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-white text-sm placeholder-slate-500 focus:ring-2 focus:ring-brand-gold/50 focus:border-brand-gold/50 outline-none transition-all shadow-inner" placeholder="••••••••" required />
               </div>
             </div>
           )}
@@ -199,19 +200,19 @@ export const Login: React.FC<LoginProps> = ({ onLogin, initialMessage, messageTy
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-gradient-to-r from-brand-gold to-yellow-600 hover:from-yellow-500 hover:to-yellow-700 text-white font-black py-4 rounded-xl transition-all transform active:scale-95 flex items-center justify-center gap-2 shadow-lg shadow-brand-gold/10 disabled:opacity-50"
+            className="w-full mt-2 bg-gradient-to-r from-brand-gold via-yellow-500 to-amber-500 hover:from-yellow-400 hover:to-amber-500 text-slate-900 font-black py-4 rounded-xl transition-all duration-300 transform hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(255,215,0,0.3)] hover:shadow-[0_0_25px_rgba(255,215,0,0.5)] disabled:opacity-50 disabled:hover:translate-y-0"
           >
-            {isLoading ? <Loader2 className="animate-spin" size={20} /> : (
+            {isLoading ? <Loader2 className="animate-spin text-slate-900" size={20} /> : (
               <>
                 {authMode === 'login' ? 'ENTRAR NO SISTEMA' : authMode === 'register' ? 'CRIAR MINHA CONTA' : 'RECUPERAR ACESSO'}
-                <ArrowRight size={18} />
+                <ArrowRight size={18} className="translate-y-[1px]" />
               </>
             )}
           </button>
         </form>
 
-        <div className="mt-8 text-center flex flex-col gap-6">
-          <button onClick={() => { setAuthMode(authMode === 'login' ? 'register' : 'login'); setError(''); }} className="text-sm text-slate-400 hover:text-white transition-colors">
+        <div className="mt-8 text-center flex flex-col gap-6 relative z-10">
+          <button onClick={() => { setAuthMode(authMode === 'login' ? 'register' : 'login'); setError(''); }} className="text-sm font-medium text-slate-400 hover:text-white transition-colors">
             {authMode === 'login' ? 'Não tem conta? Registre-se agora' : 'Já possui conta? Faça Login'}
           </button>
 
