@@ -144,7 +144,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin, initialMessage, messageTy
       </div>
 
       {/* Right Side: Authentication Form */}
-      <div className="w-full lg:w-[45%] flex items-center justify-center p-6 sm:p-10 lg:p-16 relative bg-[#0a192f] z-10 -mt-8 sm:-mt-12 lg:mt-0 rounded-t-[2.5rem] lg:rounded-none shadow-[0_-10px_40px_rgba(0,0,0,0.5)] lg:shadow-none min-h-[65vh] lg:min-h-screen">
+      <div className="w-full lg:w-[45%] flex items-center justify-center p-6 sm:p-10 lg:p-16 relative bg-[#0a192f] z-10 -mt-8 sm:-mt-12 lg:mt-0 rounded-t-[2.5rem] lg:rounded-none shadow-sm lg:shadow-none min-h-[65vh] lg:min-h-screen">
 
         {/* Subtle glow orb */}
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-gold/5 blur-[120px] rounded-full pointer-events-none"></div>
@@ -172,7 +172,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin, initialMessage, messageTy
                 <label className="block text-[11px] font-bold text-slate-400 uppercase mb-2 tracking-widest pl-1">Nome Completo</label>
                 <div className="relative group/input">
                   <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within/input:text-brand-gold transition-colors" size={18} />
-                  <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full bg-white/5 hover:bg-white/[0.07] border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white text-sm placeholder-slate-500 focus:bg-white/[0.07] focus:ring-2 focus:ring-brand-gold/50 focus:border-brand-gold/50 outline-none transition-all shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)]" placeholder="Como deseja ser chamado" required />
+                  <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full bg-white/5 hover:bg-white/[0.07] border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white text-sm placeholder-slate-500 focus:bg-white/[0.07] focus:ring-2 focus:ring-brand-gold/50 focus:border-brand-gold/50 outline-none transition-all shadow-sm" placeholder="Como deseja ser chamado" required />
                 </div>
               </div>
             )}
@@ -181,7 +181,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin, initialMessage, messageTy
               <label className="block text-[11px] font-bold text-slate-400 uppercase mb-2 tracking-widest pl-1">E-mail de Acesso</label>
               <div className="relative group/input">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within/input:text-brand-gold transition-colors" size={18} />
-                <input type="email" value={username} onChange={(e) => setUsername(e.target.value)} className="w-full bg-white/5 hover:bg-white/[0.07] border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white text-sm placeholder-slate-500 focus:bg-white/[0.07] focus:ring-2 focus:ring-brand-gold/50 focus:border-brand-gold/50 outline-none transition-all shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)]" placeholder="ex. diretor@empresa.com" required />
+                <input type="email" value={username} onChange={(e) => setUsername(e.target.value)} className="w-full bg-white/5 hover:bg-white/[0.07] border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white text-sm placeholder-slate-500 focus:bg-white/[0.07] focus:ring-2 focus:ring-brand-gold/50 focus:border-brand-gold/50 outline-none transition-all shadow-sm" placeholder="ex. diretor@empresa.com" required />
               </div>
             </div>
 
@@ -190,7 +190,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin, initialMessage, messageTy
                 <label className="block text-[11px] font-bold text-slate-400 uppercase mb-2 tracking-widest pl-1">Senha</label>
                 <div className="relative group/input">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within/input:text-brand-gold transition-colors" size={18} />
-                  <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-white/5 hover:bg-white/[0.07] border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white text-sm placeholder-slate-500 focus:bg-white/[0.07] focus:ring-2 focus:ring-brand-gold/50 focus:border-brand-gold/50 outline-none transition-all shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)]" placeholder="••••••••" required />
+                  <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-white/5 hover:bg-white/[0.07] border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white text-sm placeholder-slate-500 focus:bg-white/[0.07] focus:ring-2 focus:ring-brand-gold/50 focus:border-brand-gold/50 outline-none transition-all shadow-sm" placeholder="••••••••" required />
                 </div>
               </div>
             )}
@@ -231,7 +231,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin, initialMessage, messageTy
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full mt-4 bg-gradient-to-r from-brand-gold via-yellow-500 to-amber-500 hover:from-yellow-400 hover:to-amber-500 text-slate-900 font-black py-4 rounded-xl transition-all duration-300 transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2 shadow-[0_10px_30px_rgba(255,215,0,0.2)] hover:shadow-[0_15px_40px_rgba(255,215,0,0.4)] disabled:opacity-50 disabled:hover:translate-y-0 text-sm tracking-wide uppercase"
+              className="w-full mt-4 bg-gradient-to-r from-brand-gold via-yellow-500 to-amber-500 hover:from-yellow-400 hover:to-amber-500 text-slate-900 font-black py-4 rounded-xl transition-all duration-300 transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2 shadow-sm hover:shadow-sm disabled:opacity-50 disabled:hover:translate-y-0 text-sm tracking-wide uppercase"
             >
               {isLoading ? <Loader2 className="animate-spin text-slate-900" size={20} /> : (
                 <>

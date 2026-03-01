@@ -125,7 +125,7 @@ export const Budget: React.FC<BudgetProps> = ({ transactions, config, filter }) 
         <div className="space-y-6 animate-fade-in pb-24 md:pb-10">
             {/* Header / Summary */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="md:col-span-2 bg-gradient-to-r from-slate-800 to-slate-900 text-white p-6 rounded-xl shadow-lg relative overflow-hidden">
+                <div className="md:col-span-2 bg-gradient-to-r from-slate-800 to-slate-900 text-white p-6 rounded-xl shadow-md relative overflow-hidden">
                     <div className="relative z-10">
                         <h2 className="text-lg font-bold mb-1">Orçamento Familiar</h2>
                         <p className="text-slate-400 text-xs mb-6 uppercase tracking-wider">Visão Geral Mensal</p>
@@ -222,7 +222,7 @@ export const Budget: React.FC<BudgetProps> = ({ transactions, config, filter }) 
             {/* Modal */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-700">
+                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-700">
                         <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
                             <h3 className="font-bold text-lg dark:text-white">Definir Orçamento</h3>
                             <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-rose-500"><X size={20} /></button>

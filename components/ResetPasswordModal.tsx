@@ -48,7 +48,7 @@ export const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({ onClose 
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
        
-       <div className="bg-white dark:bg-slate-900 w-full max-w-md p-8 rounded-xl shadow-2xl relative animate-fade-in border border-slate-200 dark:border-slate-700">
+       <div className="bg-white dark:bg-slate-900 w-full max-w-md p-8 rounded-xl shadow-md relative animate-fade-in border border-slate-200 dark:border-slate-700">
            <div className="text-center mb-6">
                 <div className="mx-auto w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-3 text-blue-600 dark:text-blue-400">
                     <Lock size={24} />

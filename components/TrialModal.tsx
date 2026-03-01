@@ -23,7 +23,7 @@ export const TrialModal: React.FC<TrialModalProps> = ({ daysRemaining, onClose }
     return (
         <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 transition-all duration-300 ${isVisible ? 'bg-black/60 backdrop-blur-sm' : 'bg-transparent pointer-events-none'}`}>
             <div
-                className={`bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-sm w-full p-6 transform transition-all duration-300 ${isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}
+                className={`bg-white dark:bg-slate-800 rounded-xl shadow-md max-w-sm w-full p-6 transform transition-all duration-300 ${isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}
             >
                 <button
                     onClick={handleClose}

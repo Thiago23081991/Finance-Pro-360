@@ -391,9 +391,9 @@ export const SheetView: React.FC<SheetViewProps> = ({
                     {/* Desktop Button */}
                     <button
                         onClick={() => setIsSmartInputOpen(true)}
-                        className="hidden md:flex items-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-4 py-1.5 rounded-sm text-xs font-bold hover:shadow-lg hover:shadow-indigo-500/30 transition-all active:scale-95 whitespace-nowrap border border-white/10"
+                        className="hidden md:flex items-center gap-2 bg-indigo-600 text-white px-4 py-1.5 rounded-md text-xs font-bold hover:bg-indigo-700 transition-all active:scale-95 whitespace-nowrap shadow-sm"
                     >
-                        <Sparkles size={14} className="text-yellow-300" />
+                        <Sparkles size={14} className="text-indigo-200" />
                         Smart Add
                     </button>
 
@@ -416,7 +416,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
 
                             setNewDate(todayStr);
                         }}
-                        className="hidden md:flex items-center gap-2 bg-emerald-600 text-white px-4 py-1.5 rounded-sm text-xs font-medium hover:bg-emerald-700 transition-colors shadow-sm whitespace-nowrap"
+                        className="hidden md:flex items-center gap-2 bg-emerald-600 text-white px-4 py-1.5 rounded-md text-xs font-medium hover:bg-emerald-700 transition-colors shadow-sm whitespace-nowrap"
                     >
                         <Plus size={14} />
                         Adicionar Linha
@@ -675,7 +675,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
                                     <motion.div
                                         initial={{ opacity: 0, scale: 0.95 }}
                                         animate={{ opacity: 1, scale: 1 }}
-                                        className="flex flex-col items-center justify-center text-center p-8 max-w-sm mx-auto border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl bg-slate-50/50 dark:bg-slate-800/20"
+                                        className="flex flex-col items-center justify-center text-center p-8 max-w-sm mx-auto border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50/50 dark:bg-slate-800/20"
                                     >
                                         <div className={`w-16 h-16 mb-4 rounded-full flex items-center justify-center ${type === 'income' ? 'bg-emerald-100 text-emerald-500' : 'bg-rose-100 text-rose-500'}`}>
                                             <CircleDollarSign size={32} />
@@ -779,7 +779,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            className="flex flex-col items-center justify-center text-center py-12 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl bg-slate-50/50 dark:bg-slate-800/20"
+                            className="flex flex-col items-center justify-center text-center py-12 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50/50 dark:bg-slate-800/20"
                         >
                             <div className={`w-12 h-12 mb-3 rounded-full flex items-center justify-center ${type === 'income' ? 'bg-emerald-100 text-emerald-500' : 'bg-rose-100 text-rose-500'}`}>
                                 <CircleDollarSign size={24} />
@@ -851,7 +851,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
 
                     {/* Mobile Footer Summary */}
                     {sheetData.length > 0 && (
-                        <div className="fixed bottom-0 left-0 w-full bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 p-4 shadow-lg z-10 flex justify-between items-center mb-[56px] md:mb-0">
+                        <div className="fixed bottom-0 left-0 w-full bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 p-4 shadow-md z-10 flex justify-between items-center mb-[56px] md:mb-0">
                             <span className="text-xs font-bold text-textMuted uppercase">Total ({sheetData.length})</span>
                             <span className={`text - lg font - black font - mono ${type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'} `}>
                                 {formatCurrency(totalValue, currency)}
@@ -862,7 +862,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
             </div>
 
             {/* Floating Summary Footer - Modern Glassmorphism */}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 bg-slate-900/90 dark:bg-white/90 backdrop-blur-md text-white dark:text-slate-900 px-6 py-3 rounded-full shadow-2xl flex items-center gap-6 border border-white/10 dark:border-slate-200">
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 bg-slate-900/90 dark:bg-white/90 backdrop-blur-md text-white dark:text-slate-900 px-6 py-3 rounded-full shadow-md flex items-center gap-6 border border-white/10 dark:border-slate-200">
                 <div className="flex flex-col">
                     <span className="text-[10px] opacity-60 uppercase font-bold tracking-widest">Total {type === 'income' ? 'Receitas' : 'Despesas'}</span>
                     <span className="text-xl font-black font-mono tracking-tighter leading-none">

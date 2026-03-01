@@ -552,71 +552,68 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                 {/* Coluna 1: KPIs Principais (Receita, Despesa, Saldo) */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-3 content-start">
                     {/* Receita */}
-                    <div className="bg-gradient-to-br from-emerald-500/10 via-white to-emerald-50/50 dark:from-emerald-900/40 dark:via-slate-900 dark:to-slate-800 p-5 md:p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] border border-emerald-100/50 dark:border-emerald-800/30 flex justify-between items-center relative overflow-hidden group hover:-translate-y-1 transition-all duration-300 backdrop-blur-xl">
-                        <div className="z-10 relative">
+                    <div className="bg-white dark:bg-slate-800 p-5 md:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex justify-between items-center relative overflow-hidden group hover:-translate-y-1 transition-all duration-300">
+                        <div className="z-10 relative w-full">
                             <div className="flex items-center gap-2 mb-3">
-                                <div className="p-2 bg-emerald-100/80 dark:bg-emerald-500/20 rounded-xl text-emerald-600 dark:text-emerald-400 shadow-sm">
+                                <div className="p-2 bg-emerald-50 dark:bg-emerald-500/10 rounded-lg text-emerald-600 dark:text-emerald-400">
                                     <TrendingUp size={16} />
                                 </div>
                                 <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Receitas</p>
                             </div>
-                            <h3 className="text-3xl md:text-4xl font-black text-slate-800 dark:text-white tracking-tight leading-none">{formatCurrency(kpiData.income, currency)}</h3>
+                            <h3 className="text-3xl md:text-4xl font-bold text-slate-800 dark:text-white tracking-tight leading-none">{formatCurrency(kpiData.income, currency)}</h3>
                             <div className="flex items-center gap-2 mt-3">
-                                <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 border ${momComparison.incomePct >= 0 ? 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30' : 'bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-500/20 dark:text-rose-300 dark:border-rose-500/30'}`}>
+                                <span className={`text-[11px] font-bold px-2 py-0.5 rounded flex items-center gap-1 ${momComparison.incomePct >= 0 ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300' : 'bg-rose-50 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300'}`}>
                                     {momComparison.incomePct >= 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
                                     {Math.abs(momComparison.incomePct).toFixed(0)}%
                                 </span>
                                 <span className="text-[10px] font-medium text-slate-400">vs. mês anterior</span>
                             </div>
                         </div>
-                        <div className="absolute right-[-15%] top-[-15%] w-[120px] h-[120px] bg-emerald-400/20 rounded-full blur-3xl group-hover:bg-emerald-400/30 group-hover:scale-110 transition-all duration-500"></div>
                     </div>
 
                     {/* Despesa */}
-                    <div className="bg-gradient-to-br from-rose-500/10 via-white to-rose-50/50 dark:from-rose-900/40 dark:via-slate-900 dark:to-slate-800 p-5 md:p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] border border-rose-100/50 dark:border-rose-800/30 flex justify-between items-center relative overflow-hidden group hover:-translate-y-1 transition-all duration-300 backdrop-blur-xl">
-                        <div className="z-10 relative">
+                    <div className="bg-white dark:bg-slate-800 p-5 md:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex justify-between items-center relative overflow-hidden group hover:-translate-y-1 transition-all duration-300">
+                        <div className="z-10 relative w-full">
                             <div className="flex items-center gap-2 mb-3">
-                                <div className="p-2 bg-rose-100/80 dark:bg-rose-500/20 rounded-xl text-rose-600 dark:text-rose-400 shadow-sm">
+                                <div className="p-2 bg-rose-50 dark:bg-rose-500/10 rounded-lg text-rose-600 dark:text-rose-400">
                                     <TrendingDown size={16} />
                                 </div>
                                 <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Despesas</p>
                             </div>
-                            <h3 className="text-3xl md:text-4xl font-black text-slate-800 dark:text-white tracking-tight leading-none">{formatCurrency(kpiData.expense, currency)}</h3>
+                            <h3 className="text-3xl md:text-4xl font-bold text-slate-800 dark:text-white tracking-tight leading-none">{formatCurrency(kpiData.expense, currency)}</h3>
                             <div className="flex items-center gap-2 mt-3">
-                                <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 border ${momComparison.expensePct <= 0 ? 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30' : 'bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-500/20 dark:text-rose-300 dark:border-rose-500/30'}`}>
+                                <span className={`text-[11px] font-bold px-2 py-0.5 rounded flex items-center gap-1 ${momComparison.expensePct <= 0 ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300' : 'bg-rose-50 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300'}`}>
                                     {momComparison.expensePct > 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
                                     {Math.abs(momComparison.expensePct).toFixed(0)}%
                                 </span>
                                 <span className="text-[10px] font-medium text-slate-400">vs. mês anterior</span>
                             </div>
                         </div>
-                        <div className="absolute right-[-15%] top-[-15%] w-[120px] h-[120px] bg-rose-400/20 rounded-full blur-3xl group-hover:bg-rose-400/30 group-hover:scale-110 transition-all duration-500"></div>
                     </div>
 
                     {/* Saldo */}
-                    <div className="bg-gradient-to-br from-brand-blue via-brand-blue to-slate-900 p-5 md:p-6 rounded-3xl shadow-[0_8px_30px_rgb(5,27,53,0.3)] border border-white/10 flex justify-between items-center relative overflow-hidden group hover:-translate-y-1 transition-all duration-300">
-                        <div className="z-10 relative">
+                    <div className="bg-brand-blue dark:bg-slate-900 p-5 md:p-6 rounded-xl shadow-sm border border-brand-blue/10 flex justify-between items-center relative overflow-hidden group hover:-translate-y-1 transition-all duration-300">
+                        <div className="z-10 relative w-full">
                             <div className="flex items-center gap-2 mb-3">
-                                <div className="p-2 bg-white/10 rounded-xl text-brand-gold shadow-sm backdrop-blur-md">
+                                <div className="p-2 bg-white/10 rounded-lg text-brand-gold">
                                     <DollarSign size={16} />
                                 </div>
                                 <p className="text-[11px] font-bold text-slate-300 uppercase tracking-widest">Saldo Líquido</p>
                             </div>
-                            <h3 className={`text-3xl md:text-4xl font-black tracking-tight leading-none ${kpiData.balance >= 0 ? 'text-white' : 'text-rose-400'}`}>
+                            <h3 className={`text-3xl md:text-4xl font-bold tracking-tight leading-none ${kpiData.balance >= 0 ? 'text-white' : 'text-rose-400'}`}>
                                 {formatCurrency(kpiData.balance, currency)}
                             </h3>
-                            <p className="text-[11px] font-medium text-slate-300 mt-3 bg-white/5 inline-block px-2 py-1 rounded-md backdrop-blur-sm border border-white/5">
+                            <p className="text-[11px] font-medium text-slate-300 mt-3 flex items-center gap-1">
                                 {kpiData.balance >= 0 ? '✨ Excelente! Você está no verde.' : '⚠️ Atenção! Você está no vermelho.'}
                             </p>
                         </div>
-                        <div className="absolute right-[-20%] bottom-[-20%] w-[150px] h-[150px] bg-brand-gold/20 rounded-full blur-3xl group-hover:bg-brand-gold/30 group-hover:scale-110 transition-all duration-500"></div>
                     </div>
                 </div>
 
                 {/* Coluna 2: Destaques & Gamificação */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3 content-start">
                     {/* Score de Saúde Financeira */}
-                    <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-4 md:p-5 text-white shadow-lg relative overflow-hidden">
+                    <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-4 md:p-5 text-white shadow-md relative overflow-hidden">
                         <div className="absolute top-0 right-0 p-4 opacity-10">
                             <Target size={80} className="md:w-[100px] md:h-[100px]" />
                         </div>
@@ -975,7 +972,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
             {
                 selectedRuleCategory && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setSelectedRuleCategory(null)}>
-                        <div className="bg-surface w-full max-w-md rounded-2xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-700 flex flex-col max-h-[80vh]" onClick={e => e.stopPropagation()}>
+                        <div className="bg-surface w-full max-w-md rounded-xl shadow-md overflow-hidden border border-slate-200 dark:border-slate-700 flex flex-col max-h-[80vh]" onClick={e => e.stopPropagation()}>
                             <div className={`p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center ${selectedRuleCategory === 'needs' ? 'bg-blue-50 dark:bg-blue-900/20' :
                                 selectedRuleCategory === 'wants' ? 'bg-purple-50 dark:bg-purple-900/20' :
                                     'bg-emerald-50 dark:bg-emerald-900/20'

@@ -90,7 +90,7 @@ export const AIAdvisor: React.FC<AIAdvisorProps> = ({ transactions, goals, userN
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={() => setIsOpen(true)}
-                    className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-50 w-12 h-12 md:w-14 md:h-14 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full shadow-2xl shadow-indigo-500/40 text-white flex items-center justify-center group"
+                    className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-50 w-12 h-12 md:w-14 md:h-14 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full shadow-md shadow-indigo-500/40 text-white flex items-center justify-center group"
                 >
                     <Bot size={24} className="animate-pulse" />
                     <span className="absolute right-full mr-3 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
@@ -107,7 +107,7 @@ export const AIAdvisor: React.FC<AIAdvisorProps> = ({ transactions, goals, userN
                         initial={{ opacity: 0, y: 50, scale: 0.9 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 50, scale: 0.9 }}
-                        className="fixed bottom-6 right-6 z-50 w-[90vw] md:w-[380px] h-[500px] max-h-[80vh] flex flex-col bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden font-inter"
+                        className="fixed bottom-6 right-6 z-50 w-[90vw] md:w-[380px] h-[500px] max-h-[80vh] flex flex-col bg-slate-900 border border-slate-700 rounded-xl shadow-md overflow-hidden font-inter"
                     >
                         {/* Header */}
                         <div className="p-4 bg-gradient-to-r from-indigo-600 to-purple-700 flex justify-between items-center text-white shrink-0">
@@ -141,7 +141,7 @@ export const AIAdvisor: React.FC<AIAdvisorProps> = ({ transactions, goals, userN
                                     className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                                 >
                                     <div
-                                        className={`max-w-[85%] p-3 rounded-2xl ${msg.sender === 'user'
+                                        className={`max-w-[85%] p-3 rounded-xl ${msg.sender === 'user'
                                             ? 'bg-indigo-600 text-white rounded-br-none'
                                             : 'bg-slate-800 text-slate-200 border border-slate-700 rounded-bl-none shadow-sm'
                                             }`}
@@ -156,7 +156,7 @@ export const AIAdvisor: React.FC<AIAdvisorProps> = ({ transactions, goals, userN
 
                             {isTyping && (
                                 <div className="flex justify-start">
-                                    <div className="bg-slate-800 p-3 rounded-2xl rounded-bl-none border border-slate-700 flex gap-1 items-center">
+                                    <div className="bg-slate-800 p-3 rounded-xl rounded-bl-none border border-slate-700 flex gap-1 items-center">
                                         <div className="w-1.5 h-1.5 bg-slate-500 rounded-full animate-bounce"></div>
                                         <div className="w-1.5 h-1.5 bg-slate-500 rounded-full animate-bounce delay-100"></div>
                                         <div className="w-1.5 h-1.5 bg-slate-500 rounded-full animate-bounce delay-200"></div>

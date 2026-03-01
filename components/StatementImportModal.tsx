@@ -175,7 +175,7 @@ export const StatementImportModal: React.FC<StatementImportModalProps> = ({ isOp
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-3xl border border-slate-200 dark:border-slate-800 flex flex-col max-h-[90vh]">
+            <div className="bg-white dark:bg-slate-900 rounded-xl shadow-md w-full max-w-3xl border border-slate-200 dark:border-slate-800 flex flex-col max-h-[90vh]">
 
                 {/* Header */}
                 <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 rounded-t-2xl">
@@ -297,7 +297,7 @@ export const StatementImportModal: React.FC<StatementImportModalProps> = ({ isOp
                             <button
                                 onClick={handleProcessFile}
                                 disabled={!file || loading}
-                                className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg shadow-blue-200 dark:shadow-none disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-all active:scale-95"
+                                className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-md shadow-blue-200 dark:shadow-none disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-all active:scale-95"
                             >
                                 {loading ? <Loader2 size={18} className="animate-spin" /> : <ArrowRight size={18} />}
                                 Processar Arquivo
@@ -311,7 +311,7 @@ export const StatementImportModal: React.FC<StatementImportModalProps> = ({ isOp
                             <button
                                 onClick={handleSave}
                                 disabled={loading || importedData.filter(t => t.selected).length === 0}
-                                className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-lg shadow-emerald-200 dark:shadow-none disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-all active:scale-95"
+                                className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-md shadow-emerald-200 dark:shadow-none disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-all active:scale-95"
                             >
                                 {loading ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
                                 Importar {importedData.filter(t => t.selected).length} Transações

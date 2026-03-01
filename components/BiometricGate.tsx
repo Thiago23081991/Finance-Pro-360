@@ -83,7 +83,7 @@ export const BiometricGate: React.FC<BiometricGateProps> = ({ children, requireB
             {!isChecking && (
                 <button
                     onClick={performBiometricAuth}
-                    className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-indigo-900/50 active:scale-95"
+                    className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-md shadow-indigo-900/50 active:scale-95"
                 >
                     <Lock size={20} />
                     Desbloquear

@@ -141,7 +141,7 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
         return (
             <div className="h-full flex items-center justify-center p-6 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-rose-500 via-red-500 to-rose-600"></div>
-                <div className="text-center max-w-lg z-10 bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700">
+                <div className="text-center max-w-lg z-10 bg-white dark:bg-slate-900 p-8 rounded-xl shadow-md border border-slate-200 dark:border-slate-700">
                     <div className="w-20 h-20 bg-rose-100 dark:bg-rose-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
                         <Lock className="text-rose-600 dark:text-rose-400" size={40} />
                     </div>
@@ -167,7 +167,7 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
                     </ul>
                     <button 
                         onClick={onNavigateToSettings}
-                        className="w-full bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-rose-500/30 transition-all transform hover:scale-105"
+                        className="w-full bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white font-bold py-3 rounded-xl shadow-md shadow-rose-500/30 transition-all transform hover:scale-105"
                     >
                         Quero Organizar Minhas Dívidas
                     </button>
@@ -346,7 +346,7 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
                         <button 
                             onClick={handleSave}
                             disabled={isSaving}
-                            className="bg-rose-600 hover:bg-rose-700 text-white px-6 py-2.5 rounded-lg font-bold shadow-md hover:shadow-lg transition-all transform active:scale-95 flex items-center gap-2 disabled:opacity-50 disabled:shadow-none"
+                            className="bg-rose-600 hover:bg-rose-700 text-white px-6 py-2.5 rounded-lg font-bold shadow-md hover:shadow-md transition-all transform active:scale-95 flex items-center gap-2 disabled:opacity-50 disabled:shadow-none"
                         >
                             {isSaving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
                             {isSaving ? 'Salvando...' : 'Salvar Dívida'}
@@ -452,7 +452,7 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
             {showStrategyInfo && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowStrategyInfo(false)} />
-                    <div className="bg-white dark:bg-slate-900 w-full max-w-lg p-6 rounded-xl shadow-2xl relative animate-fade-in border border-slate-200 dark:border-slate-700">
+                    <div className="bg-white dark:bg-slate-900 w-full max-w-lg p-6 rounded-xl shadow-md relative animate-fade-in border border-slate-200 dark:border-slate-700">
                         <button onClick={() => setShowStrategyInfo(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><X size={20} /></button>
                         
                         <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">

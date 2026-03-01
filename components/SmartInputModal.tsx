@@ -109,7 +109,7 @@ export const SmartInputModal: React.FC<SmartInputModalProps> = ({ isOpen, onClos
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
-                        className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200 dark:border-slate-800"
+                        className="bg-white dark:bg-slate-900 rounded-xl shadow-md w-full max-w-lg overflow-hidden border border-slate-200 dark:border-slate-800"
                     >
                         {/* Header */}
                         <div className="bg-gradient-to-r from-violet-600 to-indigo-600 p-6 text-white">
@@ -166,7 +166,7 @@ export const SmartInputModal: React.FC<SmartInputModalProps> = ({ isOpen, onClos
                                     <button
                                         onClick={handleAnalyze}
                                         disabled={!inputText.trim() || isProcessing}
-                                        className="w-full py-4 bg-violet-600 hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-lg shadow-violet-500/30 flex items-center justify-center gap-2 transition-all active:scale-95"
+                                        className="w-full py-4 bg-violet-600 hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-md shadow-violet-500/30 flex items-center justify-center gap-2 transition-all active:scale-95"
                                     >
                                         {isProcessing ? <Loader2 className="animate-spin" /> : <Sparkles />}
                                         {isProcessing ? 'Analisando...' : 'Analisar com IA'}
@@ -232,7 +232,7 @@ export const SmartInputModal: React.FC<SmartInputModalProps> = ({ isOpen, onClos
                                         </button>
                                         <button
                                             onClick={handleConfirm}
-                                            className="flex-1 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all active:scale-95"
+                                            className="flex-1 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl shadow-md shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all active:scale-95"
                                         >
                                             Confirmar <ArrowRight size={18} />
                                         </button>

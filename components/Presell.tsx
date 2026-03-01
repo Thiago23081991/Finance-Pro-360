@@ -18,7 +18,7 @@ export const Presell: React.FC = () => {
     return (
         <div className="min-h-screen bg-white font-sans text-slate-900 overflow-x-hidden">
             {/* Top Attention Bar - Urgency */}
-            <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-center py-3 px-4 text-xs md:text-sm font-bold tracking-wide shadow-lg relative z-50">
+            <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-center py-3 px-4 text-xs md:text-sm font-bold tracking-wide shadow-md relative z-50">
                 <div className="animate-pulse flex items-center justify-center gap-2">
                     <span className="bg-white/20 px-2 py-0.5 rounded text-[10px] uppercase font-black">OFERTA RELÂMPAGO</span>
                     <span>LIBERE SEU ACESSO VITALÍCIO POR MENOS DE UMA PIZZA 🍕</span>
@@ -38,7 +38,7 @@ export const Presell: React.FC = () => {
                     </div>
                     <button
                         onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}
-                        className="px-6 py-2.5 bg-brand-blue text-white font-bold rounded-full hover:bg-slate-800 transition-all text-sm shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                        className="px-6 py-2.5 bg-brand-blue text-white font-bold rounded-full hover:bg-slate-800 transition-all text-sm shadow-md hover:shadow-md transform hover:-translate-y-0.5"
                     >
                         Quero Organizar Minha Vida
                     </button>
@@ -78,11 +78,11 @@ export const Presell: React.FC = () => {
                     <div className="flex flex-col items-center gap-4 animate-bounce-slow">
                         <button
                             onClick={handleCtaClick}
-                            className="group relative inline-flex items-center justify-center gap-3 bg-brand-gold hover:bg-yellow-400 text-brand-blue text-lg md:text-2xl font-black py-6 px-12 rounded-2xl shadow-xl shadow-yellow-500/20 transition-all transform hover:scale-105 active:scale-95 w-full md:w-auto"
+                            className="group relative inline-flex items-center justify-center gap-3 bg-brand-gold hover:bg-yellow-400 text-brand-blue text-lg md:text-2xl font-black py-6 px-12 rounded-xl shadow-xl shadow-yellow-500/20 transition-all transform hover:scale-105 active:scale-95 w-full md:w-auto"
                         >
                             <span className="relative z-10">COMEÇAR AGORA</span>
                             <ArrowRight className="group-hover:translate-x-1 transition-transform relative z-10" strokeWidth={3} />
-                            <div className="absolute inset-0 rounded-2xl bg-white/20 blur-lg opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            <div className="absolute inset-0 rounded-xl bg-white/20 blur-lg opacity-0 group-hover:opacity-100 transition-opacity"></div>
                         </button>
 
                         <div className="flex items-center gap-6 text-xs md:text-sm font-bold text-slate-500 uppercase tracking-wider mt-2">
@@ -94,14 +94,14 @@ export const Presell: React.FC = () => {
 
                 {/* Background Decor */}
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl pointer-events-none">
-                    <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500/5 rounded-full blur-3xl animate-pulse delay-75"></div>
-                    <div className="absolute bottom-20 right-10 w-96 h-96 bg-brand-gold/10 rounded-full blur-3xl animate-pulse"></div>
+                    <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500/5 rounded-full blur-xl animate-pulse delay-75"></div>
+                    <div className="absolute bottom-20 right-10 w-96 h-96 bg-brand-gold/10 rounded-full blur-xl animate-pulse"></div>
                 </div>
             </section>
 
             {/* UI Preview Section (Mockup) */}
             <section className="-mt-12 md:-mt-20 relative z-20 px-4 mb-24">
-                <div className="max-w-5xl mx-auto bg-slate-900 rounded-2xl p-2 md:p-3 shadow-2xl shadow-blue-900/20 border border-slate-800 transform rotate-1 hover:rotate-0 transition-transform duration-700">
+                <div className="max-w-5xl mx-auto bg-slate-900 rounded-xl p-2 md:p-3 shadow-md shadow-blue-900/20 border border-slate-800 transform rotate-1 hover:rotate-0 transition-transform duration-700">
                     <div className="bg-slate-950 rounded-xl overflow-hidden aspect-video relative flex items-center justify-center">
                         {/* Placeholder for App Screenshot - Using CSS Art for now */}
                         <div className="text-center">
@@ -134,7 +134,7 @@ export const Presell: React.FC = () => {
 
                     <div className="grid md:grid-cols-2 gap-8 md:gap-12">
                         {/* Old Way */}
-                        <div className="bg-slate-50 p-8 rounded-3xl border border-slate-200">
+                        <div className="bg-slate-50 p-8 rounded-xl border border-slate-200">
                             <h3 className="text-xl font-bold text-slate-400 mb-6 flex items-center gap-2">
                                 <XCircle className="text-red-400 fill-red-50" /> O Jeito Antigo
                             </h3>
@@ -147,8 +147,8 @@ export const Presell: React.FC = () => {
                         </div>
 
                         {/* New Way */}
-                        <div className="bg-white p-8 rounded-3xl shadow-xl shadow-emerald-900/10 border-2 border-emerald-500/20 relative">
-                            <div className="absolute -top-3 -right-3 bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-lg shadow-lg rotate-3 uppercase">Método Aprovado</div>
+                        <div className="bg-white p-8 rounded-xl shadow-xl shadow-emerald-900/10 border-2 border-emerald-500/20 relative">
+                            <div className="absolute -top-3 -right-3 bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-lg shadow-md rotate-3 uppercase">Método Aprovado</div>
                             <h3 className="text-xl font-black text-brand-blue mb-6 flex items-center gap-2">
                                 <CheckCircle2 className="text-emerald-500 fill-emerald-50" /> O Jeito Finance Pro
                             </h3>
@@ -179,7 +179,7 @@ export const Presell: React.FC = () => {
                     <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center max-w-4xl mx-auto">
 
                         {/* ANCHOR OPTION (Less Value) */}
-                        <div className="order-2 md:order-1 bg-white p-8 rounded-3xl border border-slate-200 opacity-80 hover:opacity-100 transition-opacity flex flex-col items-center text-center">
+                        <div className="order-2 md:order-1 bg-white p-8 rounded-xl border border-slate-200 opacity-80 hover:opacity-100 transition-opacity flex flex-col items-center text-center">
                             <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Acesso Semestral</h3>
 
                             <div className="mb-6">
@@ -198,8 +198,8 @@ export const Presell: React.FC = () => {
                         </div>
 
                         {/* HERO OPTION (Best Value) */}
-                        <div className="order-1 md:order-2 bg-slate-900 p-1 rounded-[32px] relative shadow-2xl shadow-blue-900/30 transform scale-105 md:scale-110 z-10">
-                            <div className="absolute -top-5 left-0 right-0 mx-auto w-fit bg-gradient-to-r from-brand-gold to-yellow-400 text-brand-blue font-black px-4 py-1.5 rounded-full shadow-lg text-xs uppercase tracking-wide flex items-center gap-2">
+                        <div className="order-1 md:order-2 bg-slate-900 p-1 rounded-[32px] relative shadow-md shadow-blue-900/30 transform scale-105 md:scale-110 z-10">
+                            <div className="absolute -top-5 left-0 right-0 mx-auto w-fit bg-gradient-to-r from-brand-gold to-yellow-400 text-brand-blue font-black px-4 py-1.5 rounded-full shadow-md text-xs uppercase tracking-wide flex items-center gap-2">
                                 <Star size={12} className="fill-brand-blue" />
                                 Escolha da Maioria
                             </div>
@@ -221,14 +221,14 @@ export const Presell: React.FC = () => {
                                     <p className="text-slate-400 text-xs font-medium mt-2">ou R$ 80,00 à vista</p>
                                 </div>
 
-                                <div className="space-y-4 mb-8 text-left bg-white/5 p-6 rounded-2xl border border-white/10">
+                                <div className="space-y-4 mb-8 text-left bg-white/5 p-6 rounded-xl border border-white/10">
                                     <li className="flex gap-3 text-white text-sm font-medium"><div className="bg-brand-gold/20 p-1 rounded text-brand-gold"><Zap size={14} /></div> Acesso Imediato a TUDO</li>
                                     <li className="flex gap-3 text-white text-sm font-medium"><div className="bg-brand-gold/20 p-1 rounded text-brand-gold"><Smartphone size={14} /></div> App Mobile + Desktop</li>
                                     <li className="flex gap-3 text-white text-sm font-medium"><div className="bg-brand-gold/20 p-1 rounded text-brand-gold"><Sparkles size={14} /></div> Consultor Financeiro I.A.</li>
                                     <li className="flex gap-3 text-white text-sm font-medium"><div className="bg-brand-gold/20 p-1 rounded text-brand-gold"><Users size={14} /></div> Suporte Prioritário</li>
                                 </div>
 
-                                <a href="https://pay.kiwify.com.br/PZzs9Up" className="group w-full py-5 rounded-xl bg-gradient-to-r from-brand-gold to-yellow-400 text-brand-blue font-black hover:brightness-110 transition-all shadow-lg shadow-brand-gold/20 text-lg flex items-center justify-center gap-2">
+                                <a href="https://pay.kiwify.com.br/PZzs9Up" className="group w-full py-5 rounded-xl bg-gradient-to-r from-brand-gold to-yellow-400 text-brand-blue font-black hover:brightness-110 transition-all shadow-md shadow-brand-gold/20 text-lg flex items-center justify-center gap-2">
                                     QUERO MEU ACESSO
                                     <ArrowRight className="group-hover:translate-x-1 transition-transform" />
                                 </a>
@@ -254,7 +254,7 @@ export const Presell: React.FC = () => {
                             { name: "Roberto Silva", role: "Engenheiro", text: "A função de importar extrato me economiza umas 2 horas por mês de digitação. Pelo preço de um lanche, vale demais.", rating: 5 },
                             { name: "Ana Paula", role: "Autônoma", text: "Finalmente consegui juntar dinheiro pra minha reserva de emergência. Ver a barra de progresso enchendo vicia muito!", rating: 5 },
                         ].map((t, i) => (
-                            <div key={i} className="bg-slate-50 p-6 rounded-2xl border border-slate-100 hover:border-slate-200 transition-colors">
+                            <div key={i} className="bg-slate-50 p-6 rounded-xl border border-slate-100 hover:border-slate-200 transition-colors">
                                 <div className="flex gap-1 mb-4">
                                     {[...Array(t.rating)].map((_, j) => <Star key={j} size={14} className="text-yellow-400 fill-current" />)}
                                 </div>
@@ -285,7 +285,7 @@ export const Presell: React.FC = () => {
                             { q: "Funciona no iPhone e Android?", a: "Sim! O sistema roda direto no navegador e pode ser instalado na tela inicial como um aplicativo (PWA). Leve e rápido." },
                             { q: "Meus dados estão seguros?", a: "Totalmente. Utilizamos criptografia de ponta e não temos acesso aos seus dados bancários (senhas, etc). O pagamento é processado pela Kiwify, líder em segurança." }
                         ].map((item, index) => (
-                            <div key={index} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                            <div key={index} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                                 <button
                                     onClick={() => toggleFaq(index)}
                                     className="w-full flex justify-between items-center p-6 text-left hover:bg-slate-50 transition-colors"

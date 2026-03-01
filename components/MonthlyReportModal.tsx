@@ -143,7 +143,7 @@ export const MonthlyReportModal: React.FC<MonthlyReportModalProps> = ({
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto print:p-0 print:bg-white print:static">
 
-            <div className="bg-white dark:bg-slate-900 w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] print:max-h-none print:shadow-none print:rounded-none print:w-full print:max-w-none">
+            <div className="bg-white dark:bg-slate-900 w-full max-w-4xl rounded-xl shadow-md overflow-hidden flex flex-col max-h-[90vh] print:max-h-none print:shadow-none print:rounded-none print:w-full print:max-w-none">
 
                 {/* Header (No Print) */}
                 <div className="flex justify-between items-center p-4 border-b border-slate-100 dark:border-slate-800 print:hidden">

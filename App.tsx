@@ -289,11 +289,11 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
     return (
         <BiometricGate requireBiometrics={!!config.requireBiometrics}>
             <div className="flex h-[100dvh] bg-slate-50 dark:bg-slate-950 text-textMain font-sans overflow-hidden transition-colors duration-300">
-                <aside className="w-64 bg-brand-blue/95 dark:bg-slate-950/95 backdrop-blur-xl text-white flex flex-col shadow-2xl z-20 hidden md:flex border-r border-white/5">
+                <aside className="w-64 bg-brand-blue/95 dark:bg-slate-950/95 backdrop-blur-xl text-white flex flex-col shadow-md z-20 hidden md:flex border-r border-white/5">
                     <div className="p-6 border-b border-white/10"><Logo className="w-9 h-9" textClassName="text-white" /></div>
                     <nav className="flex-1 px-4 space-y-1 mt-4 overflow-y-auto custom-scrollbar">
                         {(['controle', 'receitas', 'despesas', 'orcamento', 'dividas', 'metas', 'investimentos', 'cursos', 'config'] as Tab[]).concat(isAdmin ? ['admin'] : []).map(tabId => (
-                            <button key={tabId} onClick={() => handleTabChange(tabId)} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 ${activeTab === tabId ? 'bg-gradient-to-r from-brand-gold to-yellow-600 text-white shadow-lg shadow-amber-500/20 font-bold translate-x-1' : 'text-slate-300 hover:bg-white/10 hover:translate-x-1'}`}>
+                            <button key={tabId} onClick={() => handleTabChange(tabId)} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 ${activeTab === tabId ? 'bg-white/10 text-brand-gold font-bold' : 'text-slate-300 hover:bg-white/5'}`}>
                                 {TAB_METADATA[tabId].icon}{TAB_METADATA[tabId].label}
                             </button>
                         ))}
@@ -329,7 +329,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                 </aside>
 
                 {isMobileMenuOpen && (
-                    <div className="fixed inset-0 z-50 flex md:hidden"><div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)}></div><aside className="relative w-64 bg-brand-blue text-white flex flex-col shadow-2xl h-full animate-fade-in border-r border-white/10"><div className="p-6 border-b border-white/10 flex justify-between items-center"><Logo className="w-8 h-8" textClassName="text-white" /><button onClick={() => setIsMobileMenuOpen(false)} className="text-slate-400"><X size={20} /></button></div><nav className="flex-1 px-4 mt-4 overflow-y-auto">{(['controle', 'receitas', 'despesas', 'orcamento', 'dividas', 'metas', 'investimentos', 'config'] as Tab[]).map(tabId => (<button key={tabId} onClick={() => handleTabChange(tabId)} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${activeTab === tabId ? 'bg-brand-gold text-white' : 'text-slate-300'}`}>{TAB_METADATA[tabId].icon}{TAB_METADATA[tabId].label}</button>))}</nav></aside></div>
+                    <div className="fixed inset-0 z-50 flex md:hidden"><div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)}></div><aside className="relative w-64 bg-brand-blue text-white flex flex-col shadow-md h-full animate-fade-in border-r border-white/10"><div className="p-6 border-b border-white/10 flex justify-between items-center"><Logo className="w-8 h-8" textClassName="text-white" /><button onClick={() => setIsMobileMenuOpen(false)} className="text-slate-400"><X size={20} /></button></div><nav className="flex-1 px-4 mt-4 overflow-y-auto">{(['controle', 'receitas', 'despesas', 'orcamento', 'dividas', 'metas', 'investimentos', 'config'] as Tab[]).map(tabId => (<button key={tabId} onClick={() => handleTabChange(tabId)} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${activeTab === tabId ? 'bg-brand-gold text-white' : 'text-slate-300'}`}>{TAB_METADATA[tabId].icon}{TAB_METADATA[tabId].label}</button>))}</nav></aside></div>
                 )}
 
                 <main className="flex-1 flex flex-col h-full overflow-hidden relative bg-slate-50 dark:bg-slate-950">
@@ -441,7 +441,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
 
                     <button
                         onClick={handleOpenGoalFormShortcut}
-                        className="fixed bottom-36 right-4 md:bottom-24 md:right-8 w-14 h-14 md:w-16 md:h-16 bg-gradient-to-r from-brand-gold to-yellow-500 text-white rounded-full shadow-[0_8px_30px_rgb(212,175,55,0.4)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-40 border-[3px] border-white/50 dark:border-slate-800/50 backdrop-blur-md"
+                        className="fixed bottom-36 right-4 md:bottom-24 md:right-8 w-14 h-14 md:w-16 md:h-16 bg-gradient-to-r from-brand-gold to-yellow-500 text-white rounded-full shadow-sm flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-40 border-[3px] border-white/50 dark:border-slate-800/50 backdrop-blur-md"
                         title="Nova Meta Financeira"
                     >
                         <Plus size={24} />

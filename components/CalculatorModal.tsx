@@ -91,7 +91,7 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ isOpen, onClos
     <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose}></div>
       
-      <div className="bg-white dark:bg-slate-800 w-full max-w-xs rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden relative animate-fade-in transition-colors">
+      <div className="bg-white dark:bg-slate-800 w-full max-w-xs rounded-xl shadow-md border border-slate-200 dark:border-slate-700 overflow-hidden relative animate-fade-in transition-colors">
         {/* Header */}
         <div className="p-3 bg-slate-50 dark:bg-slate-900/50 flex justify-between items-center border-b border-slate-100 dark:border-slate-700">
             <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">

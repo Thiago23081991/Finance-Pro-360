@@ -47,7 +47,7 @@ export const Inbox: React.FC<InboxProps> = ({ userId, isOpen, onClose, onUpdateU
       ></div>
 
       {/* Slide Panel */}
-      <div className="relative w-full max-w-md bg-white h-full shadow-2xl flex flex-col animate-fade-in">
+      <div className="relative w-full max-w-md bg-white h-full shadow-md flex flex-col animate-fade-in">
         {/* Header */}
         <div className="p-5 border-b border-slate-200 flex justify-between items-center bg-slate-50">
           <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">

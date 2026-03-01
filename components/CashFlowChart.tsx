@@ -19,7 +19,7 @@ export const CashFlowChart: React.FC<CashFlowChartProps> = ({ data, predictedIte
     const riskItems = predictedItems.filter(i => i.status === 'predicted' && i.amount > 500); // Highlight big predicted bills
 
     return (
-        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 animate-fade-in">
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 animate-fade-in">
             <div className="flex justify-between items-start mb-6">
                 <div>
                     <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
@@ -62,7 +62,7 @@ export const CashFlowChart: React.FC<CashFlowChartProps> = ({ data, predictedIte
                         <Tooltip
                             formatter={(val: number) => formatCurrency(val)}
                             labelFormatter={(label) => new Date(label).toLocaleDateString('pt-BR')}
-                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                            contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)', backgroundColor: 'var(--color-surface, #ffffff)' }}
                         />
                         <ReferenceLine y={0} stroke="#cbd5e1" strokeDasharray="3 3" />
                         <Area
@@ -82,7 +82,7 @@ export const CashFlowChart: React.FC<CashFlowChartProps> = ({ data, predictedIte
                 <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700 space-y-3">
                     <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Alertas de Contas Futuras</h4>
                     {riskItems.slice(0, 3).map((item, idx) => (
-                        <div key={idx} className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800">
+                        <div key={idx} className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800">
                             <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
                                 <AlertTriangle size={14} />
                             </div>

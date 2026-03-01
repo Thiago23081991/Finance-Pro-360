@@ -19,11 +19,11 @@ export const PremiumBanner: React.FC = () => {
         <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-8 relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 to-slate-950 shadow-2xl border border-slate-800"
+            className="mb-8 relative overflow-hidden rounded-xl bg-gradient-to-r from-slate-900 to-slate-950 shadow-md border border-slate-800"
         >
             {/* Background Effects */}
-            <div className="absolute top-0 right-0 w-96 h-96 bg-brand-gold/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-brand-blue/10 rounded-full blur-3xl -ml-10 -mb-10 pointer-events-none"></div>
+            <div className="absolute top-0 right-0 w-96 h-96 bg-brand-gold/5 rounded-full blur-xl -mr-20 -mt-20 pointer-events-none"></div>
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-brand-blue/10 rounded-full blur-xl -ml-10 -mb-10 pointer-events-none"></div>
 
             <div className="relative z-10 p-6 md:p-8 flex flex-col items-center text-center">
 
@@ -86,7 +86,7 @@ export const PremiumBanner: React.FC = () => {
                             href={PLANS_CONFIG.annual.checkoutUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="w-full py-3 rounded-lg bg-gradient-to-r from-brand-gold to-yellow-500 hover:from-yellow-400 hover:to-brand-gold text-brand-blue font-black transition-all shadow-lg flex items-center justify-center gap-2 transform hover:scale-[1.02]"
+                            className="w-full py-3 rounded-lg bg-gradient-to-r from-brand-gold to-yellow-500 hover:from-yellow-400 hover:to-brand-gold text-brand-blue font-black transition-all shadow-md flex items-center justify-center gap-2 transform hover:scale-[1.02]"
                         >
                             <Sparkles size={18} />
                             <span>QUERO 1 ANO DE ACESSO</span>

@@ -70,7 +70,7 @@ export const Tutorial: React.FC<TutorialProps> = ({ onComplete, onStepChange }) 
       {/* Backdrop only for mobile to focus attention */}
       <div className="absolute inset-0 bg-black/20 sm:bg-transparent backdrop-blur-sm sm:backdrop-blur-none pointer-events-auto sm:pointer-events-none transition-all" />
 
-      <div className="bg-white w-full max-w-sm p-6 rounded-xl shadow-2xl border border-slate-100 pointer-events-auto relative animate-fade-in ring-4 ring-blue-500/10 sm:mr-10 sm:mb-10">
+      <div className="bg-white w-full max-w-sm p-6 rounded-xl shadow-md border border-slate-100 pointer-events-auto relative animate-fade-in ring-4 ring-blue-500/10 sm:mr-10 sm:mb-10">
         
         <button 
           onClick={onComplete}
@@ -81,7 +81,7 @@ export const Tutorial: React.FC<TutorialProps> = ({ onComplete, onStepChange }) 
         </button>
 
         <div className="flex flex-col gap-4">
-            <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center shadow-sm border border-slate-100">
+            <div className="w-14 h-14 bg-slate-50 rounded-xl flex items-center justify-center shadow-sm border border-slate-100">
                 {currentStep.icon}
             </div>
             
@@ -104,7 +104,7 @@ export const Tutorial: React.FC<TutorialProps> = ({ onComplete, onStepChange }) 
                 
                 <button 
                     onClick={handleNext}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold flex items-center gap-2 transition-all shadow-lg shadow-blue-200 active:scale-95"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold flex items-center gap-2 transition-all shadow-md shadow-blue-200 active:scale-95"
                 >
                     {step === steps.length - 1 ? 'Começar' : 'Próximo'}
                     {step === steps.length - 1 ? <Check size={16} /> : <ArrowRight size={16} />}

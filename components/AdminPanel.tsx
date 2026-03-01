@@ -157,7 +157,7 @@ export const AdminPanel: React.FC = () => {
             {/* Sidebar */}
             <aside className="w-full md:w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 p-6 flex flex-col">
                 <div className="flex items-center gap-3 mb-10">
-                    <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
+                    <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
                         <ShieldAlert size={20} />
                     </div>
                     <div>
@@ -214,7 +214,7 @@ export const AdminPanel: React.FC = () => {
                 {activeTab === 'dashboard' && stats && (
                     <div className="space-y-6 animate-fade-in-up">
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+                            <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl text-blue-600">
                                         <Users size={24} />
@@ -225,7 +225,7 @@ export const AdminPanel: React.FC = () => {
                                 <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mt-1">Usuários Totais</p>
                             </div>
 
-                            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+                            <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-xl text-amber-600">
                                         <Wallet size={24} />
@@ -236,7 +236,7 @@ export const AdminPanel: React.FC = () => {
                                 <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mt-1">Assinantes Premium</p>
                             </div>
 
-                            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+                            <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl text-emerald-600">
                                         <DollarSignIcon size={24} />
@@ -248,7 +248,7 @@ export const AdminPanel: React.FC = () => {
                         </div>
 
                         {/* Recent Activity Table (Mock) */}
-                        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+                        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
                             <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6">Atividade Recente</h3>
                             <div className="space-y-4">
                                 {profiles
@@ -308,13 +308,13 @@ export const AdminPanel: React.FC = () => {
                             </div>
                             <button
                                 onClick={handleExportLeads}
-                                className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold text-sm flex items-center gap-2 shadow-emerald-500/20 shadow-lg transition-all active:scale-95 whitespace-nowrap"
+                                className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold text-sm flex items-center gap-2 shadow-emerald-500/20 shadow-md transition-all active:scale-95 whitespace-nowrap"
                             >
                                 <Download size={18} /> Exportar Leads (CSV)
                             </button>
                         </div>
 
-                        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+                        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
                             <table className="w-full text-left">
                                 <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-100 dark:border-slate-700">
                                     <tr>
@@ -354,7 +354,7 @@ export const AdminPanel: React.FC = () => {
                 {/* Push Notification View */}
                 {activeTab === 'push' && (
                     <div className="max-w-2xl mx-auto space-y-8 animate-fade-in-up">
-                        <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700">
+                        <div className="bg-white dark:bg-slate-800 p-8 rounded-xl shadow-md border border-slate-200 dark:border-slate-700">
                             <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 mb-6 mx-auto">
                                 <Megaphone size={32} />
                             </div>
@@ -399,7 +399,7 @@ export const AdminPanel: React.FC = () => {
                                 <button
                                     onClick={handleSendPush}
                                     disabled={pushSending}
-                                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-xl shadow-lg shadow-indigo-500/20 transition-all active:scale-95 flex items-center justify-center gap-2"
+                                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-xl shadow-md shadow-indigo-500/20 transition-all active:scale-95 flex items-center justify-center gap-2"
                                 >
                                     {pushSending ? <Loader2 className="animate-spin" /> : <Send size={20} />}
                                     ENVIAR NOTIFICAÇÃOAGORA
@@ -412,7 +412,7 @@ export const AdminPanel: React.FC = () => {
                 {/* Tools View */}
                 {activeTab === 'tools' && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in-up">
-                        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
+                        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
                             <h3 className="text-lg font-bold flex items-center gap-2 mb-4 text-slate-800 dark:text-white"><UserPlus size={20} className="text-orange-500" /> Reparar Usuário Fantasma</h3>
                             <div className="space-y-4">
                                 <input value={manualId} onChange={e => setManualId(e.target.value)} placeholder="UUID do Usuário" className="w-full bg-slate-50 p-3 rounded-lg text-sm border border-slate-200" />
@@ -421,7 +421,7 @@ export const AdminPanel: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
+                        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
                             <h3 className="text-lg font-bold flex items-center gap-2 mb-4 text-slate-800 dark:text-white"><Key size={20} className="text-emerald-500" /> Gerar Chave Offline</h3>
                             <div className="space-y-4">
                                 <input value={genUserId} onChange={e => setGenUserId(e.target.value)} placeholder="UUID do Usuário" className="w-full bg-slate-50 p-3 rounded-lg text-sm border border-slate-200" />

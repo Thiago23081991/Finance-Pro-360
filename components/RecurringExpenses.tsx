@@ -129,7 +129,7 @@ export const RecurringExpenses: React.FC<RecurringExpensesProps> = ({ config, on
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white dark:bg-slate-900 w-full max-w-3xl rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="bg-white dark:bg-slate-900 w-full max-w-3xl rounded-xl shadow-md border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[90vh]">
 
                 {/* Header */}
                 <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-6 text-white flex justify-between items-center sticky top-0 z-10">
@@ -195,7 +195,7 @@ export const RecurringExpenses: React.FC<RecurringExpensesProps> = ({ config, on
 
                     {/* AI Result Area */}
                     {aiAnalysis && (
-                        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 p-6 rounded-2xl border border-indigo-100 dark:border-indigo-800 animate-in slide-in-from-top-4">
+                        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 p-6 rounded-xl border border-indigo-100 dark:border-indigo-800 animate-in slide-in-from-top-4">
                             <h3 className="flex items-center gap-2 text-indigo-700 dark:text-indigo-300 font-bold mb-3">
                                 <Bot size={20} /> Insight do Consultor IA
                             </h3>
@@ -297,7 +297,7 @@ export const RecurringExpenses: React.FC<RecurringExpensesProps> = ({ config, on
                             ))}
                         </div>
                     ) : (
-                        <div className="text-center py-12 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700">
+                        <div className="text-center py-12 bg-slate-50 dark:bg-slate-800/50 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700">
                             <div className="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
                                 <CheckCircle size={32} />
                             </div>

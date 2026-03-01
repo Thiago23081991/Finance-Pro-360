@@ -19,7 +19,7 @@ export const PrivacyModal: React.FC<PrivacyModalProps> = ({ isOpen, onClose }) =
       ></div>
 
       {/* Modal Content */}
-      <div className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-xl shadow-2xl flex flex-col max-h-[90vh] relative animate-fade-in border border-slate-200 dark:border-slate-700">
+      <div className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-xl shadow-md flex flex-col max-h-[90vh] relative animate-fade-in border border-slate-200 dark:border-slate-700">
         
         {/* Header */}
         <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 rounded-t-xl">

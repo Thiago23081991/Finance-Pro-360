@@ -84,7 +84,7 @@ export const GoalsSheet: React.FC<GoalsSheetProps> = ({ goals, onAdd, onDelete, 
                     </div>
                     <button
                         onClick={() => setIsAdding(true)}
-                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-lg shadow-blue-500/20 transition-all transform hover:scale-105"
+                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md shadow-blue-500/20 transition-all transform hover:scale-105"
                     >
                         <Plus size={16} />
                         Nova Meta
@@ -124,7 +124,7 @@ export const GoalsSheet: React.FC<GoalsSheetProps> = ({ goals, onAdd, onDelete, 
                     </div>
 
                     {/* Progresso Geral */}
-                    <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-4 rounded-xl shadow-lg text-white">
+                    <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-4 rounded-xl shadow-md text-white">
                         <div className="flex justify-between items-start">
                             <div>
                                 <p className="text-[10px] font-bold text-white/80 uppercase tracking-wider">Conclusão Geral</p>
@@ -180,7 +180,7 @@ export const GoalsSheet: React.FC<GoalsSheetProps> = ({ goals, onAdd, onDelete, 
             {/* Add Local Form Overlay */}
             {isAdding && (
                 <div className="absolute top-0 left-0 w-full h-full bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
-                    <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-2xl w-full max-w-md border border-slate-200 dark:border-slate-700">
+                    <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-md w-full max-w-md border border-slate-200 dark:border-slate-700">
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="text-lg font-bold text-slate-800 dark:text-white">Criar Nova Meta</h3>
                             <button onClick={() => setIsAdding(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-white"><X size={20} /></button>
@@ -200,7 +200,7 @@ export const GoalsSheet: React.FC<GoalsSheetProps> = ({ goals, onAdd, onDelete, 
                                     <input type="number" placeholder="0,00" value={current} onChange={e => setCurrent(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
                                 </div>
                             </div>
-                            <button onClick={handleSave} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-blue-500/30 transition-all mt-2">
+                            <button onClick={handleSave} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-md shadow-blue-500/30 transition-all mt-2">
                                 Salvar Meta
                             </button>
                         </div>

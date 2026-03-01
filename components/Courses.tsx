@@ -58,7 +58,7 @@ export const Courses: React.FC<CoursesProps> = ({ config, userEmail }) => {
 
             <div className="grid gap-6">
                 {modules.map((module) => (
-                    <div key={module.id} className="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800 transition-all hover:shadow-md">
+                    <div key={module.id} className="bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800 transition-all hover:shadow-md">
                         {activeModule === module.id ? (
                             <div className="aspect-video bg-black relative">
                                 <video
@@ -117,7 +117,7 @@ export const Courses: React.FC<CoursesProps> = ({ config, userEmail }) => {
                     </div>
                 ))}
 
-                <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between gap-6 text-white text-center md:text-left">
+                <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-xl p-8 flex flex-col md:flex-row items-center justify-between gap-6 text-white text-center md:text-left">
                     <div className="space-y-2">
                         <h3 className="text-xl font-bold flex items-center gap-2 justify-center md:justify-start">
                             <Lock size={20} className="text-slate-400" />

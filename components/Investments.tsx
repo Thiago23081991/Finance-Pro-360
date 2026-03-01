@@ -276,13 +276,13 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
         return (
             <div className="h-full flex items-center justify-center p-6 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden relative">
                 <div className="absolute top-0 left-0 w-full h-1 bg-amber-500"></div>
-                <div className="text-center max-w-lg z-10 bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700">
+                <div className="text-center max-w-lg z-10 bg-white dark:bg-slate-900 p-8 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700">
                     <div className="w-20 h-20 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
                         <Lock className="text-amber-600 dark:text-amber-400" size={40} />
                     </div>
                     <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-4">Investimentos Premium</h2>
                     <p className="text-slate-600 dark:text-slate-400 mb-8">Desbloqueie recomendações diárias de IA, simuladores de bancos e análise de suitability.</p>
-                    <button onClick={onNavigateToSettings} className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 rounded-xl transition-all transform hover:scale-105 shadow-lg shadow-amber-500/20">Upgrade para Premium</button>
+                    <button onClick={onNavigateToSettings} className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 rounded-xl transition-all transform hover:scale-105 shadow-md shadow-amber-500/20">Upgrade para Premium</button>
                 </div>
             </div>
         );
@@ -304,7 +304,7 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                 <div className="space-y-6 animate-fade-in">
                     {/* Portfolio Summary */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-between relative overflow-hidden">
+                        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-between relative overflow-hidden">
                             <div>
                                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Patrimônio Bruto</p>
                                 <h3 className="text-2xl font-black text-slate-800 dark:text-white mt-1">{formatCurrency(portfolioStats.totalCurrent, currency)}</h3>
@@ -321,7 +321,7 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                             </div>
                         </div>
 
-                        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-between">
+                        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-between">
                             <div>
                                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Investido</p>
                                 <h3 className="text-2xl font-black text-slate-700 dark:text-slate-200 mt-1">{formatCurrency(portfolioStats.totalInvested, currency)}</h3>
@@ -331,7 +331,7 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                             </div>
                         </div>
 
-                        <div className="bg-blue-600 p-6 rounded-2xl shadow-lg shadow-blue-500/30 text-white flex flex-col justify-center items-center text-center cursor-pointer hover:bg-blue-700 transition-colors" onClick={() => setShowAddModal(true)}>
+                        <div className="bg-blue-600 p-6 rounded-xl shadow-md shadow-blue-500/30 text-white flex flex-col justify-center items-center text-center cursor-pointer hover:bg-blue-700 transition-colors" onClick={() => setShowAddModal(true)}>
                             <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mb-2">
                                 <Plus size={24} />
                             </div>
@@ -342,7 +342,7 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* Allocation Chart */}
-                        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm lg:col-span-1 min-h-[300px] flex flex-col">
+                        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm lg:col-span-1 min-h-[300px] flex flex-col">
                             <h4 className="font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
                                 <PieChartIcon size={18} className="text-blue-500" /> Alocação por Tipo
                             </h4>
@@ -377,7 +377,7 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                         </div>
 
                         {/* Investments List */}
-                        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm lg:col-span-2">
+                        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm lg:col-span-2">
                             <h4 className="font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
                                 <BarChart4 size={18} className="text-blue-500" /> Meus Ativos
                             </h4>
@@ -425,7 +425,7 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
 
             {showAddModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-700">
+                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-700">
                         <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
                             <h3 className="font-bold text-lg dark:text-white">Adicionar Investimento</h3>
                             <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-rose-500"><X size={20} /></button>
@@ -464,7 +464,7 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                         </div>
                         <div className="p-4 bg-slate-50 dark:bg-slate-900 border-t border-slate-100 dark:border-slate-700 flex justify-end gap-2">
                             <button onClick={() => setShowAddModal(false)} className="px-4 py-2 text-slate-500 hover:text-slate-700 font-bold text-sm">Cancelar</button>
-                            <button onClick={handleAddInvestment} className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-sm shadow-lg">Salvar Investimento</button>
+                            <button onClick={handleAddInvestment} className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-sm shadow-md">Salvar Investimento</button>
                         </div>
                     </div>
                 </div>
@@ -472,7 +472,7 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
 
             {subTab === 'nubank' && (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
-                    <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm h-fit space-y-6">
+                    <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm h-fit space-y-6">
                         <div className="flex items-center gap-3 mb-2">
                             <div className="p-2 bg-[#820ad1] text-white rounded-lg">
                                 <PiggyBank size={20} />
@@ -515,7 +515,7 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                     </div>
 
                     <div className="lg:col-span-2 space-y-6">
-                        <div className="bg-[#820ad1] p-8 rounded-3xl text-white shadow-xl relative overflow-hidden">
+                        <div className="bg-[#820ad1] p-8 rounded-xl text-white shadow-xl relative overflow-hidden">
                             <div className="relative z-10">
                                 <p className="text-purple-200 text-xs font-bold uppercase tracking-widest mb-2">Resultado Líquido Estimado</p>
                                 <h2 className="text-5xl font-black mb-6">{formatCurrency(nuResult.totalNet, currency)}</h2>
@@ -536,10 +536,10 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                                     </div>
                                 </div>
                             </div>
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-20 -mt-20"></div>
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-xl -mr-20 -mt-20"></div>
                         </div>
 
-                        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
                             <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
                                 <BarChart4 size={18} className="text-[#820ad1]" /> Comparativo de Acúmulo
                             </h4>
@@ -574,9 +574,9 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
             {subTab === 'opportunities' && (
                 <div className="space-y-6">
                     {/* IA Insight Header */}
-                    <div className="bg-gradient-to-br from-indigo-600 to-blue-700 p-6 rounded-2xl text-white shadow-xl relative overflow-hidden">
+                    <div className="bg-gradient-to-br from-indigo-600 to-blue-700 p-6 rounded-xl text-white shadow-xl relative overflow-hidden">
                         <div className="relative z-10 flex flex-col md:flex-row items-center gap-6">
-                            <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center shrink-0 border border-white/30">
+                            <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center shrink-0 border border-white/30">
                                 <BrainCircuit size={32} className="text-blue-100" />
                             </div>
                             <div className="flex-1 text-center md:text-left">
@@ -596,7 +596,7 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                                 <p className="text-xl font-black">{profile || 'NÃO DEFINIDO'}</p>
                             </div>
                         </div>
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-20 -mt-20"></div>
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-xl -mr-20 -mt-20"></div>
                     </div>
 
                     {/* Market Indicators */}
@@ -653,7 +653,7 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                                 key={cat}
                                 onClick={() => setCategoryTab(cat)}
                                 className={`px-4 py-2 rounded-full text-xs font-bold transition-all whitespace-nowrap ${categoryTab === cat
-                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30'
+                                    ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30'
                                     : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-700'
                                     }`}
                             >
@@ -673,7 +673,7 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                             if (categoryTab === 'fundos') return ['Fundo Invest', 'Fundo Imobiliário'].includes(o.type);
                             return true;
                         }).map((opt, i) => (
-                            <div key={i} className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-all group">
+                            <div key={i} className="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-all group">
                                 <div className="flex justify-between items-start mb-4">
                                     <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 text-[9px] font-black text-slate-500 dark:text-slate-400 rounded uppercase tracking-tighter border border-slate-200 dark:border-slate-600">{opt.type}</span>
                                     {opt.change !== undefined && (
@@ -709,7 +709,7 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
             )}
 
             {subTab === 'suitability' && (
-                <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm animate-fade-in">
+                <div className="bg-white dark:bg-slate-800 p-8 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm animate-fade-in">
                     {!profile || showQuiz ? (
                         <div className="max-w-2xl mx-auto">
                             <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-2">Qual seu perfil de investidor?</h3>
@@ -732,7 +732,7 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                                     </div>
                                 ))}
                             </div>
-                            <button disabled={Object.keys(answers).length < 3} onClick={calculateProfile} className="w-full mt-10 bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-xl shadow-lg transition-all disabled:opacity-50">SALVAR PERFIL</button>
+                            <button disabled={Object.keys(answers).length < 3} onClick={calculateProfile} className="w-full mt-10 bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-xl shadow-md transition-all disabled:opacity-50">SALVAR PERFIL</button>
                         </div>
                     ) : (
                         <div className="text-center py-12">
@@ -750,15 +750,15 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
 
             {subTab === 'projection' && (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm h-fit space-y-6">
+                    <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm h-fit space-y-6">
                         <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2"><Calculator size={18} className="text-blue-500" /> Simulador de Juros</h3>
                         <div><label className="text-[10px] font-black uppercase text-slate-400">Aporte Inicial</label><input type="number" value={projInitial} onChange={e => setProjInitial(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-2 font-bold mt-1" /></div>
                         <div><label className="text-[10px] font-black uppercase text-slate-400">Aporte Mensal</label><input type="number" value={projMonthly} onChange={e => setProjMonthly(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-2 font-bold mt-1" /></div>
                         <div><label className="text-[10px] font-black uppercase text-slate-400">Rentabilidade (% a.a.)</label><input type="number" value={projRate} onChange={e => setProjRate(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-2 font-bold mt-1" /></div>
                         <div><label className="text-[10px] font-black uppercase text-slate-400">Tempo (Anos: {projYears})</label><input type="range" min="1" max="40" value={projYears} onChange={e => setProjYears(Number(e.target.value))} className="w-full accent-blue-600 mt-2" /></div>
-                        <button onClick={calculateProjection} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-3 rounded-xl shadow-lg transition-all">Simular Crescimento</button>
+                        <button onClick={calculateProjection} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-3 rounded-xl shadow-md transition-all">Simular Crescimento</button>
                     </div>
-                    <div className="lg:col-span-2 bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col min-h-[400px]">
+                    <div className="lg:col-span-2 bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col min-h-[400px]">
                         {projResult ? (
                             <>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">

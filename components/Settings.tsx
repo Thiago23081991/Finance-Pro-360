@@ -285,8 +285,8 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                             </div>
                         </div>
                     </div>
-                    <div className="bg-blue-50 dark:bg-blue-900/10 p-6 rounded-2xl border border-blue-100 dark:border-blue-800 flex flex-col items-center text-center">
-                        <div className="w-20 h-20 bg-brand-gold rounded-full flex items-center justify-center text-3xl font-black text-brand-blue mb-3 shadow-lg border-4 border-white dark:border-slate-800">
+                    <div className="bg-blue-50 dark:bg-blue-900/10 p-6 rounded-xl border border-blue-100 dark:border-blue-800 flex flex-col items-center text-center">
+                        <div className="w-20 h-20 bg-brand-gold rounded-full flex items-center justify-center text-3xl font-black text-brand-blue mb-3 shadow-md border-4 border-white dark:border-slate-800">
                             {(config.name || 'U').substring(0, 1).toUpperCase()}
                         </div>
                         <p className="font-black text-slate-800 dark:text-white text-xl leading-tight">{config.name || 'Usuário'}</p>
@@ -298,8 +298,8 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
             </div>
 
             {/* UPGRADE - ESCOLHA DE PLANOS */}
-            <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-black p-4 sm:p-8 rounded-2xl shadow-xl border border-slate-700 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none -mr-32 -mt-32"></div>
+            <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-black p-4 sm:p-8 rounded-xl shadow-xl border border-slate-700 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-xl pointer-events-none -mr-32 -mt-32"></div>
 
                 <div className="relative z-10 flex flex-col lg:flex-row gap-8 items-start">
                     <div className="flex-1 w-full">
@@ -313,7 +313,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <button
                                         onClick={() => setSelectedPlan('semiannual')}
-                                        className={`relative p-5 rounded-2xl border-2 text-left transition-all ${selectedPlan === 'semiannual' ? 'border-brand-gold bg-white/5 ring-4 ring-brand-gold/10' : 'border-slate-700 bg-black/20 hover:border-slate-500'}`}
+                                        className={`relative p-5 rounded-xl border-2 text-left transition-all ${selectedPlan === 'semiannual' ? 'border-brand-gold bg-white/5 ring-4 ring-brand-gold/10' : 'border-slate-700 bg-black/20 hover:border-slate-500'}`}
                                     >
                                         {selectedPlan === 'semiannual' && <CheckCircle className="absolute top-4 right-4 text-brand-gold" size={20} />}
                                         <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Semestral</p>
@@ -328,7 +328,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
 
                                     <button
                                         onClick={() => setSelectedPlan('annual')}
-                                        className={`relative p-5 rounded-2xl border-2 text-left transition-all ${selectedPlan === 'annual' ? 'border-brand-gold bg-white/5 ring-4 ring-brand-gold/10' : 'border-slate-700 bg-black/20 hover:border-slate-500'}`}
+                                        className={`relative p-5 rounded-xl border-2 text-left transition-all ${selectedPlan === 'annual' ? 'border-brand-gold bg-white/5 ring-4 ring-brand-gold/10' : 'border-slate-700 bg-black/20 hover:border-slate-500'}`}
                                     >
                                         {selectedPlan === 'annual' && <CheckCircle className="absolute top-4 right-4 text-brand-gold" size={20} />}
                                         <div className="absolute -top-3 left-4 bg-brand-gold text-brand-blue text-[9px] font-black px-2 py-0.5 rounded-full">MELHOR VALOR</div>
@@ -343,7 +343,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                                     </button>
                                 </div>
 
-                                <div className="bg-black/30 p-6 rounded-2xl border border-white/5 space-y-4">
+                                <div className="bg-black/30 p-6 rounded-xl border border-white/5 space-y-4">
                                     <div className="flex flex-col md:flex-row gap-8 items-center">
 
                                         <div className="flex-1 space-y-4 text-center md:text-left">
@@ -365,7 +365,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                                             const finalLink = `${link}?email=${encodeURIComponent(config.userId + '@user.app')}&custom_id=${config.userId}`;
                                             window.open(finalLink, '_blank');
                                         }}
-                                        className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-black py-4 rounded-xl shadow-lg transition-all transform hover:scale-[1.02] flex items-center justify-center gap-3"
+                                        className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-black py-4 rounded-xl shadow-md transition-all transform hover:scale-[1.02] flex items-center justify-center gap-3"
                                     >
                                         <CreditCard size={24} />
                                         ASSINAR AGORA E DESBLOQUEAR
@@ -378,7 +378,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                             </div>
                         ) : (
                             <div className="text-center py-10">
-                                <div className="w-20 h-20 bg-brand-gold rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl animate-pulse">
+                                <div className="w-20 h-20 bg-brand-gold rounded-full flex items-center justify-center mx-auto mb-6 shadow-md animate-pulse">
                                     <Star size={40} className="text-brand-blue fill-current" />
                                 </div>
                                 <h3 className="text-3xl font-black text-white mb-2">EXPERIÊNCIA COMPLETA!</h3>

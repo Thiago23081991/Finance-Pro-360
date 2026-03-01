@@ -54,7 +54,7 @@ export const InstallPrompt: React.FC = () => {
                     exit={{ y: 100, opacity: 0 }}
                     className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-8 md:w-96"
                 >
-                    <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 flex flex-col gap-3">
+                    <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-md border border-slate-200 dark:border-slate-700 flex flex-col gap-3">
                         <div className="flex justify-between items-start">
                             <div>
                                 <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
@@ -86,7 +86,7 @@ export const InstallPrompt: React.FC = () => {
                         ) : (
                             <button
                                 onClick={handleInstall}
-                                className="w-full py-3 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl shadow-lg shadow-violet-500/20 active:scale-95 transition-all"
+                                className="w-full py-3 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl shadow-md shadow-violet-500/20 active:scale-95 transition-all"
                             >
                                 Instalar Agora
                             </button>

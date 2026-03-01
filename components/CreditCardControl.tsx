@@ -247,7 +247,7 @@ export const CreditCardControl: React.FC<CreditCardControlProps> = ({ transactio
                         </button>
                     </div>
 
-                    <div className={`relative h-48 w-full max-w-sm rounded-2xl bg-gradient-to-br ${activeCard.color} text-white shadow-xl overflow-hidden mx-auto md:mx-0 transition-transform hover:scale-[1.02] duration-300`}>
+                    <div className={`relative h-48 w-full max-w-sm rounded-xl bg-gradient-to-br ${activeCard.color} text-white shadow-xl overflow-hidden mx-auto md:mx-0 transition-transform hover:scale-[1.02] duration-300`}>
                         {/* Decorative Circles */}
                         <div className="absolute top-0 right-0 -mr-10 -mt-10 w-40 h-40 bg-white/5 rounded-full blur-2xl"></div>
                         <div className="absolute bottom-0 left-0 -ml-10 -mb-10 w-40 h-40 bg-white/5 rounded-full blur-2xl"></div>
@@ -364,7 +364,7 @@ export const CreditCardControl: React.FC<CreditCardControlProps> = ({ transactio
             {/* Add Transaction Overlay */}
             {isAdding && (
                 <div className="absolute inset-0 z-20 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-4 animate-fade-in">
-                    <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-t-2xl sm:rounded-2xl p-6 shadow-2xl animate-slide-up">
+                    <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-t-2xl sm:rounded-xl p-6 shadow-md animate-slide-up">
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
                                 <Plus className="text-indigo-500" /> Nova Compra - {activeCard.name}
@@ -437,7 +437,7 @@ export const CreditCardControl: React.FC<CreditCardControlProps> = ({ transactio
                             <button
                                 onClick={handleSave}
                                 disabled={!amount || !newDesc}
-                                className="w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold p-4 rounded-xl shadow-lg shadow-indigo-200 dark:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold p-4 rounded-xl shadow-md shadow-indigo-200 dark:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 Confirmar Compra
                             </button>
@@ -449,7 +449,7 @@ export const CreditCardControl: React.FC<CreditCardControlProps> = ({ transactio
             {/* Add Card Modal */}
             {showCardModal && (
                 <div className="absolute inset-0 z-30 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-                    <div className="bg-white dark:bg-slate-900 w-full max-w-sm rounded-2xl p-6 shadow-2xl">
+                    <div className="bg-white dark:bg-slate-900 w-full max-w-sm rounded-xl p-6 shadow-md">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="font-bold text-slate-800 dark:text-white">Adicionar Novo Cartão</h3>
                             <button onClick={() => setShowCardModal(false)}><X size={20} className="text-slate-400" /></button>

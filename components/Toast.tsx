@@ -29,7 +29,7 @@ export const Toast: React.FC<ToastProps> = ({ message, actionLabel, onAction, on
 
   return (
     <div className={`fixed bottom-6 right-6 z-50 transition-all duration-500 transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-      <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 rounded-lg shadow-2xl flex items-start gap-4 max-w-sm ring-1 ring-black/5 dark:ring-white/10 transition-colors">
+      <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 rounded-lg shadow-md flex items-start gap-4 max-w-sm ring-1 ring-black/5 dark:ring-white/10 transition-colors">
         <div className="bg-blue-100 dark:bg-blue-600 p-2 rounded-full shrink-0 mt-1 shadow-sm">
             <Bell size={16} className="text-blue-600 dark:text-white" />
         </div>

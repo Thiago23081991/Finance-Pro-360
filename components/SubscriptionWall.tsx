@@ -60,8 +60,8 @@ export const SubscriptionWall: React.FC<SubscriptionWallProps> = ({ userId, user
                     {/* Semiannual Plan */}
                     <div
                         onClick={() => setSelectedPlan('semiannual')}
-                        className={`relative p-8 rounded-3xl border-2 cursor-pointer transition-all duration-300 ${selectedPlan === 'semiannual'
-                            ? 'border-brand-gold bg-slate-800/80 shadow-2xl shadow-brand-gold/10 scale-105 z-10'
+                        className={`relative p-8 rounded-xl border-2 cursor-pointer transition-all duration-300 ${selectedPlan === 'semiannual'
+                            ? 'border-brand-gold bg-slate-800/80 shadow-md shadow-brand-gold/10 scale-105 z-10'
                             : 'border-slate-700 bg-slate-900/40 opacity-70 hover:opacity-100 hover:scale-[1.02]'
                             }`}
                     >
@@ -99,12 +99,12 @@ export const SubscriptionWall: React.FC<SubscriptionWallProps> = ({ userId, user
                     {/* Annual Plan */}
                     <div
                         onClick={() => setSelectedPlan('annual')}
-                        className={`relative p-8 rounded-3xl border-2 cursor-pointer transition-all duration-300 overflow-hidden ${selectedPlan === 'annual'
-                            ? 'border-brand-gold bg-slate-800/80 shadow-2xl shadow-brand-gold/10 scale-105 z-10'
+                        className={`relative p-8 rounded-xl border-2 cursor-pointer transition-all duration-300 overflow-hidden ${selectedPlan === 'annual'
+                            ? 'border-brand-gold bg-slate-800/80 shadow-md shadow-brand-gold/10 scale-105 z-10'
                             : 'border-slate-700 bg-slate-900/40 opacity-70 hover:opacity-100 hover:scale-[1.02]'
                             }`}
                     >
-                        <div className="absolute top-0 right-0 bg-gradient-to-l from-brand-gold to-yellow-400 text-brand-blue text-[10px] font-black px-4 py-1.5 rounded-bl-xl shadow-lg">
+                        <div className="absolute top-0 right-0 bg-gradient-to-l from-brand-gold to-yellow-400 text-brand-blue text-[10px] font-black px-4 py-1.5 rounded-bl-xl shadow-md">
                             RECOMENDADO
                         </div>
 
@@ -142,7 +142,7 @@ export const SubscriptionWall: React.FC<SubscriptionWallProps> = ({ userId, user
                 <div className="max-w-md mx-auto mt-8 space-y-4">
                     <button
                         onClick={handleCheckout}
-                        className="w-full bg-gradient-to-r from-brand-gold to-yellow-500 hover:from-yellow-400 hover:to-yellow-500 text-brand-blue text-lg font-black py-5 rounded-2xl shadow-lg shadow-brand-gold/20 transform transition-all active:scale-95 flex items-center justify-center gap-3 group"
+                        className="w-full bg-gradient-to-r from-brand-gold to-yellow-500 hover:from-yellow-400 hover:to-yellow-500 text-brand-blue text-lg font-black py-5 rounded-xl shadow-md shadow-brand-gold/20 transform transition-all active:scale-95 flex items-center justify-center gap-3 group"
                     >
                         <ShoppingCart className="group-hover:animate-bounce" />
                         DESBLOQUEAR ACESSO AGORA
