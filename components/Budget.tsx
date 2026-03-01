@@ -125,41 +125,43 @@ export const Budget: React.FC<BudgetProps> = ({ transactions, config, filter }) 
         <div className="space-y-6 animate-fade-in pb-24 md:pb-10">
             {/* Header / Summary */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="md:col-span-2 bg-gradient-to-r from-slate-800 to-slate-900 text-white p-6 rounded-xl shadow-md relative overflow-hidden">
+                <div className="md:col-span-2 bg-slate-900 dark:bg-slate-950 text-white p-6 rounded-xl shadow-sm border border-slate-800 relative overflow-hidden">
                     <div className="relative z-10">
-                        <h2 className="text-lg font-bold mb-1">Orçamento Familiar</h2>
-                        <p className="text-slate-400 text-xs mb-6 uppercase tracking-wider">Visão Geral Mensal</p>
+                        <h2 className="text-xl font-bold mb-1">Orçamento Familiar</h2>
+                        <p className="text-slate-400 text-xs mb-8 uppercase tracking-widest font-bold">Visão Geral Mensal</p>
 
                         <div className="flex flex-col sm:flex-row gap-8">
-                            <div>
-                                <p className="text-sm text-slate-400 mb-1">Total Orçado</p>
-                                <p className="text-3xl font-bold text-emerald-400">{formatCurrency(totalStats.totalLimit)}</p>
+                            <div className="flex-1">
+                                <p className="text-xs text-slate-400 mb-1 font-bold uppercase tracking-wider">Total Orçado</p>
+                                <p className="text-3xl font-bold font-mono text-white">{formatCurrency(totalStats.totalLimit)}</p>
                             </div>
-                            <div>
-                                <p className="text-sm text-slate-400 mb-1">Realizado (Monitorado)</p>
-                                <p className="text-3xl font-bold text-white">{formatCurrency(totalStats.totalSpentWithLimit)}</p>
+                            <div className="w-px bg-slate-800 hidden sm:block"></div>
+                            <div className="flex-1">
+                                <p className="text-xs text-slate-400 mb-1 font-bold uppercase tracking-wider">Realizado (Monitorado)</p>
+                                <p className="text-3xl font-bold font-mono text-slate-300">{formatCurrency(totalStats.totalSpentWithLimit)}</p>
                             </div>
-                            <div>
-                                <p className="text-sm text-slate-400 mb-1">Disponível</p>
-                                <p className="text-3xl font-bold text-blue-400">{formatCurrency(Math.max(0, totalStats.totalLimit - totalStats.totalSpentWithLimit))}</p>
+                            <div className="w-px bg-slate-800 hidden sm:block"></div>
+                            <div className="flex-1">
+                                <p className="text-xs text-slate-400 mb-1 font-bold uppercase tracking-wider">Disponível</p>
+                                <p className="text-3xl font-bold font-mono text-emerald-400">{formatCurrency(Math.max(0, totalStats.totalLimit - totalStats.totalSpentWithLimit))}</p>
                             </div>
                         </div>
                     </div>
                     {/* Decorative Background Icon */}
-                    <div className="absolute right-0 bottom-0 opacity-10 transform translate-x-1/4 translate-y-1/4">
-                        <PieChartIcon size={200} className="w-64 h-64" />
+                    <div className="absolute right-0 bottom-0 opacity-5 transform translate-x-1/4 translate-y-1/4">
+                        <PieChartIcon size={200} className="w-64 h-64 text-white" />
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-center items-center text-center">
-                    <div className="mb-4 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-full text-blue-600 dark:text-blue-400">
+                <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col justify-center items-center text-center">
+                    <div className="mb-4 bg-slate-100 dark:bg-slate-800 p-4 rounded-full text-slate-600 dark:text-slate-400">
                         <Edit2 size={24} />
                     </div>
-                    <h3 className="font-bold text-slate-700 dark:text-slate-200">Gerenciar Limites</h3>
-                    <p className="text-sm text-slate-500 mb-4 px-4">Defina tetos de gastos para suas categorias e receba alertas.</p>
+                    <h3 className="font-bold text-slate-800 dark:text-white">Gerenciar Limites</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-6 px-4">Defina tetos de gastos para suas categorias e receba alertas.</p>
                     <button
                         onClick={() => { setEditingLimit({}); setIsModalOpen(true); }}
-                        className="bg-brand-blue hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold text-sm transition-colors w-full"
+                        className="bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-black dark:hover:bg-white px-4 py-2 rounded-md font-bold text-xs transition-colors w-full shadow-sm"
                     >
                         Adicionar Limite
                     </button>
@@ -169,27 +171,27 @@ export const Budget: React.FC<BudgetProps> = ({ transactions, config, filter }) 
             {/* Budget Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {budgetData.map((item) => (
-                    <div key={item.category} className={`bg-white dark:bg-slate-800 p-5 rounded-xl border-l-4 shadow-sm transition-all hover:shadow-md ${!item.hasLimit ? 'border-slate-300 dark:border-slate-600' :
-                        item.status === 'critical' ? 'border-rose-500' :
-                            item.status === 'warning' ? 'border-amber-500' : 'border-emerald-500'
+                    <div key={item.category} className={`bg-white dark:bg-slate-900 p-5 rounded-xl border-l-[3px] shadow-sm transition-all hover:shadow-md border border-y-slate-200 border-r-slate-200 dark:border-y-slate-800 dark:border-r-slate-800 ${!item.hasLimit ? 'border-l-slate-300 dark:border-l-slate-700' :
+                        item.status === 'critical' ? 'border-l-rose-500' :
+                            item.status === 'warning' ? 'border-l-amber-500' : 'border-l-emerald-500'
                         }`}>
-                        <div className="flex justify-between items-start mb-3">
-                            <h4 className="font-bold text-slate-700 dark:text-slate-200 truncate pr-2">{item.category}</h4>
+                        <div className="flex justify-between items-start mb-4">
+                            <h4 className="font-bold text-slate-800 dark:text-slate-200 text-sm truncate pr-2 uppercase tracking-wide">{item.category}</h4>
                             {item.hasLimit ? (
-                                <button onClick={() => { setEditingLimit({ category: item.category, amount: item.limit, id: item.limitId }); setIsModalOpen(true); }} className="text-slate-400 hover:text-blue-500 p-1"><Edit2 size={14} /></button>
+                                <button onClick={() => { setEditingLimit({ category: item.category, amount: item.limit, id: item.limitId }); setIsModalOpen(true); }} className="text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors p-1 bg-slate-50 dark:bg-slate-800 rounded-md"><Edit2 size={12} /></button>
                             ) : (
-                                <button onClick={() => { setEditingLimit({ category: item.category }); setIsModalOpen(true); }} className="text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">Definir Meta</button>
+                                <button onClick={() => { setEditingLimit({ category: item.category }); setIsModalOpen(true); }} className="text-[10px] font-bold uppercase tracking-widest bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700 dark:text-slate-400 px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Definir Meta</button>
                             )}
                         </div>
 
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                             <div className="flex justify-between text-xs mb-1">
-                                <span className={`font-bold ${item.spent > item.limit && item.hasLimit ? 'text-rose-600' : 'text-slate-600 dark:text-slate-400'
+                                <span className={`font-bold font-mono tabular-nums text-sm ${item.spent > item.limit && item.hasLimit ? 'text-rose-600 dark:text-rose-400' : 'text-slate-700 dark:text-slate-300'
                                     }`}>{formatCurrency(item.spent)}</span>
-                                <span className="text-slate-400">{item.hasLimit ? formatCurrency(item.limit) : 'Sem limite'}</span>
+                                <span className="text-slate-400 font-mono text-sm tabular-nums">{item.hasLimit ? formatCurrency(item.limit) : <span className="text-[10px] uppercase font-bold tracking-widest">Sem limite</span>}</span>
                             </div>
 
-                            <div className="w-full bg-slate-100 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden relative">
+                            <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden relative">
                                 {item.hasLimit ? (
                                     <div
                                         className={`h-full rounded-full transition-all duration-500 ${item.status === 'critical' ? 'bg-rose-500' :
@@ -198,19 +200,19 @@ export const Budget: React.FC<BudgetProps> = ({ transactions, config, filter }) 
                                         style={{ width: `${Math.min(item.percentage, 100)}%` }}
                                     ></div>
                                 ) : (
-                                    <div className="h-full bg-slate-300 dark:bg-slate-600 w-full opacity-20 stripes"></div>
+                                    <div className="h-full bg-slate-200 dark:bg-slate-700 w-full"></div>
                                 )}
                             </div>
 
                             {item.hasLimit && (
-                                <div className="flex justify-between items-center text-[10px] mt-2">
-                                    <span className={`${item.status === 'critical' ? 'text-rose-600 font-bold' :
-                                        item.status === 'warning' ? 'text-amber-600 font-bold' : 'text-emerald-600'
+                                <div className="flex justify-between items-center text-[10px] uppercase tracking-widest font-bold mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                                    <span className={`${item.status === 'critical' ? 'text-rose-600 dark:text-rose-400' :
+                                        item.status === 'warning' ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'
                                         }`}>
-                                        {item.percentage.toFixed(0)}% Utilizado
+                                        {item.percentage.toFixed(0)}% Usado
                                     </span>
                                     <span className="text-slate-400">
-                                        Restante: <span className={item.remaining === 0 ? 'text-rose-500' : 'text-slate-600 dark:text-slate-300'}>{formatCurrency(item.remaining)}</span>
+                                        Restante: <span className={`font-mono ${item.remaining === 0 ? 'text-rose-500' : 'text-slate-600 dark:text-slate-300'}`}>{formatCurrency(item.remaining)}</span>
                                     </span>
                                 </div>
                             )}
