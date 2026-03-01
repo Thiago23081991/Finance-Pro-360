@@ -391,9 +391,9 @@ export const SheetView: React.FC<SheetViewProps> = ({
                     {/* Desktop Button */}
                     <button
                         onClick={() => setIsSmartInputOpen(true)}
-                        className="hidden md:flex items-center gap-2 bg-indigo-600 text-white px-4 py-1.5 rounded-md text-xs font-bold hover:bg-indigo-700 transition-all active:scale-95 whitespace-nowrap shadow-sm"
+                        className="hidden md:flex items-center gap-2 bg-white text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-sm text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all active:scale-95 whitespace-nowrap"
                     >
-                        <Sparkles size={14} className="text-indigo-200" />
+                        <Sparkles size={14} className="text-indigo-500 dark:text-indigo-400" />
                         Smart Add
                     </button>
 
@@ -416,7 +416,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
 
                             setNewDate(todayStr);
                         }}
-                        className="hidden md:flex items-center gap-2 bg-emerald-600 text-white px-4 py-1.5 rounded-md text-xs font-medium hover:bg-emerald-700 transition-colors shadow-sm whitespace-nowrap"
+                        className="hidden md:flex items-center gap-2 bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 px-4 py-1.5 rounded-md text-xs font-bold hover:bg-black dark:hover:bg-white transition-colors shadow-sm whitespace-nowrap"
                     >
                         <Plus size={14} />
                         Adicionar Linha
@@ -675,22 +675,22 @@ export const SheetView: React.FC<SheetViewProps> = ({
                                     <motion.div
                                         initial={{ opacity: 0, scale: 0.95 }}
                                         animate={{ opacity: 1, scale: 1 }}
-                                        className="flex flex-col items-center justify-center text-center p-8 max-w-sm mx-auto border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50/50 dark:bg-slate-800/20"
+                                        className="flex flex-col items-center justify-center text-center p-8 max-w-sm mx-auto border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-800/20"
                                     >
-                                        <div className={`w-16 h-16 mb-4 rounded-full flex items-center justify-center ${type === 'income' ? 'bg-emerald-100 text-emerald-500' : 'bg-rose-100 text-rose-500'}`}>
-                                            <CircleDollarSign size={32} />
+                                        <div className={`w-12 h-12 mb-4 rounded-full flex items-center justify-center bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500`}>
+                                            <CircleDollarSign size={24} />
                                         </div>
-                                        <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-2">
+                                        <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-1">
                                             Nenhum registro encontrado
                                         </h3>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-                                            Você ainda não adicionou nenhuma {type === 'income' ? 'receita' : 'despesa'} neste período. Que tal começar agora?
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
+                                            A planilha de {type === 'income' ? 'receitas' : 'despesas'} está vazia para os filtros atuais.
                                         </p>
                                         <button
                                             onClick={() => setIsAdding(true)}
-                                            className="px-6 py-2.5 bg-brand-blue dark:bg-brand-gold dark:text-brand-blue text-white rounded-xl font-bold text-sm shadow-md hover:-translate-y-0.5 transition-transform"
+                                            className="px-4 py-2 bg-slate-900 dark:bg-slate-100 dark:text-slate-900 text-white rounded-md font-bold text-xs shadow-sm transition-transform"
                                         >
-                                            + Adicionar Registro
+                                            Adicionar Linha
                                         </button>
                                     </motion.div>
                                 </td>
@@ -861,20 +861,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
                 </div>
             </div>
 
-            {/* Floating Summary Footer - Modern Glassmorphism */}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 bg-slate-900/90 dark:bg-white/90 backdrop-blur-md text-white dark:text-slate-900 px-6 py-3 rounded-full shadow-md flex items-center gap-6 border border-white/10 dark:border-slate-200">
-                <div className="flex flex-col">
-                    <span className="text-[10px] opacity-60 uppercase font-bold tracking-widest">Total {type === 'income' ? 'Receitas' : 'Despesas'}</span>
-                    <span className="text-xl font-bold font-mono tracking-tighter leading-none">
-                        {formatCurrency(totalValue, currency)}
-                    </span>
-                </div>
-                <div className="h-8 w-px bg-white/20 dark:bg-slate-900/20"></div>
-                <div className="text-right">
-                    <span className="text-[10px] opacity-60 uppercase font-bold tracking-widest block">{sheetData.length} registros</span>
-                    <span className="text-xs font-medium opacity-80">Exibindo período filtrado</span>
-                </div>
-            </div>
+            {/* Floating Summary Footer Removed to avoid UI overlap with Empty State and to enforce standard Terminal Tables TFOOT totals */}
 
             {/* Mobile Floating Action Button (FAB) - Keep existing style */}
             {!isAdding && (
