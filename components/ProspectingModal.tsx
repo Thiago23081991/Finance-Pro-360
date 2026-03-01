@@ -238,7 +238,7 @@ export const ProspectingModal: React.FC<ProspectingModalProps> = ({
                             <p className="text-xs font-bold uppercase opacity-60 mb-1 tracking-wider">
                                 Saldo Previsto (Sobra)
                             </p>
-                            <p className={`text-xl font-black ${simulationResults.projectedBalance >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+                            <p className={`text-xl font-bold ${simulationResults.projectedBalance >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                                 }`}>
                                 {formatCurrency(simulationResults.projectedBalance, currency)}
                             </p>

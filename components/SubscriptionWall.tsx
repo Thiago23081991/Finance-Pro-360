@@ -49,7 +49,7 @@ export const SubscriptionWall: React.FC<SubscriptionWallProps> = ({ userId, user
                 <div className="text-center space-y-2">
                     <div className="flex items-center justify-center gap-3 mb-4">
                         <Rocket className="text-brand-gold" size={42} />
-                        <h1 className="text-4xl font-black uppercase tracking-tight text-white">Evolua sua Gestão</h1>
+                        <h1 className="text-4xl font-bold uppercase tracking-tight text-white">Evolua sua Gestão</h1>
                     </div>
                     <p className="text-slate-400 text-lg">Desbloqueie todo o potêncial do Finance Pro 360 e assuma o controle.</p>
                 </div>
@@ -66,16 +66,16 @@ export const SubscriptionWall: React.FC<SubscriptionWallProps> = ({ userId, user
                             }`}
                     >
                         {selectedPlan === 'semiannual' && (
-                            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-gold text-brand-blue text-xs font-black px-4 py-1 rounded-full uppercase tracking-wider">
+                            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-gold text-brand-blue text-xs font-bold px-4 py-1 rounded-full uppercase tracking-wider">
                                 Selecionado
                             </div>
                         )}
 
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Semestral</p>
-                        <h2 className="text-3xl font-black mb-4">Plano Semestral</h2>
+                        <h2 className="text-3xl font-bold mb-4">Plano Semestral</h2>
                         <div className="flex items-baseline gap-1 mb-8">
                             <span className="text-lg font-bold text-slate-300">R$</span>
-                            <span className="text-5xl font-black text-white">47</span>
+                            <span className="text-5xl font-bold text-white">47</span>
                             <span className="text-xl font-bold text-slate-500">,90</span>
                         </div>
                         <p className="text-xs text-brand-gold font-bold uppercase mb-8 bg-brand-gold/10 inline-block px-3 py-1 rounded">Cobrado a cada 6 meses</p>
@@ -104,15 +104,15 @@ export const SubscriptionWall: React.FC<SubscriptionWallProps> = ({ userId, user
                             : 'border-slate-700 bg-slate-900/40 opacity-70 hover:opacity-100 hover:scale-[1.02]'
                             }`}
                     >
-                        <div className="absolute top-0 right-0 bg-gradient-to-l from-brand-gold to-yellow-400 text-brand-blue text-[10px] font-black px-4 py-1.5 rounded-bl-xl shadow-md">
+                        <div className="absolute top-0 right-0 bg-gradient-to-l from-brand-gold to-yellow-400 text-brand-blue text-[10px] font-bold px-4 py-1.5 rounded-bl-xl shadow-md">
                             RECOMENDADO
                         </div>
 
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Anual</p>
-                        <h2 className="text-3xl font-black mb-4">Plano Anual</h2>
+                        <h2 className="text-3xl font-bold mb-4">Plano Anual</h2>
                         <div className="flex items-baseline gap-1 mb-8">
                             <span className="text-lg font-bold text-slate-300">R$</span>
-                            <span className="text-5xl font-black text-white">80</span>
+                            <span className="text-5xl font-bold text-white">80</span>
                             <span className="text-xl font-bold text-slate-500">,00</span>
                         </div>
                         <p className="text-xs text-brand-gold font-bold uppercase mb-8 bg-brand-gold/10 inline-block px-3 py-1 rounded">Cobrado Anualmente (Melhor Valor)</p>
@@ -142,7 +142,7 @@ export const SubscriptionWall: React.FC<SubscriptionWallProps> = ({ userId, user
                 <div className="max-w-md mx-auto mt-8 space-y-4">
                     <button
                         onClick={handleCheckout}
-                        className="w-full bg-gradient-to-r from-brand-gold to-yellow-500 hover:from-yellow-400 hover:to-yellow-500 text-brand-blue text-lg font-black py-5 rounded-xl shadow-md shadow-brand-gold/20 transform transition-all active:scale-95 flex items-center justify-center gap-3 group"
+                        className="w-full bg-gradient-to-r from-brand-gold to-yellow-500 hover:from-yellow-400 hover:to-yellow-500 text-brand-blue text-lg font-bold py-5 rounded-xl shadow-md shadow-brand-gold/20 transform transition-all active:scale-95 flex items-center justify-center gap-3 group"
                     >
                         <ShoppingCart className="group-hover:animate-bounce" />
                         DESBLOQUEAR ACESSO AGORA

@@ -187,7 +187,7 @@ export const MonthlyReportModal: React.FC<MonthlyReportModalProps> = ({
 
                     {/* Report Header */}
                     <div className="text-center mb-10 border-b-2 border-slate-800 pb-6 print:border-black">
-                        <h1 className="text-3xl font-black uppercase tracking-widest text-slate-800 dark:text-white print:text-black mb-2">Relatório Financeiro</h1>
+                        <h1 className="text-3xl font-bold uppercase tracking-widest text-slate-800 dark:text-white print:text-black mb-2">Relatório Financeiro</h1>
                         <p className="text-lg text-slate-500 print:text-gray-600 font-bold">{monthName} de {currentYear}</p>
                     </div>
 
@@ -203,15 +203,15 @@ export const MonthlyReportModal: React.FC<MonthlyReportModalProps> = ({
                             <div className="grid grid-cols-3 gap-6 mb-8">
                                 <div className="p-4 bg-slate-50 dark:bg-slate-800/50 print:bg-slate-50 rounded-xl border border-slate-100 print:border-gray-200">
                                     <p className="text-xs font-bold text-slate-500 uppercase">Receitas</p>
-                                    <p className="text-2xl font-black text-emerald-600">{formatCurrency(reportData?.income || 0, currency)}</p>
+                                    <p className="text-2xl font-bold text-emerald-600">{formatCurrency(reportData?.income || 0, currency)}</p>
                                 </div>
                                 <div className="p-4 bg-slate-50 dark:bg-slate-800/50 print:bg-slate-50 rounded-xl border border-slate-100 print:border-gray-200">
                                     <p className="text-xs font-bold text-slate-500 uppercase">Despesas</p>
-                                    <p className="text-2xl font-black text-rose-600">{formatCurrency(reportData?.expense || 0, currency)}</p>
+                                    <p className="text-2xl font-bold text-rose-600">{formatCurrency(reportData?.expense || 0, currency)}</p>
                                 </div>
                                 <div className="p-4 bg-slate-50 dark:bg-slate-800/50 print:bg-slate-50 rounded-xl border border-slate-100 print:border-gray-200">
                                     <p className="text-xs font-bold text-slate-500 uppercase">Saldo</p>
-                                    <p className={`text-2xl font-black ${(reportData?.balance || 0) >= 0 ? 'text-blue-600' : 'text-rose-600'}`}>
+                                    <p className={`text-2xl font-bold ${(reportData?.balance || 0) >= 0 ? 'text-blue-600' : 'text-rose-600'}`}>
                                         {formatCurrency(reportData?.balance || 0, currency)}
                                     </p>
                                 </div>
@@ -268,7 +268,7 @@ export const MonthlyReportModal: React.FC<MonthlyReportModalProps> = ({
                                 </h3>
                                 <div className="prose prose-sm dark:prose-invert max-w-none bg-slate-50 dark:bg-slate-800/30 print:bg-white p-6 rounded-xl border border-slate-100 dark:border-slate-800 print:border-none print:p-0">
                                     {analysis.split('\n').map((line, i) => (
-                                        <p key={i} className={`mb-2 text-slate-600 dark:text-slate-300 print:text-black ${line.startsWith('#') ? 'font-black text-lg mt-4 text-slate-800 dark:text-white print:text-black' : ''} ${line.startsWith('*') ? 'pl-4' : ''}`}>
+                                        <p key={i} className={`mb-2 text-slate-600 dark:text-slate-300 print:text-black ${line.startsWith('#') ? 'font-bold text-lg mt-4 text-slate-800 dark:text-white print:text-black' : ''} ${line.startsWith('*') ? 'pl-4' : ''}`}>
                                             {line.replace(/\*\*/g, '').replace(/#/g, '')}
                                         </p>
                                     ))}

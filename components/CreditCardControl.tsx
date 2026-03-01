@@ -301,7 +301,7 @@ export const CreditCardControl: React.FC<CreditCardControlProps> = ({ transactio
                             <h4 className="text-sm font-bold text-slate-500 uppercase">Fatura Atual</h4>
                             <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold">Aberta</span>
                         </div>
-                        <h2 className="text-4xl font-black text-slate-800 dark:text-white mb-1">{formatCurrency(stats.currentInvoice, currency)}</h2>
+                        <h2 className="text-4xl font-bold text-slate-800 dark:text-white mb-1">{formatCurrency(stats.currentInvoice, currency)}</h2>
                         <p className="text-xs text-slate-400">Fecha dia {activeCard.closingDay}</p>
                     </div>
 

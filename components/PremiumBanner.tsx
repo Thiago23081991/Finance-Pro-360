@@ -32,7 +32,7 @@ export const PremiumBanner: React.FC = () => {
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-gold/20 border border-brand-gold/30 text-brand-gold text-[10px] font-bold uppercase tracking-widest mb-4">
                         <Crown size={12} /> Oferta Especial
                     </span>
-                    <h2 className="text-2xl md:text-3xl font-black text-white mb-2 tracking-tight">
+                    <h2 className="text-2xl md:text-3xl font-bold text-white mb-2 tracking-tight">
                         Desbloqueie todo o potencial do <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold to-yellow-200">Finance Pro 360</span>
                     </h2>
                     <p className="text-slate-400 text-sm max-w-2xl mx-auto">
@@ -46,7 +46,7 @@ export const PremiumBanner: React.FC = () => {
                     {/* Semiannual Plan */}
                     <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-5 border border-slate-700 hover:border-slate-600 transition-all flex flex-col items-center relative group">
                         <h3 className="text-lg font-bold text-slate-200 mb-1">{PLANS_CONFIG.semiannual.name}</h3>
-                        <div className="text-3xl font-black text-white mb-1">
+                        <div className="text-3xl font-bold text-white mb-1">
                             {Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(PLANS_CONFIG.semiannual.value)}
                         </div>
                         <p className="text-xs text-slate-400 mb-4 font-medium uppercase tracking-wide">6 Meses de acesso</p>
@@ -68,13 +68,13 @@ export const PremiumBanner: React.FC = () => {
                         <div className="absolute top-3 right-3 text-brand-gold animate-pulse"><Star size={16} fill="currentColor" /></div>
 
                         <h3 className="text-lg font-bold text-white mb-1 flex items-center gap-2">
-                            {PLANS_CONFIG.annual.name} <span className="text-[10px] bg-brand-gold text-brand-blue px-2 py-0.5 rounded-full font-black">MELHOR ESCOLHA</span>
+                            {PLANS_CONFIG.annual.name} <span className="text-[10px] bg-brand-gold text-brand-blue px-2 py-0.5 rounded-full font-bold">MELHOR ESCOLHA</span>
                         </h3>
 
                         {/* Pricing Display */}
                         <div className="flex flex-col items-center mb-1">
                             <span className="text-xs text-brand-gold font-bold uppercase tracking-wider mb-1">Apenas</span>
-                            <div className="text-4xl font-black text-white flex items-baseline gap-1">
+                            <div className="text-4xl font-bold text-white flex items-baseline gap-1">
                                 {Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(PLANS_CONFIG.annual.value)}
                             </div>
                             <span className="text-[10px] text-slate-400 mt-1">/ano</span>
@@ -86,7 +86,7 @@ export const PremiumBanner: React.FC = () => {
                             href={PLANS_CONFIG.annual.checkoutUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="w-full py-3 rounded-lg bg-gradient-to-r from-brand-gold to-yellow-500 hover:from-yellow-400 hover:to-brand-gold text-brand-blue font-black transition-all shadow-md flex items-center justify-center gap-2 transform hover:scale-[1.02]"
+                            className="w-full py-3 rounded-lg bg-gradient-to-r from-brand-gold to-yellow-500 hover:from-yellow-400 hover:to-brand-gold text-brand-blue font-bold transition-all shadow-md flex items-center justify-center gap-2 transform hover:scale-[1.02]"
                         >
                             <Sparkles size={18} />
                             <span>QUERO 1 ANO DE ACESSO</span>

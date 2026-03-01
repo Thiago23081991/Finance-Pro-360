@@ -26,7 +26,7 @@ export const PremiumLock: React.FC<PremiumLockProps> = ({ config, userEmail, use
             </div>
 
             <div className="max-w-md space-y-4">
-                <h2 className="text-2xl md:text-4xl font-black text-slate-800 dark:text-white tracking-tight">
+                <h2 className="text-2xl md:text-4xl font-bold text-slate-800 dark:text-white tracking-tight">
                     Conteúdo Exclusivo
                 </h2>
                 <p className="text-slate-500 dark:text-slate-400 text-lg leading-relaxed">
@@ -62,7 +62,7 @@ export const PremiumLock: React.FC<PremiumLockProps> = ({ config, userEmail, use
 
                 <button
                     onClick={handleUpgrade}
-                    className="w-full bg-gradient-to-r from-brand-gold to-yellow-500 hover:from-yellow-400 hover:to-yellow-500 text-brand-blue font-black py-4 rounded-xl shadow-md shadow-brand-gold/20 mt-8 transform transition-all active:scale-95 group flex items-center justify-center gap-2"
+                    className="w-full bg-gradient-to-r from-brand-gold to-yellow-500 hover:from-yellow-400 hover:to-yellow-500 text-brand-blue font-bold py-4 rounded-xl shadow-md shadow-brand-gold/20 mt-8 transform transition-all active:scale-95 group flex items-center justify-center gap-2"
                 >
                     <Zap className="fill-brand-blue group-hover:scale-110 transition-transform" size={18} />
                     DESBLOQUEAR TUDO

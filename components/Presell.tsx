@@ -20,7 +20,7 @@ export const Presell: React.FC = () => {
             {/* Top Attention Bar - Urgency */}
             <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-center py-3 px-4 text-xs md:text-sm font-bold tracking-wide shadow-md relative z-50">
                 <div className="animate-pulse flex items-center justify-center gap-2">
-                    <span className="bg-white/20 px-2 py-0.5 rounded text-[10px] uppercase font-black">OFERTA RELÂMPAGO</span>
+                    <span className="bg-white/20 px-2 py-0.5 rounded text-[10px] uppercase font-bold">OFERTA RELÂMPAGO</span>
                     <span>LIBERE SEU ACESSO VITALÍCIO POR MENOS DE UMA PIZZA 🍕</span>
                 </div>
             </div>
@@ -32,7 +32,7 @@ export const Presell: React.FC = () => {
                         <div className="bg-brand-blue p-1.5 rounded-lg shadow-sm">
                             <Logo className="w-6 h-6 text-brand-gold" />
                         </div>
-                        <span className="text-xl font-black tracking-tight hidden md:block">
+                        <span className="text-xl font-bold tracking-tight hidden md:block">
                             FINANCE <span className="text-brand-gold">PRO 360</span>
                         </span>
                     </div>
@@ -66,7 +66,7 @@ export const Presell: React.FC = () => {
                         </div>
                     </div>
 
-                    <h1 className="text-5xl md:text-7xl font-black text-slate-900 leading-[1.05] mb-6 tracking-tight animate-fade-in-up">
+                    <h1 className="text-5xl md:text-7xl font-bold text-slate-900 leading-[1.05] mb-6 tracking-tight animate-fade-in-up">
                         Assuma o Controle Total<br className="hidden md:block" />
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-cyan-500">Da Sua Vida Financeira.</span>
                     </h1>
@@ -78,7 +78,7 @@ export const Presell: React.FC = () => {
                     <div className="flex flex-col items-center gap-4 animate-bounce-slow">
                         <button
                             onClick={handleCtaClick}
-                            className="group relative inline-flex items-center justify-center gap-3 bg-brand-gold hover:bg-yellow-400 text-brand-blue text-lg md:text-2xl font-black py-6 px-12 rounded-xl shadow-xl shadow-yellow-500/20 transition-all transform hover:scale-105 active:scale-95 w-full md:w-auto"
+                            className="group relative inline-flex items-center justify-center gap-3 bg-brand-gold hover:bg-yellow-400 text-brand-blue text-lg md:text-2xl font-bold py-6 px-12 rounded-xl shadow-xl shadow-yellow-500/20 transition-all transform hover:scale-105 active:scale-95 w-full md:w-auto"
                         >
                             <span className="relative z-10">COMEÇAR AGORA</span>
                             <ArrowRight className="group-hover:translate-x-1 transition-transform relative z-10" strokeWidth={3} />
@@ -129,7 +129,7 @@ export const Presell: React.FC = () => {
                 <div className="max-w-4xl mx-auto px-4">
                     <div className="text-center mb-16">
                         <span className="text-brand-blue font-bold tracking-wider text-sm uppercase bg-blue-50 px-3 py-1 rounded-full">O Jogo Virou</span>
-                        <h2 className="text-3xl md:text-4xl font-black text-slate-900 mt-4">Pare de Tentar Controlar Suas Finanças do Jeito Errado</h2>
+                        <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mt-4">Pare de Tentar Controlar Suas Finanças do Jeito Errado</h2>
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-8 md:gap-12">
@@ -149,7 +149,7 @@ export const Presell: React.FC = () => {
                         {/* New Way */}
                         <div className="bg-white p-8 rounded-xl shadow-xl shadow-emerald-900/10 border-2 border-emerald-500/20 relative">
                             <div className="absolute -top-3 -right-3 bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-lg shadow-md rotate-3 uppercase">Método Aprovado</div>
-                            <h3 className="text-xl font-black text-brand-blue mb-6 flex items-center gap-2">
+                            <h3 className="text-xl font-bold text-brand-blue mb-6 flex items-center gap-2">
                                 <CheckCircle2 className="text-emerald-500 fill-emerald-50" /> O Jeito Finance Pro
                             </h3>
                             <ul className="space-y-5">
@@ -169,8 +169,8 @@ export const Presell: React.FC = () => {
             <section className="py-24 bg-gradient-to-b from-slate-50 to-white relative scroll-mt-20" id="pricing">
                 <div className="max-w-5xl mx-auto px-4">
                     <div className="text-center max-w-3xl mx-auto mb-12">
-                        <span className="bg-brand-gold text-brand-blue font-black tracking-wider text-xs uppercase px-3 py-1 rounded">Oportunidade Única</span>
-                        <h2 className="text-4xl md:text-5xl font-black text-slate-900 mt-4 mb-6">Investimento Inteligente</h2>
+                        <span className="bg-brand-gold text-brand-blue font-bold tracking-wider text-xs uppercase px-3 py-1 rounded">Oportunidade Única</span>
+                        <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mt-4 mb-6">Investimento Inteligente</h2>
                         <p className="text-lg text-slate-600">
                             Escolha o plano que vai mudar sua relação com dinheiro. <b className="text-slate-900">Sem mensalidades recorrentes.</b>
                         </p>
@@ -199,14 +199,14 @@ export const Presell: React.FC = () => {
 
                         {/* HERO OPTION (Best Value) */}
                         <div className="order-1 md:order-2 bg-slate-900 p-1 rounded-[32px] relative shadow-md shadow-blue-900/30 transform scale-105 md:scale-110 z-10">
-                            <div className="absolute -top-5 left-0 right-0 mx-auto w-fit bg-gradient-to-r from-brand-gold to-yellow-400 text-brand-blue font-black px-4 py-1.5 rounded-full shadow-md text-xs uppercase tracking-wide flex items-center gap-2">
+                            <div className="absolute -top-5 left-0 right-0 mx-auto w-fit bg-gradient-to-r from-brand-gold to-yellow-400 text-brand-blue font-bold px-4 py-1.5 rounded-full shadow-md text-xs uppercase tracking-wide flex items-center gap-2">
                                 <Star size={12} className="fill-brand-blue" />
                                 Escolha da Maioria
                             </div>
 
                             <div className="bg-gradient-to-b from-slate-900 to-slate-800 p-8 rounded-[28px] h-full flex flex-col relative overflow-hidden text-center">
 
-                                <h3 className="text-brand-gold font-black uppercase tracking-widest text-sm mb-2">Acesso Anual Premium</h3>
+                                <h3 className="text-brand-gold font-bold uppercase tracking-widest text-sm mb-2">Acesso Anual Premium</h3>
                                 <p className="text-slate-400 text-xs mb-6">O melhor custo-benefício do mercado</p>
 
                                 <div className="mb-8 relative">
@@ -216,7 +216,7 @@ export const Presell: React.FC = () => {
                                     </div>
                                     <div className="flex items-baseline justify-center gap-1 mt-1">
                                         <span className="text-lg text-slate-300 font-medium">12x de</span>
-                                        <span className="text-5xl md:text-6xl font-black text-white tracking-tighter">R$ 6,60</span>
+                                        <span className="text-5xl md:text-6xl font-bold text-white tracking-tighter">R$ 6,60</span>
                                     </div>
                                     <p className="text-slate-400 text-xs font-medium mt-2">ou R$ 80,00 à vista</p>
                                 </div>
@@ -228,7 +228,7 @@ export const Presell: React.FC = () => {
                                     <li className="flex gap-3 text-white text-sm font-medium"><div className="bg-brand-gold/20 p-1 rounded text-brand-gold"><Users size={14} /></div> Suporte Prioritário</li>
                                 </div>
 
-                                <a href="https://pay.kiwify.com.br/PZzs9Up" className="group w-full py-5 rounded-xl bg-gradient-to-r from-brand-gold to-yellow-400 text-brand-blue font-black hover:brightness-110 transition-all shadow-md shadow-brand-gold/20 text-lg flex items-center justify-center gap-2">
+                                <a href="https://pay.kiwify.com.br/PZzs9Up" className="group w-full py-5 rounded-xl bg-gradient-to-r from-brand-gold to-yellow-400 text-brand-blue font-bold hover:brightness-110 transition-all shadow-md shadow-brand-gold/20 text-lg flex items-center justify-center gap-2">
                                     QUERO MEU ACESSO
                                     <ArrowRight className="group-hover:translate-x-1 transition-transform" />
                                 </a>

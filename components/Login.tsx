@@ -158,7 +158,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin, initialMessage, messageTy
           </div>
 
           <div className="mb-10 text-center lg:text-left">
-            <h2 className="text-3xl font-black text-white mb-2">
+            <h2 className="text-3xl font-bold text-white mb-2">
               {authMode === 'login' ? 'Acessar Painel' : authMode === 'register' ? 'Criar Nova Conta' : 'Recuperar Acesso'}
             </h2>
             <p className="text-sm text-slate-400 font-medium">
@@ -231,7 +231,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin, initialMessage, messageTy
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full mt-4 bg-gradient-to-r from-brand-gold via-yellow-500 to-amber-500 hover:from-yellow-400 hover:to-amber-500 text-slate-900 font-black py-4 rounded-xl transition-all duration-300 transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2 shadow-sm hover:shadow-sm disabled:opacity-50 disabled:hover:translate-y-0 text-sm tracking-wide uppercase"
+              className="w-full mt-4 bg-gradient-to-r from-brand-gold via-yellow-500 to-amber-500 hover:from-yellow-400 hover:to-amber-500 text-slate-900 font-bold py-4 rounded-xl transition-all duration-300 transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2 shadow-sm hover:shadow-sm disabled:opacity-50 disabled:hover:translate-y-0 text-sm tracking-wide uppercase"
             >
               {isLoading ? <Loader2 className="animate-spin text-slate-900" size={20} /> : (
                 <>

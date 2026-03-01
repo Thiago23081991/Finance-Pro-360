@@ -161,7 +161,7 @@ export const AdminPanel: React.FC = () => {
                         <ShieldAlert size={20} />
                     </div>
                     <div>
-                        <h1 className="font-black text-slate-800 dark:text-white text-lg leading-tight">ADMIN</h1>
+                        <h1 className="font-bold text-slate-800 dark:text-white text-lg leading-tight">ADMIN</h1>
                         <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Painel</p>
                     </div>
                 </div>
@@ -197,7 +197,7 @@ export const AdminPanel: React.FC = () => {
             <main className="flex-1 p-6 md:p-10 overflow-y-auto">
                 <header className="flex justify-between items-center mb-8">
                     <div>
-                        <h2 className="text-2xl md:text-3xl font-black text-slate-800 dark:text-white mb-2">
+                        <h2 className="text-2xl md:text-3xl font-bold text-slate-800 dark:text-white mb-2">
                             {activeTab === 'dashboard' && 'Visão Geral'}
                             {activeTab === 'users' && 'Gestão de Usuários'}
                             {activeTab === 'push' && 'Disparo de Notificações'}
@@ -221,7 +221,7 @@ export const AdminPanel: React.FC = () => {
                                     </div>
                                     <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-1 rounded-full">+12%</span>
                                 </div>
-                                <h3 className="text-3xl font-black text-slate-800 dark:text-white">{stats.totalUsers}</h3>
+                                <h3 className="text-3xl font-bold text-slate-800 dark:text-white">{stats.totalUsers}</h3>
                                 <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mt-1">Usuários Totais</p>
                             </div>
 
@@ -232,7 +232,7 @@ export const AdminPanel: React.FC = () => {
                                     </div>
                                     <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-1 rounded-full">+5%</span>
                                 </div>
-                                <h3 className="text-3xl font-black text-slate-800 dark:text-white">{stats.activeLicenses}</h3>
+                                <h3 className="text-3xl font-bold text-slate-800 dark:text-white">{stats.activeLicenses}</h3>
                                 <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mt-1">Assinantes Premium</p>
                             </div>
 
@@ -242,7 +242,7 @@ export const AdminPanel: React.FC = () => {
                                         <DollarSignIcon size={24} />
                                     </div>
                                 </div>
-                                <h3 className="text-2xl font-black text-slate-800 dark:text-white">R$ {(stats.activeLicenses * 80).toLocaleString('pt-BR')}</h3>
+                                <h3 className="text-2xl font-bold text-slate-800 dark:text-white">R$ {(stats.activeLicenses * 80).toLocaleString('pt-BR')}</h3>
                                 <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mt-1">Receita Estimada (Ano)</p>
                             </div>
                         </div>
@@ -330,7 +330,7 @@ export const AdminPanel: React.FC = () => {
                                             <td className="p-4 font-bold text-slate-800 dark:text-white">{user.name || 'Sem Nome'}</td>
                                             <td className="p-4 text-sm text-slate-500">{user.email}</td>
                                             <td className="p-4">
-                                                <span className={`px-2 py-1 rounded-full text-[10px] font-black uppercase ${user.licenseStatus === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'
+                                                <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${user.licenseStatus === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'
                                                     }`}>
                                                     {user.licenseStatus === 'active' ? 'PREMIUM' : 'GRÁTIS'}
                                                 </span>
@@ -358,7 +358,7 @@ export const AdminPanel: React.FC = () => {
                             <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 mb-6 mx-auto">
                                 <Megaphone size={32} />
                             </div>
-                            <h3 className="text-2xl font-black text-center text-slate-800 dark:text-white mb-8">Disparar Notificação</h3>
+                            <h3 className="text-2xl font-bold text-center text-slate-800 dark:text-white mb-8">Disparar Notificação</h3>
 
                             <div className="space-y-6">
                                 <div>
@@ -399,7 +399,7 @@ export const AdminPanel: React.FC = () => {
                                 <button
                                     onClick={handleSendPush}
                                     disabled={pushSending}
-                                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-xl shadow-md shadow-indigo-500/20 transition-all active:scale-95 flex items-center justify-center gap-2"
+                                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow-md shadow-indigo-500/20 transition-all active:scale-95 flex items-center justify-center gap-2"
                                 >
                                     {pushSending ? <Loader2 className="animate-spin" /> : <Send size={20} />}
                                     ENVIAR NOTIFICAÇÃOAGORA

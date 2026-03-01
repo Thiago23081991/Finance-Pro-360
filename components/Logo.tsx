@@ -27,7 +27,7 @@ export const Logo: React.FC<LogoProps> = ({
 
       {showText && (
         <div className="flex flex-col justify-center">
-          <span className={`font-black text-lg leading-none tracking-tight ${textClassName}`}>FINANCE</span>
+          <span className={`font-bold text-lg leading-none tracking-tight ${textClassName}`}>FINANCE</span>
           <div className="flex items-center gap-1.5">
             <span className="text-[10px] font-bold leading-none text-brand-gold uppercase tracking-[0.25em]">PRO</span>
             <span className="text-[10px] font-bold leading-none opacity-60 uppercase tracking-widest" style={{ color: 'inherit' }}>360</span>

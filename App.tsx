@@ -289,42 +289,35 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
     return (
         <BiometricGate requireBiometrics={!!config.requireBiometrics}>
             <div className="flex h-[100dvh] bg-slate-50 dark:bg-slate-950 text-textMain font-sans overflow-hidden transition-colors duration-300">
-                <aside className="w-64 bg-brand-blue/95 dark:bg-slate-950/95 backdrop-blur-xl text-white flex flex-col shadow-md z-20 hidden md:flex border-r border-white/5">
-                    <div className="p-6 border-b border-white/10"><Logo className="w-9 h-9" textClassName="text-white" /></div>
-                    <nav className="flex-1 px-4 space-y-1 mt-4 overflow-y-auto custom-scrollbar">
+                <aside className="w-20 bg-slate-950 text-slate-400 flex flex-col shadow-md z-20 hidden md:flex border-r border-slate-800 shrink-0 transition-all">
+                    <div className="p-4 border-b border-slate-800/50 flex justify-center items-center h-16">
+                        {/* We don't render the logo text to fit the narrow space */}
+                        <div className="w-8 h-8 bg-brand-blue rounded-lg flex items-center justify-center text-white font-bold italic shadow-inner">
+                            FP
+                        </div>
+                    </div>
+                    <nav className="flex-1 w-full space-y-2 mt-4 px-2 overflow-y-auto custom-scrollbar flex flex-col items-center">
                         {(['controle', 'receitas', 'despesas', 'orcamento', 'dividas', 'metas', 'investimentos', 'cursos', 'config'] as Tab[]).concat(isAdmin ? ['admin'] : []).map(tabId => (
-                            <button key={tabId} onClick={() => handleTabChange(tabId)} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 ${activeTab === tabId ? 'bg-white/10 text-brand-gold font-bold' : 'text-slate-300 hover:bg-white/5'}`}>
-                                {TAB_METADATA[tabId].icon}{TAB_METADATA[tabId].label}
+                            <button
+                                key={tabId}
+                                onClick={() => handleTabChange(tabId)}
+                                className={`w-full flex flex-col items-center justify-center gap-1.5 py-3 rounded-xl transition-all duration-200 ${activeTab === tabId ? 'bg-blue-600/10 text-blue-500 shadow-sm relative' : 'hover:bg-slate-800/50 hover:text-slate-200'}`}
+                                title={TAB_METADATA[tabId].label}
+                            >
+                                {activeTab === tabId && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-blue-500 rounded-r-full" />}
+                                {TAB_METADATA[tabId].icon}
+                                <span className="text-[9px] font-bold tracking-wider uppercase opacity-80">{TAB_METADATA[tabId].label.substring(0, 4)}</span>
                             </button>
                         ))}
                     </nav>
 
-                    {/* Sidebar CTA for Free Users */}
-                    {config.licenseStatus !== 'active' && (
-                        <div className="mx-4 mb-4 p-4 rounded-xl bg-gradient-to-br from-brand-gold to-yellow-600 shadow-lg text-center">
-                            <h4 className="font-black text-brand-blue text-sm mb-1">Seja Premium 🚀</h4>
-                            <p className="text-[10px] text-brand-blue/80 font-medium mb-3 leading-tight">Desbloqueie todos os recursos agora!</p>
-                            <a
-                                href={PLANS_CONFIG.annual.checkoutUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="block w-full py-2 bg-brand-blue text-white text-xs font-bold rounded-lg hover:brightness-110 transition-all shadow-md"
-                            >
-                                UPGRADE
-                            </a>
+                    <div className="w-full p-4 border-t border-slate-800/50 flex flex-col items-center gap-4">
+                        <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-sm font-bold text-white border border-slate-700 shadow-sm" title={displayName}>
+                            {(displayName || 'U').substring(0, 1).toUpperCase()}
                         </div>
-                    )}
-                    <div className="p-4 border-t border-white/10 bg-black/20 flex items-center justify-between">
-                        <div className="flex items-center gap-2 overflow-hidden">
-                            <div className="w-8 h-8 rounded-full bg-brand-gold flex items-center justify-center text-xs font-bold text-brand-blue shrink-0">
-                                {(displayName || 'U').substring(0, 1).toUpperCase()}
-                            </div>
-                            <div className="flex flex-col overflow-hidden">
-                                <span className="text-xs font-bold truncate text-white">{displayName}</span>
-
-                            </div>
-                        </div>
-                        <button onClick={onLogout} className="text-slate-400 hover:text-rose-400 p-1 shrink-0"><LogOut size={18} /></button>
+                        <button onClick={onLogout} className="text-slate-500 hover:text-rose-400 p-2 rounded-lg hover:bg-rose-500/10 transition-colors" title="Sair">
+                            <LogOut size={20} />
+                        </button>
                     </div>
                 </aside>
 
@@ -333,17 +326,21 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                 )}
 
                 <main className="flex-1 flex flex-col h-full overflow-hidden relative bg-slate-50 dark:bg-slate-950">
-                    <header className="glass-header h-16 flex items-center justify-between px-4 z-30 transition-all">
-                        <div className="flex items-center gap-3"><button onClick={() => setIsMobileMenuOpen(true)} className="md:hidden text-slate-500 hover:bg-slate-100 p-2 rounded-lg -ml-2"><Menu /></button><h2 className="text-lg font-semibold dark:text-white truncate max-w-[200px]">{TAB_METADATA[activeTab].pageTitle}</h2></div>
+                    <header className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-lg h-16 flex items-center justify-between px-6 z-30 transition-all border-b border-slate-200 dark:border-slate-800 shadow-sm sticky top-0">
+                        <div className="flex items-center gap-4">
+                            <button onClick={() => setIsMobileMenuOpen(true)} className="md:hidden text-slate-500 hover:bg-slate-100 p-2 rounded-lg -ml-2"><Menu /></button>
+                            <h2 className="text-xl font-bold text-slate-800 dark:text-white truncate tracking-tight">{TAB_METADATA[activeTab].pageTitle}</h2>
+                        </div>
                         <div className="flex items-center gap-2 sm:gap-4">
                             <div className="hidden sm:block"><FilterBar filter={filter} setFilter={setFilter} activeTab={activeTab} config={config} /></div>
+                            <div className="hidden md:block h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
                             <div className="hidden md:block"><ThemeSelector /></div>
-                            <button onClick={() => updateConfig({ ...config, theme: config.theme === 'dark' ? 'light' : 'dark' })} className="p-2 text-slate-500 dark:hover:bg-slate-800 rounded-full transition-colors">{config.theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}</button>
+                            <button onClick={() => updateConfig({ ...config, theme: config.theme === 'dark' ? 'light' : 'dark' })} className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors">{config.theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}</button>
                             <Notifications transactions={transactions} goals={goals} debts={debts} config={config} onNavigate={(tab) => { handleTabChange(tab as Tab); if (tab === 'despesas') setExpenseSubTab('cards'); }} />
-                            <button onClick={() => setShowImportModal(true)} className="p-3 text-slate-500 dark:hover:bg-slate-800 rounded-full transition-all hover:scale-105 active:scale-95" title="Importar Extrato"><Upload size={20} /></button>
-                            <button onClick={() => setShowRecurringExpenses(true)} className="p-3 text-slate-500 dark:hover:bg-slate-800 rounded-full transition-all hover:scale-105 active:scale-95" title="Organizador de Assinaturas"><Receipt size={20} /></button>
-                            <button onClick={() => setShowCalculatorModal(true)} className="p-3 text-slate-500 dark:hover:bg-slate-800 rounded-full transition-all hover:scale-105 active:scale-95"><Calculator size={20} /></button>
-                            <button onClick={() => setShowInbox(true)} className="relative p-3 text-slate-500 dark:hover:bg-slate-800 rounded-full transition-all hover:scale-105 active:scale-95"><Mail size={20} />{unreadMessages > 0 && <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-brand-gold rounded-full border-2 border-white dark:border-slate-900 animate-pulse"></span>}</button>
+                            <button onClick={() => setShowImportModal(true)} className="p-2 text-slate-400 hover:text-blue-500 transition-colors" title="Importar Extrato"><Upload size={20} /></button>
+                            <button onClick={() => setShowRecurringExpenses(true)} className="p-2 text-slate-400 hover:text-blue-500 transition-colors" title="Organizador de Assinaturas"><Receipt size={20} /></button>
+                            <button onClick={() => setShowCalculatorModal(true)} className="p-2 text-slate-400 hover:text-blue-500 transition-colors"><Calculator size={20} /></button>
+                            <button onClick={() => setShowInbox(true)} className="relative p-2 text-slate-400 hover:text-blue-500 transition-colors"><Mail size={20} />{unreadMessages > 0 && <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white dark:border-slate-900 animate-pulse"></span>}</button>
                         </div>
                     </header>
 

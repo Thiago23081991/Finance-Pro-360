@@ -253,7 +253,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
                     <div className="space-y-5">
                         <div>
-                            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-1.5">Como você quer ser chamado?</label>
+                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">Como você quer ser chamado?</label>
                             <div className="flex gap-2">
                                 {isEditingName ? (
                                     <>
@@ -268,7 +268,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                                     </>
                                 ) : (
                                     <>
-                                        <div className="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-4 py-2.5 text-lg font-black text-slate-800 dark:text-white">
+                                        <div className="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-4 py-2.5 text-lg font-bold text-slate-800 dark:text-white">
                                             {config.name || 'Usuário Sem Nome'}
                                         </div>
                                         <button onClick={() => setIsEditingName(true)} className="p-2.5 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"><Edit2 size={20} /></button>
@@ -277,7 +277,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                             </div>
                         </div>
                         <div className="pt-2 border-t border-slate-100 dark:border-slate-700">
-                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Identificador da Conta (ID)</label>
+                            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Identificador da Conta (ID)</label>
                             <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
                                 <Key size={12} />
                                 <span className="truncate">{config.userId}</span>
@@ -286,11 +286,11 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                         </div>
                     </div>
                     <div className="bg-blue-50 dark:bg-blue-900/10 p-6 rounded-xl border border-blue-100 dark:border-blue-800 flex flex-col items-center text-center">
-                        <div className="w-20 h-20 bg-brand-gold rounded-full flex items-center justify-center text-3xl font-black text-brand-blue mb-3 shadow-md border-4 border-white dark:border-slate-800">
+                        <div className="w-20 h-20 bg-brand-gold rounded-full flex items-center justify-center text-3xl font-bold text-brand-blue mb-3 shadow-md border-4 border-white dark:border-slate-800">
                             {(config.name || 'U').substring(0, 1).toUpperCase()}
                         </div>
-                        <p className="font-black text-slate-800 dark:text-white text-xl leading-tight">{config.name || 'Usuário'}</p>
-                        <span className={`mt-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${isLicensed ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-500 dark:bg-slate-700'}`}>
+                        <p className="font-bold text-slate-800 dark:text-white text-xl leading-tight">{config.name || 'Usuário'}</p>
+                        <span className={`mt-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${isLicensed ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-500 dark:bg-slate-700'}`}>
                             {isLicensed ? 'Licença Ativa' : 'Plano Gratuito'}
                         </span>
                     </div>
@@ -305,7 +305,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                     <div className="flex-1 w-full">
                         <div className="flex items-center gap-3 mb-6">
                             <Rocket className="text-brand-gold" size={32} />
-                            <h3 className="text-2xl font-black text-white uppercase tracking-tight">Evolua sua Gestão</h3>
+                            <h3 className="text-2xl font-bold text-white uppercase tracking-tight">Evolua sua Gestão</h3>
                         </div>
 
                         {!isLicensed ? (
@@ -316,9 +316,9 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                                         className={`relative p-5 rounded-xl border-2 text-left transition-all ${selectedPlan === 'semiannual' ? 'border-brand-gold bg-white/5 ring-4 ring-brand-gold/10' : 'border-slate-700 bg-black/20 hover:border-slate-500'}`}
                                     >
                                         {selectedPlan === 'semiannual' && <CheckCircle className="absolute top-4 right-4 text-brand-gold" size={20} />}
-                                        <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Semestral</p>
-                                        <h4 className="text-white font-black text-lg">PLANO SEMESTRAL</h4>
-                                        <div className="mt-2 text-2xl font-black text-white">R$ {PLANS_CONFIG.semiannual.value.toFixed(2).replace('.', ',')}<span className="text-xs font-normal text-slate-400 ml-1">/6 MESES</span></div>
+                                        <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Semestral</p>
+                                        <h4 className="text-white font-bold text-lg">PLANO SEMESTRAL</h4>
+                                        <div className="mt-2 text-2xl font-bold text-white">R$ {PLANS_CONFIG.semiannual.value.toFixed(2).replace('.', ',')}<span className="text-xs font-normal text-slate-400 ml-1">/6 MESES</span></div>
                                         <ul className="mt-4 space-y-2">
                                             {PLANS_CONFIG.semiannual.features.slice(0, 3).map((f, i) => (
                                                 <li key={i} className="text-[11px] text-slate-400 flex items-center gap-2"><CheckCircle size={12} className="text-emerald-500" /> {f}</li>
@@ -331,10 +331,10 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                                         className={`relative p-5 rounded-xl border-2 text-left transition-all ${selectedPlan === 'annual' ? 'border-brand-gold bg-white/5 ring-4 ring-brand-gold/10' : 'border-slate-700 bg-black/20 hover:border-slate-500'}`}
                                     >
                                         {selectedPlan === 'annual' && <CheckCircle className="absolute top-4 right-4 text-brand-gold" size={20} />}
-                                        <div className="absolute -top-3 left-4 bg-brand-gold text-brand-blue text-[9px] font-black px-2 py-0.5 rounded-full">MELHOR VALOR</div>
-                                        <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Anual</p>
-                                        <h4 className="text-white font-black text-lg">PLANO ANUAL</h4>
-                                        <div className="mt-2 text-2xl font-black text-white">R$ {PLANS_CONFIG.annual.value.toFixed(2).replace('.', ',')}<span className="text-xs font-normal text-slate-400 ml-1">/ANO</span></div>
+                                        <div className="absolute -top-3 left-4 bg-brand-gold text-brand-blue text-[9px] font-bold px-2 py-0.5 rounded-full">MELHOR VALOR</div>
+                                        <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Anual</p>
+                                        <h4 className="text-white font-bold text-lg">PLANO ANUAL</h4>
+                                        <div className="mt-2 text-2xl font-bold text-white">R$ {PLANS_CONFIG.annual.value.toFixed(2).replace('.', ',')}<span className="text-xs font-normal text-slate-400 ml-1">/ANO</span></div>
                                         <ul className="mt-4 space-y-2">
                                             {PLANS_CONFIG.annual.features.slice(1, 4).map((f, i) => (
                                                 <li key={i} className="text-[11px] text-slate-400 flex items-center gap-2"><Zap size={12} className="text-brand-gold fill-current" /> {f}</li>
@@ -348,7 +348,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
 
                                         <div className="flex-1 space-y-4 text-center md:text-left">
                                             <div>
-                                                <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest">Plano Selecionado: {PLANS_CONFIG[selectedPlan].name}</p>
+                                                <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Plano Selecionado: {PLANS_CONFIG[selectedPlan].name}</p>
                                                 <h4 className="text-white font-bold text-lg">Total a pagar: R$ {PLANS_CONFIG[selectedPlan].value.toFixed(2)}</h4>
                                                 <p className="text-xs text-slate-400 mt-2">
                                                     Assinatura com renovação automática. Cancele a qualquer momento.
@@ -365,7 +365,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                                             const finalLink = `${link}?email=${encodeURIComponent(config.userId + '@user.app')}&custom_id=${config.userId}`;
                                             window.open(finalLink, '_blank');
                                         }}
-                                        className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-black py-4 rounded-xl shadow-md transition-all transform hover:scale-[1.02] flex items-center justify-center gap-3"
+                                        className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold py-4 rounded-xl shadow-md transition-all transform hover:scale-[1.02] flex items-center justify-center gap-3"
                                     >
                                         <CreditCard size={24} />
                                         ASSINAR AGORA E DESBLOQUEAR
@@ -381,7 +381,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                                 <div className="w-20 h-20 bg-brand-gold rounded-full flex items-center justify-center mx-auto mb-6 shadow-md animate-pulse">
                                     <Star size={40} className="text-brand-blue fill-current" />
                                 </div>
-                                <h3 className="text-3xl font-black text-white mb-2">EXPERIÊNCIA COMPLETA!</h3>
+                                <h3 className="text-3xl font-bold text-white mb-2">EXPERIÊNCIA COMPLETA!</h3>
                                 <p className="text-slate-400 max-w-md mx-auto text-sm">Você já possui uma licença ativa. Aproveite todos os recursos do Finance Pro 360.</p>
                             </div>
                         )}
@@ -408,7 +408,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                     <button
                         onClick={handleTogglePush}
                         disabled={pushLoading}
-                        className={`px-4 py-2 rounded-lg text-xs font-black transition-all shadow-sm ${isPushEnabled
+                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all shadow-sm ${isPushEnabled
                             ? 'bg-emerald-500 text-white'
                             : 'bg-white text-blue-600 border border-blue-200'
                             }`}
@@ -424,8 +424,8 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                             <p className="text-[11px] text-slate-500">Claro ou Escuro</p>
                         </div>
                         <div className="bg-white dark:bg-slate-800 p-1 rounded-lg flex items-center border border-slate-200 dark:border-slate-700 shadow-sm">
-                            <button onClick={() => onUpdateConfig({ ...config, theme: 'light' })} className={`px-4 py-1.5 rounded-md text-xs font-black transition-all ${config.theme !== 'dark' ? 'bg-blue-600 text-white' : 'text-slate-500'}`}>CLARO</button>
-                            <button onClick={() => onUpdateConfig({ ...config, theme: 'dark' })} className={`px-4 py-1.5 rounded-md text-xs font-black transition-all ${config.theme === 'dark' ? 'bg-blue-600 text-white' : 'text-slate-500'}`}>ESCURO</button>
+                            <button onClick={() => onUpdateConfig({ ...config, theme: 'light' })} className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${config.theme !== 'dark' ? 'bg-blue-600 text-white' : 'text-slate-500'}`}>CLARO</button>
+                            <button onClick={() => onUpdateConfig({ ...config, theme: 'dark' })} className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${config.theme === 'dark' ? 'bg-blue-600 text-white' : 'text-slate-500'}`}>ESCURO</button>
                         </div>
                     </div>
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-slate-50 dark:bg-slate-900 rounded-xl">
@@ -459,7 +459,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                     <div className="space-y-8">
                         {/* Receitas */}
                         <div className="space-y-4">
-                            <label className="block text-xs font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest flex items-center gap-2">
+                            <label className="block text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest flex items-center gap-2">
                                 <TrendingUp size={14} /> Categorias de Receitas
                             </label>
                             <div className="flex gap-2">
@@ -484,7 +484,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
 
                         {/* Despesas */}
                         <div className="space-y-4">
-                            <label className="block text-xs font-black text-rose-600 dark:text-rose-400 uppercase tracking-widest flex items-center gap-2">
+                            <label className="block text-xs font-bold text-rose-600 dark:text-rose-400 uppercase tracking-widest flex items-center gap-2">
                                 <CreditCard size={14} /> Categorias de Despesas
                             </label>
                             <div className="flex gap-2">
@@ -511,7 +511,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                     {/* Métodos de Pagamento e Configurações */}
                     <div className="space-y-6 border-t md:border-t-0 md:border-l border-slate-100 dark:border-slate-700 md:pl-8 pt-4 md:pt-0">
                         <div className="space-y-4">
-                            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest">Métodos de Pagamento</label>
+                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest">Métodos de Pagamento</label>
                             <div className="flex gap-2">
                                 <input
                                     type="text"
@@ -534,7 +534,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
 
                         {/* Configuração de Fatura */}
                         <div className="pt-4 border-t border-slate-100 dark:border-slate-700">
-                            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
                                 <CreditCard size={14} /> Configuração de Cartão
                             </label>
                             <div className="flex flex-col sm:flex-row items-center gap-4 bg-slate-50 dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
@@ -574,7 +574,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                     </div>
                     <button
                         onClick={() => onUpdateConfig({ ...config, requireBiometrics: !config.requireBiometrics })}
-                        className={`px-4 py-2 rounded-lg text-xs font-black transition-all shadow-sm ${config.requireBiometrics
+                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all shadow-sm ${config.requireBiometrics
                             ? 'bg-indigo-600 text-white'
                             : 'bg-white text-indigo-600 border border-indigo-200'
                             }`}
@@ -585,18 +585,18 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-4">
-                        <label className="block text-xs font-black text-slate-400 uppercase tracking-widest">Alterar Senha de Acesso</label>
+                        <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest">Alterar Senha de Acesso</label>
                         <div className="flex gap-2">
                             <input type="password" placeholder="Nova senha..." value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-brand-gold outline-none" />
-                            <button onClick={handleChangePassword} className="bg-slate-800 dark:bg-slate-700 text-white px-4 py-2 rounded-lg text-xs font-black hover:bg-black transition-colors">ATUALIZAR</button>
+                            <button onClick={handleChangePassword} className="bg-slate-800 dark:bg-slate-700 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-black transition-colors">ATUALIZAR</button>
                         </div>
-                        {passSuccess && <p className="text-[10px] text-emerald-600 font-black uppercase flex items-center gap-1"><CheckCircle size={12} /> Senha Alterada!</p>}
+                        {passSuccess && <p className="text-[10px] text-emerald-600 font-bold uppercase flex items-center gap-1"><CheckCircle size={12} /> Senha Alterada!</p>}
                     </div>
                     <div className="space-y-4 border-t md:border-t-0 md:border-l border-slate-100 dark:border-slate-700 md:pl-8 pt-4 md:pt-0">
-                        <label className="block text-xs font-black text-slate-400 uppercase tracking-widest">Exportação e Segurança</label>
+                        <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest">Exportação e Segurança</label>
                         <div className="flex flex-col sm:flex-row gap-3">
-                            <button onClick={handleBackup} className="flex-1 flex items-center justify-center gap-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-3 py-2.5 rounded-lg hover:bg-blue-100 transition-colors text-xs font-black"><Download size={14} />BAIXAR BACKUP</button>
-                            <button onClick={() => setShowPrivacyModal(true)} className="flex-1 flex items-center justify-center gap-2 bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 px-3 py-2.5 rounded-lg hover:bg-slate-100 transition-colors text-xs font-black"><FileText size={14} />VER TERMOS LGPD</button>
+                            <button onClick={handleBackup} className="flex-1 flex items-center justify-center gap-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-3 py-2.5 rounded-lg hover:bg-blue-100 transition-colors text-xs font-bold"><Download size={14} />BAIXAR BACKUP</button>
+                            <button onClick={() => setShowPrivacyModal(true)} className="flex-1 flex items-center justify-center gap-2 bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 px-3 py-2.5 rounded-lg hover:bg-slate-100 transition-colors text-xs font-bold"><FileText size={14} />VER TERMOS LGPD</button>
                         </div>
                     </div>
                 </div>

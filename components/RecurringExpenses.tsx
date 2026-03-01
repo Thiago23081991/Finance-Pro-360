@@ -157,7 +157,7 @@ export const RecurringExpenses: React.FC<RecurringExpensesProps> = ({ config, on
                             </div>
                             <div>
                                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase">Mensal</p>
-                                <p className="text-xl font-black text-slate-800 dark:text-white">
+                                <p className="text-xl font-bold text-slate-800 dark:text-white">
                                     {formatCurrency(totalMonthly, config.currency || 'BRL')}
                                 </p>
                             </div>
@@ -169,7 +169,7 @@ export const RecurringExpenses: React.FC<RecurringExpensesProps> = ({ config, on
                             </div>
                             <div>
                                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase">Custo Anual</p>
-                                <p className="text-xl font-black text-emerald-700 dark:text-emerald-400">
+                                <p className="text-xl font-bold text-emerald-700 dark:text-emerald-400">
                                     {formatCurrency(totalYearly, config.currency || 'BRL')}
                                 </p>
                             </div>

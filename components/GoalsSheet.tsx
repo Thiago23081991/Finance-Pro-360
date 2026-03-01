@@ -98,7 +98,7 @@ export const GoalsSheet: React.FC<GoalsSheetProps> = ({ goals, onAdd, onDelete, 
                         <div className="flex justify-between items-start mb-2">
                             <div>
                                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total Acumulado</p>
-                                <h3 className="text-xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{formatCurrency(stats.totalSaved, currency)}</h3>
+                                <h3 className="text-xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{formatCurrency(stats.totalSaved, currency)}</h3>
                             </div>
                             <div className="p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg text-emerald-600">
                                 <Wallet size={18} />
@@ -114,7 +114,7 @@ export const GoalsSheet: React.FC<GoalsSheetProps> = ({ goals, onAdd, onDelete, 
                         <div className="flex justify-between items-start mb-2">
                             <div>
                                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Falta Acumular</p>
-                                <h3 className="text-xl font-black text-slate-700 dark:text-slate-200 mt-1">{formatCurrency(stats.remaining, currency)}</h3>
+                                <h3 className="text-xl font-bold text-slate-700 dark:text-slate-200 mt-1">{formatCurrency(stats.remaining, currency)}</h3>
                             </div>
                             <div className="p-2 bg-slate-100 dark:bg-slate-700 rounded-lg text-slate-500">
                                 <Target size={18} />
@@ -128,7 +128,7 @@ export const GoalsSheet: React.FC<GoalsSheetProps> = ({ goals, onAdd, onDelete, 
                         <div className="flex justify-between items-start">
                             <div>
                                 <p className="text-[10px] font-bold text-white/80 uppercase tracking-wider">Conclusão Geral</p>
-                                <h3 className="text-2xl font-black mt-1">{stats.progress.toFixed(1)}%</h3>
+                                <h3 className="text-2xl font-bold mt-1">{stats.progress.toFixed(1)}%</h3>
                             </div>
                             <div className="p-2 bg-white/20 rounded-lg text-white">
                                 <TrendingUp size={18} />

@@ -115,7 +115,7 @@ export const SmartInputModal: React.FC<SmartInputModalProps> = ({ isOpen, onClos
                         <div className="bg-gradient-to-r from-violet-600 to-indigo-600 p-6 text-white">
                             <div className="flex justify-between items-start">
                                 <div>
-                                    <h2 className="text-2xl font-black flex items-center gap-2">
+                                    <h2 className="text-2xl font-bold flex items-center gap-2">
                                         <Sparkles className="text-yellow-300" />
                                         Smart Input
                                     </h2>

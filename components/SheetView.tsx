@@ -718,11 +718,11 @@ export const SheetView: React.FC<SheetViewProps> = ({
                                                 )}
                                             </div>
                                         </td>
-                                        <td className={`py-4 px-5 text-sm font-black text-right font-mono tabular-nums pr-6 ${type === 'income' ? 'text-emerald-500 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-200'}`}>
+                                        <td className={`py-4 px-5 text-sm font-bold text-right font-mono tabular-nums pr-6 ${type === 'income' ? 'text-emerald-500 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-200'}`}>
                                             {formatCurrency(t.amount, currency)}
                                         </td>
                                         <td className="py-4 px-5">
-                                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${type === 'income'
+                                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest ${type === 'income'
                                                 ? 'bg-emerald-50 text-emerald-600 border border-emerald-100/50 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20'
                                                 : 'bg-indigo-50 text-indigo-600 border border-indigo-100/50 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/20'
                                                 }`}>
@@ -762,8 +762,8 @@ export const SheetView: React.FC<SheetViewProps> = ({
                     {sheetData.length > 0 && (
                         <tfoot className="bg-slate-50 dark:bg-slate-900 sticky bottom-0 z-10 border-t border-slate-200 dark:border-slate-700">
                             <tr>
-                                <td className="py-4 px-5 text-xs font-black text-slate-500 uppercase tracking-widest text-right">Total</td>
-                                <td className={`py-4 px-5 text-base font-black font-mono text-right tabular-nums pr-6 ${type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+                                <td className="py-4 px-5 text-xs font-bold text-slate-500 uppercase tracking-widest text-right">Total</td>
+                                <td className={`py-4 px-5 text-base font-bold font-mono text-right tabular-nums pr-6 ${type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                                     }`}>
                                     {formatCurrency(totalValue, currency)}
                                 </td>
@@ -865,7 +865,7 @@ export const SheetView: React.FC<SheetViewProps> = ({
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 bg-slate-900/90 dark:bg-white/90 backdrop-blur-md text-white dark:text-slate-900 px-6 py-3 rounded-full shadow-md flex items-center gap-6 border border-white/10 dark:border-slate-200">
                 <div className="flex flex-col">
                     <span className="text-[10px] opacity-60 uppercase font-bold tracking-widest">Total {type === 'income' ? 'Receitas' : 'Despesas'}</span>
-                    <span className="text-xl font-black font-mono tracking-tighter leading-none">
+                    <span className="text-xl font-bold font-mono tracking-tighter leading-none">
                         {formatCurrency(totalValue, currency)}
                     </span>
                 </div>
