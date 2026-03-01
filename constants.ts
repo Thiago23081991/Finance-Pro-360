@@ -73,7 +73,7 @@ export const MONTH_NAMES = [
 ];
 
 export const BUDGET_CATEGORY_TYPES = {
-  needs: ["Moradia", "Alimentação", "Saúde", "Transporte", "Educação", "Mercado", "Contas", "Farmácia"],
+  needs: ["Moradia", "Alimentação", "Saúde", "Transporte", "Educação", "Mercado", "Contas", "Farmácia", "Empréstimo", "Financiamento", "Dívida", "Cartão"],
   wants: ["Lazer", "Outros", "Comida Fora", "Assinaturas", "Compras", "Viagem", "Presentes"],
   savings: ["Investimentos", "Poupança", "Reserva", "Aporte"]
 };
