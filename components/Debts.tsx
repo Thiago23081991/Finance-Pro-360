@@ -15,19 +15,19 @@ interface DebtsProps {
 export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDeleteDebt, onNavigateToSettings }) => {
     const isPremium = config.licenseStatus === 'active';
     const currency = config.currency || 'BRL';
-    
+
     const [isAdding, setIsAdding] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [showStrategyInfo, setShowStrategyInfo] = useState(false);
-    
+
     // Sort Mode State
     const [sortMode, setSortMode] = useState<'smart' | 'manual'>('smart');
     // Strategy State: 'avalanche' (Interest Rate) or 'snowball' (Lowest Balance)
     const [strategy, setStrategy] = useState<'avalanche' | 'snowball'>('avalanche');
-    
+
     // Local state to force re-render when local storage updates
-    const [manualOrderTrigger, setManualOrderTrigger] = useState(0); 
-    
+    const [manualOrderTrigger, setManualOrderTrigger] = useState(0);
+
     // Form States
     const [name, setName] = useState('');
     const [amount, setAmount] = useState('');
@@ -61,14 +61,14 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
         return [...debts].sort((a, b) => {
             const idxA = savedOrder.indexOf(a.id);
             const idxB = savedOrder.indexOf(b.id);
-            
+
             // If both exist in saved order, use that
             if (idxA !== -1 && idxB !== -1) return idxA - idxB;
             // If one exists, it goes first
             if (idxA !== -1) return -1;
             if (idxB !== -1) return 1;
             // If neither (new items), go to bottom
-            return 0; 
+            return 0;
         });
     }, [debts, config.userId, manualOrderTrigger]);
 
@@ -119,9 +119,9 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
                 dueDate,
                 category
             };
-            
+
             await onAddDebt(newDebt);
-            
+
             setIsAdding(false);
             setName('');
             setAmount('');
@@ -165,7 +165,7 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
                             <span><strong>Plano de Quitação:</strong> Estratégia matemática para liberdade financeira.</span>
                         </li>
                     </ul>
-                    <button 
+                    <button
                         onClick={onNavigateToSettings}
                         className="w-full bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white font-bold py-3 rounded-xl shadow-md shadow-rose-500/30 transition-all transform hover:scale-105"
                     >
@@ -189,7 +189,7 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
                     </p>
                 </div>
                 {!isAdding && (
-                    <button 
+                    <button
                         onClick={() => setIsAdding(true)}
                         className="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-lg font-bold shadow-sm flex items-center gap-2 transition-colors"
                     >
@@ -204,22 +204,20 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
                     <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-lg inline-flex border border-slate-200 dark:border-slate-700">
                         <button
                             onClick={() => setSortMode('smart')}
-                            className={`px-4 py-1.5 text-xs font-bold rounded-md flex items-center gap-2 transition-all ${
-                                sortMode === 'smart' 
-                                ? 'bg-white dark:bg-slate-700 text-rose-600 dark:text-rose-400 shadow-sm' 
-                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'
-                            }`}
+                            className={`px-4 py-1.5 text-xs font-bold rounded-md flex items-center gap-2 transition-all ${sortMode === 'smart'
+                                    ? 'bg-white dark:bg-slate-700 text-rose-600 dark:text-rose-400 shadow-sm'
+                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'
+                                }`}
                         >
                             <Sparkles size={14} />
                             IA
                         </button>
                         <button
                             onClick={() => setSortMode('manual')}
-                            className={`px-4 py-1.5 text-xs font-bold rounded-md flex items-center gap-2 transition-all ${
-                                sortMode === 'manual' 
-                                ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm' 
-                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'
-                            }`}
+                            className={`px-4 py-1.5 text-xs font-bold rounded-md flex items-center gap-2 transition-all ${sortMode === 'manual'
+                                    ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm'
+                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'
+                                }`}
                         >
                             <List size={14} />
                             Manual
@@ -247,11 +245,10 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
 
             {/* THE "NORTH" - AI RECOMMENDATION (Visible in Smart Mode) */}
             {debts.length > 0 && topPriority && sortMode === 'smart' && (
-                <div className={`rounded-xl p-6 text-white shadow-xl border relative overflow-hidden animate-fade-in ${
-                    strategy === 'avalanche' 
-                    ? 'bg-gradient-to-r from-slate-800 to-slate-900 border-slate-700' 
-                    : 'bg-gradient-to-r from-blue-800 to-indigo-900 border-blue-700'
-                }`}>
+                <div className={`rounded-xl p-6 text-white shadow-xl border relative overflow-hidden animate-fade-in ${strategy === 'avalanche'
+                        ? 'bg-gradient-to-r from-slate-800 to-slate-900 border-slate-700'
+                        : 'bg-gradient-to-r from-blue-800 to-indigo-900 border-blue-700'
+                    }`}>
                     <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center gap-6">
                         <div className="p-4 bg-white/10 rounded-full shrink-0 animate-pulse">
                             {strategy === 'avalanche' ? <Calculator size={32} className="text-amber-400" /> : <Snowflake size={32} className="text-cyan-300" />}
@@ -264,7 +261,7 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
                                 Foque em quitar: <span className="text-white border-b-2 border-white/30">{topPriority.name}</span>
                             </h4>
                             <p className="text-slate-300 text-sm leading-relaxed">
-                                {strategy === 'avalanche' 
+                                {strategy === 'avalanche'
                                     ? <span>Esta dívida possui a maior taxa de juros (<strong>{topPriority.interestRate}% a.m.</strong>). Matematicamente, eliminá-la primeiro fará você economizar mais dinheiro (Método Avalanche).</span>
                                     : <span>Esta é a sua dívida de <strong>menor valor</strong>. Quitá-la rapidamente vai liberar seu fluxo de caixa e criar um efeito psicológico de vitória imediata (Método Bola de Neve).</span>
                                 }
@@ -289,8 +286,8 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                         <div>
                             <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Credor / Descrição *</label>
-                            <input 
-                                type="text" 
+                            <input
+                                type="text"
                                 value={name}
                                 onChange={e => setName(e.target.value)}
                                 placeholder="Ex: Negativação Serasa - Banco X"
@@ -299,8 +296,8 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Valor Total ({currency}) *</label>
-                            <input 
-                                type="number" 
+                            <input
+                                type="number"
                                 value={amount}
                                 onChange={e => setAmount(e.target.value)}
                                 placeholder="0.00"
@@ -310,8 +307,8 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
                         <div>
                             <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Juros Mensal (%) *</label>
                             <div className="relative">
-                                <input 
-                                    type="number" 
+                                <input
+                                    type="number"
                                     value={rate}
                                     onChange={e => setRate(e.target.value)}
                                     placeholder="Ex: 12.5"
@@ -321,29 +318,29 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
                             </div>
                         </div>
                         <div>
-                             <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Categoria</label>
-                             <select 
+                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Categoria</label>
+                            <select
                                 value={category}
                                 onChange={(e) => setCategory(e.target.value as any)}
                                 className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded px-3 py-2 text-sm focus:border-rose-500 outline-none"
-                             >
+                            >
                                 <option value="banco">Empréstimo Bancário</option>
                                 <option value="cartao">Cartão de Crédito</option>
                                 <option value="servico">Contas (Luz/Água/Tel)</option>
                                 <option value="emprestimo">Agiota / Pessoal</option>
                                 <option value="outro">Outros (Serasa)</option>
-                             </select>
+                            </select>
                         </div>
                     </div>
                     <div className="flex justify-end gap-3">
-                        <button 
+                        <button
                             onClick={() => setIsAdding(false)}
                             className="px-4 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-sm font-bold transition-colors"
                             disabled={isSaving}
                         >
                             Cancelar
                         </button>
-                        <button 
+                        <button
                             onClick={handleSave}
                             disabled={isSaving}
                             className="bg-rose-600 hover:bg-rose-700 text-white px-6 py-2.5 rounded-lg font-bold shadow-md hover:shadow-md transition-all transform active:scale-95 flex items-center gap-2 disabled:opacity-50 disabled:shadow-none"
@@ -359,8 +356,8 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden transition-colors">
                 <div className="p-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex justify-between items-center">
                     <h3 className="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
-                        {sortMode === 'smart' 
-                            ? (strategy === 'avalanche' ? <><Flame size={16} className="text-orange-500"/> Plano Avalanche</> : <><Snowflake size={16} className="text-cyan-500"/> Plano Bola de Neve</>)
+                        {sortMode === 'smart'
+                            ? (strategy === 'avalanche' ? <><Flame size={16} className="text-orange-500" /> Plano Avalanche</> : <><Snowflake size={16} className="text-cyan-500" /> Plano Bola de Neve</>)
                             : 'Sua Lista Personalizada'
                         }
                     </h3>
@@ -368,79 +365,98 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
                         Total: {formatCurrency(debts.reduce((acc, curr) => acc + curr.totalAmount, 0), currency)}
                     </span>
                 </div>
-                
+
                 {displayList.length === 0 ? (
-                    <div className="p-10 text-center text-slate-400 dark:text-slate-500">
-                        <CheckCircle size={48} className="mx-auto mb-2 opacity-20" />
-                        <p>Nenhuma dívida cadastrada. Parabéns!</p>
+                    <div className="p-16 text-center flex flex-col items-center justify-center relative overflow-hidden">
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                        <div className="w-24 h-24 mb-6 relative z-10 group">
+                            <div className="absolute inset-0 bg-emerald-400/30 rounded-full blur-xl group-hover:bg-emerald-400/50 transition-all duration-500"></div>
+                            <div className="relative bg-white dark:bg-slate-800 border-[3px] border-emerald-50 dark:border-emerald-900 shadow-2xl w-full h-full rounded-full flex items-center justify-center transform group-hover:scale-110 transition-transform duration-500">
+                                <CheckCircle size={40} className="text-emerald-500" />
+                            </div>
+                        </div>
+                        <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-3 z-10 tracking-tight">Nome Limpo!</h3>
+                        <p className="text-slate-500 dark:text-slate-400 max-w-sm mx-auto mb-8 z-10 leading-relaxed">
+                            Nenhuma dívida cadastrada. Você está no controle total do seu fluxo de caixa. Parabéns por manter suas finanças blindadas!
+                        </p>
+                        <button
+                            onClick={() => setIsAdding(true)}
+                            className="z-10 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/80 text-rose-600 font-bold px-8 py-3 rounded-xl border border-rose-100 dark:border-rose-900/50 shadow-sm transition-all flex items-center gap-2 group"
+                        >
+                            <Plus size={18} className="group-hover:rotate-90 transition-transform" /> Inserir Dívida Antiga
+                        </button>
                     </div>
                 ) : (
-                    <div className="divide-y divide-slate-100 dark:divide-slate-700">
+                    <div className="p-4 space-y-4 bg-slate-50/50 dark:bg-slate-900/20">
                         {displayList.map((debt, index) => (
-                            <div key={debt.id} className="p-4 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors flex items-center justify-between group relative animate-fade-in">
+                            <div key={debt.id} className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between group relative overflow-hidden">
                                 {sortMode === 'smart' && index === 0 && (
-                                    <div className={`absolute left-0 top-0 bottom-0 w-1 ${strategy === 'avalanche' ? 'bg-amber-400' : 'bg-cyan-400'}`}></div>
+                                    <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${strategy === 'avalanche' ? 'bg-gradient-to-b from-amber-400 to-amber-500' : 'bg-gradient-to-b from-cyan-400 to-cyan-500'}`}></div>
                                 )}
-                                <div className="flex items-center gap-4">
-                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${
-                                        sortMode === 'smart' && index === 0 
-                                        ? (strategy === 'avalanche' ? 'bg-amber-100 text-amber-700 ring-2 ring-amber-400' : 'bg-cyan-100 text-cyan-700 ring-2 ring-cyan-400')
-                                        : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-300'
-                                    }`}>
+                                <div className="flex items-center gap-4 w-full sm:w-auto mb-4 sm:mb-0">
+                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-sm shadow-inner ${sortMode === 'smart' && index === 0
+                                            ? (strategy === 'avalanche' ? 'bg-amber-100 text-amber-700 ring-2 ring-amber-400/50' : 'bg-cyan-100 text-cyan-700 ring-2 ring-cyan-400/50')
+                                            : 'bg-slate-50 text-slate-400 dark:bg-slate-800 dark:text-slate-500 border border-slate-100 dark:border-slate-700'
+                                        }`}>
                                         {index + 1}º
                                     </div>
-                                    <div>
-                                        <h4 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                                    <div className="flex-1">
+                                        <h4 className="font-bold text-slate-800 dark:text-white flex flex-wrap items-center gap-2 text-base">
                                             {debt.name}
-                                            {sortMode === 'smart' && index === 0 && <span className={`text-[10px] px-1.5 py-0.5 rounded border ${
-                                                strategy === 'avalanche' 
-                                                ? 'bg-amber-100 text-amber-700 border-amber-200' 
-                                                : 'bg-cyan-100 text-cyan-700 border-cyan-200'
-                                            }`}>
+                                            {sortMode === 'smart' && index === 0 && <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-md border ${strategy === 'avalanche'
+                                                    ? 'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800/50'
+                                                    : 'bg-cyan-50 text-cyan-600 border-cyan-200 dark:bg-cyan-900/20 dark:border-cyan-800/50'
+                                                }`}>
                                                 {strategy === 'avalanche' ? 'Prioridade Máxima' : 'Vitória Rápida'}
                                             </span>}
                                         </h4>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-3 mt-1">
-                                            <span className="flex items-center gap-1 text-rose-600 dark:text-rose-400 font-medium">
-                                                <TrendingUp size={12} /> Juros: {debt.interestRate}% a.m.
+                                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5">
+                                            <span className="flex items-center gap-1 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 px-2 py-0.5 rounded-md text-xs font-semibold border border-rose-100 dark:border-rose-800/30">
+                                                <Flame size={12} /> {debt.interestRate}% a.m.
                                             </span>
-                                            <span>•</span>
-                                            <span className="capitalize">{debt.category}</span>
-                                        </p>
+                                            <span className="text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md capitalize border border-slate-200 dark:border-slate-700">
+                                                {debt.category}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-2 sm:gap-6">
-                                    <span className="font-mono font-bold text-slate-700 dark:text-slate-200">
-                                        {formatCurrency(debt.totalAmount, currency)}
-                                    </span>
-                                    
-                                    {/* Manual Sort Controls */}
-                                    {sortMode === 'manual' && (
-                                        <div className="flex flex-col gap-1 mr-2">
-                                            <button 
-                                                onClick={() => handleMove(debt.id, 'up')}
-                                                disabled={index === 0}
-                                                className="p-1 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded text-slate-600 dark:text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed"
-                                            >
-                                                <ArrowUp size={12} />
-                                            </button>
-                                            <button 
-                                                onClick={() => handleMove(debt.id, 'down')}
-                                                disabled={index === displayList.length - 1}
-                                                className="p-1 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded text-slate-600 dark:text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed"
-                                            >
-                                                <ArrowDown size={12} />
-                                            </button>
-                                        </div>
-                                    )}
+                                <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-4 pl-16 sm:pl-0">
+                                    <div className="flex flex-col items-start sm:items-end">
+                                        <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-0.5">Saldo Devedor</span>
+                                        <span className="font-mono text-xl sm:text-2xl tracking-tight font-black text-slate-800 dark:text-white">
+                                            {formatCurrency(debt.totalAmount, currency)}
+                                        </span>
+                                    </div>
 
-                                    <button 
-                                        onClick={() => onDeleteDebt(debt.id)}
-                                        className="text-slate-300 hover:text-rose-500 transition-colors p-2"
-                                        title="Excluir (Pago)"
-                                    >
-                                        <Trash2 size={16} />
-                                    </button>
+                                    <div className="flex items-center gap-2 border-l border-slate-200 dark:border-slate-700 pl-4 ml-2">
+                                        {/* Manual Sort Controls */}
+                                        {sortMode === 'manual' && (
+                                            <div className="flex flex-col gap-1 mr-1">
+                                                <button
+                                                    onClick={() => handleMove(debt.id, 'up')}
+                                                    disabled={index === 0}
+                                                    className="p-1 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded text-slate-600 dark:text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                                >
+                                                    <ArrowUp size={12} />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleMove(debt.id, 'down')}
+                                                    disabled={index === displayList.length - 1}
+                                                    className="p-1 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded text-slate-600 dark:text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                                >
+                                                    <ArrowDown size={12} />
+                                                </button>
+                                            </div>
+                                        )}
+
+                                        <button
+                                            onClick={() => onDeleteDebt(debt.id)}
+                                            className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-900/30 text-slate-400 hover:text-rose-500 transition-colors border border-transparent hover:border-rose-200 dark:hover:border-rose-800/50"
+                                            title="Marcar como Paga / Excluir"
+                                        >
+                                            <CheckCircle size={20} />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         ))}
@@ -454,7 +470,7 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
                     <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowStrategyInfo(false)} />
                     <div className="bg-white dark:bg-slate-900 w-full max-w-lg p-6 rounded-xl shadow-md relative animate-fade-in border border-slate-200 dark:border-slate-700">
                         <button onClick={() => setShowStrategyInfo(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><X size={20} /></button>
-                        
+
                         <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
                             <Sparkles className="text-amber-500" size={20} /> Qual estratégia escolher?
                         </h3>
@@ -468,8 +484,8 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
                                     Foca em pagar as dívidas com <strong>maiores juros</strong> primeiro.
                                 </p>
                                 <ul className="mt-2 space-y-1 text-xs text-slate-500 dark:text-slate-400">
-                                    <li className="flex gap-2"><CheckCircle size={12} className="text-emerald-500 mt-0.5"/> Você paga menos dinheiro no total.</li>
-                                    <li className="flex gap-2"><CheckCircle size={12} className="text-emerald-500 mt-0.5"/> Sai das dívidas mais rápido matematicamente.</li>
+                                    <li className="flex gap-2"><CheckCircle size={12} className="text-emerald-500 mt-0.5" /> Você paga menos dinheiro no total.</li>
+                                    <li className="flex gap-2"><CheckCircle size={12} className="text-emerald-500 mt-0.5" /> Sai das dívidas mais rápido matematicamente.</li>
                                 </ul>
                             </div>
 
@@ -481,8 +497,8 @@ export const Debts: React.FC<DebtsProps> = ({ config, debts, onAddDebt, onDelete
                                     Foca em pagar as dívidas de <strong>menor valor</strong> primeiro.
                                 </p>
                                 <ul className="mt-2 space-y-1 text-xs text-slate-500 dark:text-slate-400">
-                                    <li className="flex gap-2"><CheckCircle size={12} className="text-emerald-500 mt-0.5"/> Sensação rápida de vitória ao eliminar contas.</li>
-                                    <li className="flex gap-2"><CheckCircle size={12} className="text-emerald-500 mt-0.5"/> Libera fluxo de caixa mensal mais cedo.</li>
+                                    <li className="flex gap-2"><CheckCircle size={12} className="text-emerald-500 mt-0.5" /> Sensação rápida de vitória ao eliminar contas.</li>
+                                    <li className="flex gap-2"><CheckCircle size={12} className="text-emerald-500 mt-0.5" /> Libera fluxo de caixa mensal mais cedo.</li>
                                 </ul>
                             </div>
                         </div>

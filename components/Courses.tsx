@@ -58,7 +58,7 @@ export const Courses: React.FC<CoursesProps> = ({ config, userEmail }) => {
 
             <div className="grid gap-6">
                 {modules.map((module) => (
-                    <div key={module.id} className="bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800 transition-all hover:shadow-md">
+                    <div key={module.id} className="group relative bg-white dark:bg-slate-800/80 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl border border-slate-200/60 dark:border-slate-700/60 transition-all duration-300 transform hover:-translate-y-1">
                         {activeModule === module.id ? (
                             <div className="aspect-video bg-black relative">
                                 <video
@@ -71,46 +71,38 @@ export const Courses: React.FC<CoursesProps> = ({ config, userEmail }) => {
                                 </video>
                                 <button
                                     onClick={() => setActiveModule(null)}
-                                    className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white px-3 py-1 rounded-full text-xs backdrop-blur-sm transition-colors"
+                                    className="absolute top-4 right-4 bg-black/50 hover:bg-black/80 text-white px-4 py-2 rounded-full text-xs font-bold backdrop-blur-md transition-colors border border-white/20"
                                 >
                                     Fechar Aula
                                 </button>
                             </div>
                         ) : (
-                            <div className="p-6 flex flex-col md:flex-row gap-6">
-                                <div
-                                    className={`w-full md:w-64 h-36 ${module.thumbnail} rounded-xl flex items-center justify-center shrink-0 relative group cursor-pointer`}
-                                    onClick={() => setActiveModule(module.id)}
-                                >
-                                    <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white group-hover:scale-110 transition-transform">
-                                        <Play fill="currentColor" size={20} className="ml-1" />
+                            <div className="flex flex-col md:flex-row cursor-pointer h-full" onClick={() => setActiveModule(module.id)}>
+                                <div className={`w-full md:w-80 h-48 md:h-auto ${module.thumbnail} relative overflow-hidden shrink-0`}>
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <div className="w-16 h-16 bg-white/20 backdrop-blur-md border border-white/30 text-white rounded-full flex items-center justify-center transform group-hover:scale-110 shadow-xl transition-all duration-300">
+                                            <Play fill="currentColor" size={28} className="translate-x-0.5" />
+                                        </div>
                                     </div>
-                                    <div className="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] px-2 py-1 rounded">
+                                    <div className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-md tracking-wider">
                                         {module.duration}
                                     </div>
                                 </div>
 
-                                <div className="flex-1 space-y-3">
-                                    <div className="flex items-start justify-between">
-                                        <div>
-                                            <span className="text-xs font-bold text-brand-gold uppercase tracking-wider">Módulo {module.id}</span>
-                                            <h3 className="text-xl font-bold text-slate-800 dark:text-white mt-1">{module.title}</h3>
-                                        </div>
-                                        {/* Future implementation: Check if watched */}
-                                        {/* <CheckCircle className="text-slate-300 dark:text-slate-700" size={20} /> */}
+                                <div className="p-6 md:p-8 flex-1 flex flex-col justify-center bg-white dark:bg-slate-800/50">
+                                    <div className="flex items-start justify-between mb-3">
+                                        <span className="text-[10px] font-black tracking-widest text-brand-gold uppercase bg-brand-gold/10 px-2 py-1 rounded shadow-sm border border-brand-gold/20">Módulo {module.id}</span>
                                     </div>
-
-                                    <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">
+                                    <h3 className="text-xl md:text-2xl font-bold text-slate-800 dark:text-white mb-3 group-hover:text-brand-blue dark:group-hover:text-brand-gold transition-colors tracking-tight">{module.title}</h3>
+                                    <p className="text-slate-500 dark:text-slate-400 text-sm md:text-base leading-relaxed mb-6">
                                         {module.description}
                                     </p>
-
-                                    <button
-                                        onClick={() => setActiveModule(module.id)}
-                                        className="inline-flex items-center gap-2 text-brand-blue dark:text-brand-gold font-bold text-sm hover:underline"
-                                    >
-                                        <Play size={14} />
-                                        Assistir Agora
-                                    </button>
+                                    <div className="mt-auto">
+                                        <span className="inline-flex items-center gap-2 bg-slate-50 group-hover:bg-brand-blue text-slate-700 group-hover:text-white dark:bg-slate-900/50 dark:group-hover:bg-brand-gold dark:text-slate-300 dark:group-hover:text-slate-900 font-bold text-sm px-6 py-2.5 rounded-xl transition-all duration-300 border border-slate-200 dark:border-slate-700 group-hover:border-transparent">
+                                            <Play size={16} /> Assistir Aula
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         )}
