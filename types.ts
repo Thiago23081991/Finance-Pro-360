@@ -120,6 +120,28 @@ export interface AdminMessage {
   read: boolean;
 }
 
+export interface TicketMessage {
+  id: string;
+  senderId: string; // 'Admin' or userId
+  senderName: string;
+  content: string;
+  timestamp: string;
+}
+
+export interface SupportTicket {
+  id: string;
+  userId: string;
+  userEmail: string;
+  userName: string;
+  subject: string;
+  status: 'open' | 'in_progress' | 'resolved';
+  createdAt: string;
+  updatedAt: string;
+  messages: TicketMessage[];
+  unreadAdmin?: boolean; // For admin panel badge
+  unreadUser?: boolean; // For user settings badge
+}
+
 export interface BackupData {
   users: UserAccount[];
   transactions: Transaction[];
@@ -128,6 +150,7 @@ export interface BackupData {
   configs: AppConfig[];
   purchase_requests?: PurchaseRequest[];
   messages?: AdminMessage[];
+  support_tickets?: SupportTicket[];
 }
 
 export interface SystemStats {

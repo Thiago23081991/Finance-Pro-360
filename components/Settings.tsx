@@ -8,6 +8,7 @@ import { Capacitor } from '@capacitor/core';
 import { Share as CapacitorShare } from '@capacitor/share';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { PrivacyModal } from './PrivacyModal';
+import { SupportUserView } from './SupportUserView';
 import { PLANS_CONFIG } from '../constants';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -18,7 +19,7 @@ interface SettingsProps {
 }
 
 export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, transactions }) => {
-    const [activeTab, setActiveTab] = useState<'profile' | 'plan' | 'appearance' | 'categories' | 'security'>('profile');
+    const [activeTab, setActiveTab] = useState<'profile' | 'plan' | 'appearance' | 'categories' | 'security' | 'support'>('profile');
     const [newIncomeCat, setNewIncomeCat] = useState('');
     const [newExpenseCat, setNewExpenseCat] = useState('');
     const [newMethod, setNewMethod] = useState('');
@@ -249,6 +250,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
         { id: 'appearance', label: 'Ajustes', icon: <Moon size={20} className={activeTab === 'appearance' ? 'text-purple-500' : 'text-slate-400'} /> },
         { id: 'categories', label: 'Listas', icon: <Tag size={20} className={activeTab === 'categories' ? 'text-emerald-500' : 'text-slate-400'} /> },
         { id: 'security', label: 'Segurança', icon: <Shield size={20} className={activeTab === 'security' ? 'text-rose-500' : 'text-slate-400'} /> },
+        { id: 'support', label: 'Central de Ajuda', icon: <MessageCircle size={20} className={activeTab === 'support' ? 'text-indigo-500' : 'text-slate-400'} /> },
     ] as const;
 
     const AppleToggle = ({ enabled, onChange, disabled }: { enabled: boolean, onChange: () => void, disabled?: boolean }) => (
@@ -550,6 +552,14 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                                     </div>
                                 </div>
                             </div>
+                        )}
+
+                        {activeTab === 'support' && (
+                            <SupportUserView
+                                userId={config.userId || ''}
+                                userEmail={config.userId?.includes('@') ? config.userId : 'user@example.com'}
+                                userName={config.name || 'Usuário'}
+                            />
                         )}
                     </motion.div>
                 </AnimatePresence>

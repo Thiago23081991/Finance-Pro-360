@@ -1,5 +1,5 @@
 
-import { Transaction, Goal, Debt, BudgetLimit, AppConfig, UserAccount, PurchaseRequest, AdminMessage, SystemStats, UserProfile, Investment } from "./types";
+import { Transaction, Goal, Debt, BudgetLimit, AppConfig, UserAccount, PurchaseRequest, AdminMessage, SystemStats, UserProfile, Investment, SupportTicket, TicketMessage } from "./types";
 import { DEFAULT_CONFIG } from "./constants";
 import { supabase } from "./supabaseClient";
 import { generateId, validateLicenseKey } from "./utils";
@@ -728,6 +728,80 @@ export class DBService {
   static async markMessageAsRead(msgId: string): Promise<void> {
     const { error } = await supabase.from('messages').update({ read: true }).eq('id', msgId);
     if (error) throw new Error(error.message);
+  }
+
+  // --- SUPPORT TICKETS OPERATIONS (Hybrid) ---
+
+  static async getSupportTickets(userId?: string): Promise<SupportTicket[]> {
+    let query = supabase.from('support_tickets').select('*');
+    if (userId) {
+      query = query.eq('user_id', userId);
+    }
+
+    // Sort by updated_at descending natively if possible
+    query = query.order('updated_at', { ascending: false });
+
+    const { data, error } = await query;
+
+    if (error) {
+      // Fallback to LocalStorage if table doesn't exist yet
+      const localKey = userId ? `fp360_support_tickets_${userId}` : `fp360_support_tickets_all`;
+      const localData = localStorage.getItem(localKey);
+      if (localData) return JSON.parse(localData);
+      return [];
+    }
+
+    return data.map((t: any) => ({
+      id: t.id,
+      userId: t.user_id,
+      userEmail: t.user_email,
+      userName: t.user_name,
+      subject: t.subject,
+      status: t.status,
+      createdAt: t.created_at,
+      updatedAt: t.updated_at,
+      messages: typeof t.messages === 'string' ? JSON.parse(t.messages) : t.messages,
+      unreadAdmin: t.unread_admin,
+      unreadUser: t.unread_user
+    }));
+  }
+
+  static async saveSupportTicket(ticket: SupportTicket): Promise<void> {
+    const user = await this.getCurrentUser();
+
+    // Convert to DB snake_case payload
+    const payload = {
+      id: ticket.id,
+      user_id: ticket.userId,
+      user_email: ticket.userEmail,
+      user_name: ticket.userName,
+      subject: ticket.subject,
+      status: ticket.status,
+      created_at: ticket.createdAt,
+      updated_at: ticket.updatedAt,
+      messages: ticket.messages, // Supabase can handle JSON arrays, or stringify if needed based on schema
+      unread_admin: ticket.unreadAdmin,
+      unread_user: ticket.unreadUser
+    };
+
+    const { error } = await supabase.from('support_tickets').upsert(payload);
+
+    if (error) {
+      console.warn("Saving ticket to LocalStorage due to remote error:", error.message);
+      // Fallback Local Storage
+      const current = await this.getSupportTickets(user ? user.id : undefined);
+      const index = current.findIndex(x => x.id === ticket.id);
+
+      let newTickets = [...current];
+      if (index >= 0) newTickets[index] = ticket;
+      else newTickets.push(ticket);
+
+      // Keep it sorted
+      newTickets.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+
+      if (user) localStorage.setItem(`fp360_support_tickets_${user.id}`, JSON.stringify(newTickets));
+      localStorage.setItem(`fp360_support_tickets_all`, JSON.stringify(newTickets));
+    }
   }
 
   // --- AI CONTEXT OPERATIONS ---

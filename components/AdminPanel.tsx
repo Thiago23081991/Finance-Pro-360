@@ -11,8 +11,9 @@ import {
 } from 'lucide-react';
 import { generateId, generateLicenseKey, formatCurrency } from '../utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { SupportAdminView } from './SupportAdminView';
 
-type AdminTab = 'dashboard' | 'users' | 'push' | 'tools';
+type AdminTab = 'dashboard' | 'users' | 'push' | 'tools' | 'support';
 
 export const AdminPanel: React.FC = () => {
     const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
@@ -180,6 +181,9 @@ export const AdminPanel: React.FC = () => {
                         </button>
                         <button onClick={() => setActiveTab('tools')} className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all whitespace-nowrap min-w-max md:min-w-0 ${activeTab === 'tools' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-400 shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-slate-800 dark:hover:text-slate-300'}`}>
                             <Wrench size={18} /> Ferramentas
+                        </button>
+                        <button onClick={() => setActiveTab('support')} className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all whitespace-nowrap min-w-max md:min-w-0 ${activeTab === 'support' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-400 shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-slate-800 dark:hover:text-slate-300'}`}>
+                            <MessageSquare size={18} /> Chamados
                         </button>
                     </nav>
 
@@ -472,6 +476,11 @@ export const AdminPanel: React.FC = () => {
                                     <button onClick={handleGenerateKey} className="w-full bg-slate-800 dark:bg-slate-700 text-white font-bold py-3 mt-4 rounded-xl hover:bg-black shadow-sm active:scale-95 transition-transform">GERAR HASH</button>
                                 </div>
                             </div>
+                        )}
+
+                        {/* Support Admin View */}
+                        {activeTab === 'support' && (
+                            <SupportAdminView />
                         )}
                     </motion.div>
                 </AnimatePresence>
