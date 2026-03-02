@@ -136,17 +136,26 @@ export const validateLicenseKey = (userId: string, keyInput: string): boolean =>
   return cleanInput === cleanExpected;
 };
 
-export const getBudgetCategoryType = (category: string): 'needs' | 'wants' | 'savings' => {
+export const getBudgetCategoryType = (category: string, description: string = ''): 'needs' | 'wants' | 'savings' => {
   const normalize = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
   const needs = BUDGET_CATEGORY_TYPES.needs.map(normalize);
   const savings = BUDGET_CATEGORY_TYPES.savings.map(normalize);
+  const wants = BUDGET_CATEGORY_TYPES.wants.map(normalize).filter(w => w !== 'outros');
 
   const catNorm = normalize(category);
+  const descNorm = normalize(description);
 
+  // 1. Direct Category Match
   if (needs.some(n => catNorm.includes(n))) return 'needs';
   if (savings.some(s => catNorm.includes(s))) return 'savings';
 
+  // 2. Explicit Want Match (excluding generic 'Outros')
+  if (wants.some(w => catNorm.includes(w))) return 'wants';
+
+  // 3. Fallback: If category is "Outros" or unrecognized, check the description
+  if (needs.some(n => descNorm.includes(n))) return 'needs';
+  if (savings.some(s => descNorm.includes(s))) return 'savings';
+
   return 'wants';
 };
-

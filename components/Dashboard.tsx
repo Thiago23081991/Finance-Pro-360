@@ -176,7 +176,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
 
         // 1. Classify Expenses
         filteredTransactions.filter(t => t.type === 'expense').forEach(t => {
-            const bucket = getBudgetCategoryType(t.category);
+            const bucket = getBudgetCategoryType(t.category, t.description);
             if (bucket === 'needs') needs += t.amount;
             else if (bucket === 'wants') wants += t.amount;
             else if (bucket === 'savings') savings += t.amount;
@@ -963,9 +963,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
 
                                     if (selectedRuleCategory === 'savings') {
                                         // Logic for Savings: Expenses categorized as 'investments' or similar bucket
-                                        items = filteredTransactions.filter(t => t.type === 'expense' && getBudgetCategoryType(t.category) === 'savings');
+                                        items = filteredTransactions.filter(t => t.type === 'expense' && getBudgetCategoryType(t.category, t.description) === 'savings');
                                     } else {
-                                        items = filteredTransactions.filter(t => t.type === 'expense' && getBudgetCategoryType(t.category) === selectedRuleCategory);
+                                        items = filteredTransactions.filter(t => t.type === 'expense' && getBudgetCategoryType(t.category, t.description) === selectedRuleCategory);
                                     }
 
                                     items.sort((a, b) => b.amount - a.amount);
@@ -1006,7 +1006,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                                     Total: <strong className="text-textMain">
                                         {formatCurrency(
                                             filteredTransactions
-                                                .filter(t => t.type === 'expense' && getBudgetCategoryType(t.category) === selectedRuleCategory)
+                                                .filter(t => t.type === 'expense' && getBudgetCategoryType(t.category, t.description) === selectedRuleCategory)
                                                 .reduce((sum, t) => sum + t.amount, 0)
                                             , currency)}
                                     </strong>
