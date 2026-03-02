@@ -527,119 +527,110 @@ export const SheetView: React.FC<SheetViewProps> = ({
 
             {/* Input Row (Sheet Style) - Only visible when adding */}
             {isAdding && (
-                <div className={`p - 4 border - b grid grid - cols - 12 gap - 3 items - start animate - fade -in relative z - 20 ${editingId
-                    ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800'
-                    : 'bg-emerald-50 dark:bg-emerald-900/10 border-emerald-100 dark:border-emerald-800'
-                    } `}>
-                    {editingId && (
-                        <div className="col-span-12 mb-2 flex items-center gap-2 text-amber-600 dark:text-amber-400 font-bold text-xs uppercase tracking-wide">
-                            <Edit2 size={14} /> Editando Linha
-                        </div>
-                    )}
+                <div className={`p-6 border-b shadow-inner relative z-20 animate-fade-in ${editingId
+                    ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800'
+                    : 'bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700/50'
+                    }`}>
 
-                    <div className="col-span-12 md:col-span-2">
-                        <label className="block text-[10px] font-bold text-textMuted mb-1 uppercase">Data</label>
-                        <input
-                            type="date"
-                            value={newDate}
-                            onChange={(e) => { setNewDate(e.target.value); setDateError(''); }}
-                            className={`w - full border ${dateError ? 'border-rose-500' : 'border-slate-300 dark:border-slate-600'} dark: bg - slate - 800 dark: text - white rounded - sm px - 2 py - 1.5 text - xs focus: border - blue - 500 focus: ring - 1 focus: ring - blue - 500 outline - none`}
-                        />
+                    <div className="flex flex-col md:flex-row flex-wrap items-end gap-x-4 gap-y-5 max-w-[1400px] mx-auto">
+                        {editingId && (
+                            <div className="w-full mb-2 flex items-center justify-start gap-2 text-amber-600 dark:text-amber-400 font-bold text-xs uppercase tracking-widest">
+                                <Edit2 size={14} /> Editando Registro
+                            </div>
+                        )}
 
-                    </div>
-                    <div className="col-span-6 md:col-span-2">
-                        <label className="block text-[10px] font-bold text-textMuted mb-1 uppercase">Valor {installments > 1 ? '(Mensal)' : ''}</label>
-                        <input
-                            type="number"
-                            step="0.01"
-                            placeholder="0.00"
-                            value={newAmount}
-                            onChange={(e) => setNewAmount(e.target.value)}
-                            className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-sm px-2 py-1.5 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
-                        />
-                    </div>
-                    <div className="col-span-6 md:col-span-2">
-                        <label className="block text-[10px] font-bold text-textMuted mb-1 uppercase">Categoria</label>
-                        <select
-                            value={newCategory}
-                            onChange={(e) => setNewCategory(e.target.value)}
-                            className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-sm px-2 py-1.5 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
-                        >
-                            {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                        </select>
-                    </div>
-
-                    {/* Conditional Payment Method - Only Expense */}
-                    {type === 'expense' && (
-                        <div className="col-span-6 md:col-span-2">
-                            <label className="block text-[10px] font-bold text-textMuted mb-1 uppercase">Pagamento</label>
-                            <select
-                                value={newPayment}
-                                onChange={(e) => setNewPayment(e.target.value)}
-                                className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-sm px-2 py-1.5 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
-                            >
-                                {paymentMethods.map(p => <option key={p} value={p}>{p}</option>)}
-                            </select>
-                        </div>
-                    )}
-
-                    {/* Installments / Recurrence */}
-                    <div className="col-span-6 md:col-span-2 flex gap-2">
-                        <div className="flex-1">
-                            <label className="block text-[10px] font-bold text-textMuted mb-1 uppercase" title="Número de meses/parcelas">
-                                {type === 'expense' ? 'Parc.' : 'Qtd.'}
-                            </label>
+                        <div className="w-full md:w-36 min-w-[130px]">
+                            <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">Data</label>
                             <input
-                                type="number"
-                                min="1"
-                                max="60"
-                                disabled={!!editingId || isRecurring} // Disable when editing existing or recurring
-                                value={installments}
-                                onChange={(e) => {
-                                    setInstallments(parseInt(e.target.value) || 1);
-                                    setDateError('');
-                                }}
-                                className={`w - full border border - slate - 300 dark: border - slate - 600 dark: bg - slate - 800 dark: text - white rounded - sm px - 2 py - 1.5 text - xs focus: border - blue - 500 focus: ring - 1 focus: ring - blue - 500 outline - none text - center ${(editingId || isRecurring) ? 'opacity-50 cursor-not-allowed' : ''} `}
+                                type="date"
+                                value={newDate}
+                                onChange={(e) => { setNewDate(e.target.value); setDateError(''); }}
+                                className={`w-full rounded-lg border ${dateError ? 'border-rose-500 ring-1 ring-rose-500' : 'border-slate-300 dark:border-slate-600'} bg-white dark:bg-slate-900 dark:text-white px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all shadow-sm`}
                             />
                         </div>
-                        <div className="flex items-center h-full pt-4">
-                            <label className="flex items-center gap-1.5 cursor-pointer select-none">
+
+                        <div className="w-full md:w-36">
+                            <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">Valor</label>
+                            <input
+                                type="number"
+                                step="0.01"
+                                placeholder="0.00"
+                                value={newAmount}
+                                onChange={(e) => setNewAmount(e.target.value)}
+                                className="w-full font-mono font-bold rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-white px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all shadow-sm"
+                            />
+                        </div>
+
+                        <div className="w-full md:w-48">
+                            <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">Categoria</label>
+                            <select
+                                value={newCategory}
+                                onChange={(e) => setNewCategory(e.target.value)}
+                                className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-white px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all shadow-sm"
+                            >
+                                {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                        </div>
+
+                        {type === 'expense' && (
+                            <div className="w-full md:w-40">
+                                <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">Pagamento</label>
+                                <select
+                                    value={newPayment}
+                                    onChange={(e) => setNewPayment(e.target.value)}
+                                    className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-white px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all shadow-sm"
+                                >
+                                    {paymentMethods.map(p => <option key={p} value={p}>{p}</option>)}
+                                </select>
+                            </div>
+                        )}
+
+                        <div className="w-full md:w-20">
+                            <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5" title="Número de parcelas/meses">{type === 'expense' ? 'Parc.' : 'Qtd.'}</label>
+                            <input
+                                type="number"
+                                min="1" max="60"
+                                disabled={!!editingId || isRecurring}
+                                value={installments}
+                                onChange={(e) => { setInstallments(parseInt(e.target.value) || 1); setDateError(''); }}
+                                className={`w-full text-center rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-white px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all shadow-sm ${(editingId || isRecurring) ? 'opacity-50 cursor-not-allowed bg-slate-100 dark:bg-slate-800' : ''}`}
+                            />
+                        </div>
+
+                        <div className="w-full md:flex-1 min-w-[200px]">
+                            <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">Descrição</label>
+                            <input
+                                type="text"
+                                placeholder="..."
+                                value={newDesc}
+                                onChange={(e) => setNewDesc(e.target.value)}
+                                className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-white px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all shadow-sm"
+                            />
+                        </div>
+
+                        <div className="w-full flex-none flex flex-col md:flex-row items-start md:items-end justify-between xl:justify-end gap-4 mt-2 mb-0.5">
+                            <label className="flex items-center gap-2 cursor-pointer select-none group h-[38px] px-2">
                                 <input
                                     type="checkbox"
                                     checked={isRecurring}
-                                    onChange={(e) => {
-                                        setIsRecurring(e.target.checked);
-                                        if (e.target.checked) setInstallments(1);
-                                    }}
-                                    className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500 border-gray-300"
+                                    onChange={(e) => { setIsRecurring(e.target.checked); if (e.target.checked) setInstallments(1); }}
+                                    className="hidden"
                                 />
-                                <span className="text-[10px] font-bold text-textMuted uppercase">Recorrente?</span>
+                                <div className={`w-4 h-4 rounded-sm border flex items-center justify-center transition-all ${isRecurring ? 'bg-blue-600 border-blue-600' : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-500 group-hover:border-blue-400'}`}>
+                                    {isRecurring && <CheckCircle size={12} className="text-white" />}
+                                </div>
+                                <span className={`text-[11px] font-bold uppercase tracking-widest ${isRecurring ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-400'}`}>Recorrente</span>
                             </label>
+
+                            <div className="flex items-center gap-3 w-full md:w-auto">
+                                <button onClick={handleCancel} className="flex-1 md:flex-none px-4 py-2 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700/50 rounded-lg text-sm font-bold transition-colors">
+                                    Cancelar
+                                </button>
+                                <button onClick={handleSave} className={`flex-1 md:flex-none px-6 py-2 text-white rounded-lg font-bold text-sm shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 ${editingId ? 'bg-amber-500 hover:bg-amber-600' : 'bg-slate-900 hover:bg-black dark:bg-blue-600 dark:hover:bg-blue-700'}`}>
+                                    {editingId ? 'Atualizar' : 'Salvar'}
+                                </button>
+                            </div>
                         </div>
-                    </div>
-
-                    <div className="col-span-12 md:col-span-3">
-                        <label className="block text-[10px] font-bold text-textMuted mb-1 uppercase">Descrição</label>
-                        <input
-                            type="text"
-                            placeholder="Descrição opcional"
-                            value={newDesc}
-                            onChange={(e) => setNewDesc(e.target.value)}
-                            className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-sm px-2 py-1.5 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
-                        />
-                    </div>
-
-                    <div className="col-span-12 flex justify-end gap-2 mt-2">
-                        <button
-                            onClick={handleSave}
-                            className={`flex - 1 md: flex - none px - 4 py - 2 text - white rounded - sm transition - colors flex items - center justify - center gap - 2 ${editingId ? 'bg-amber-500 hover:bg-amber-600' : 'bg-emerald-500 hover:bg-emerald-600'} `}
-                        >
-                            <Save size={16} />
-                            {editingId ? 'Atualizar' : 'Salvar'}
-                        </button>
-                        <button onClick={handleCancel} className="px-4 py-2 bg-slate-200 dark:bg-slate-600 text-slate-600 dark:text-slate-200 rounded-sm hover:bg-slate-300 dark:hover:bg-slate-500 transition-colors">
-                            Cancelar
-                        </button>
                     </div>
                 </div>
             )}
