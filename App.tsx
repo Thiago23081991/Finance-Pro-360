@@ -273,10 +273,6 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
         setActiveTab(tab);
     };
 
-    const handleOpenGoalFormShortcut = () => {
-        handleTabChange('metas');
-        setToastMessage("Abra a aba Metas para criar seu novo objetivo financeiro!");
-    };
 
     const displayName = config.name || userEmail.split('@')[0];
 
@@ -435,15 +431,6 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                             </AnimatePresence>
                         </div>
                     </div>
-
-                    <button
-                        onClick={handleOpenGoalFormShortcut}
-                        className="fixed bottom-36 right-4 md:bottom-24 md:right-8 w-14 h-14 md:w-16 md:h-16 bg-gradient-to-r from-brand-gold to-yellow-500 text-white rounded-full shadow-sm flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-40 border-[3px] border-white/50 dark:border-slate-800/50 backdrop-blur-md"
-                        title="Nova Meta Financeira"
-                    >
-                        <Plus size={24} />
-                    </button>
-
                     <nav className="md:hidden fixed bottom-0 w-full glass-panel z-50 flex justify-around items-center pb-safe pt-1">
                         {(['controle', 'receitas', 'despesas', 'cursos', 'config'] as Tab[]).map(t => (
                             <button
