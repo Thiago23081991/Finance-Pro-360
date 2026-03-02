@@ -137,13 +137,15 @@ export const validateLicenseKey = (userId: string, keyInput: string): boolean =>
 };
 
 export const getBudgetCategoryType = (category: string): 'needs' | 'wants' | 'savings' => {
-  const needs = BUDGET_CATEGORY_TYPES.needs.map(c => c.toLowerCase());
-  const savings = BUDGET_CATEGORY_TYPES.savings.map(c => c.toLowerCase());
+  const normalize = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
-  const catLower = category.toLowerCase();
+  const needs = BUDGET_CATEGORY_TYPES.needs.map(normalize);
+  const savings = BUDGET_CATEGORY_TYPES.savings.map(normalize);
 
-  if (needs.some(n => catLower.includes(n))) return 'needs';
-  if (savings.some(s => catLower.includes(s))) return 'savings';
+  const catNorm = normalize(category);
+
+  if (needs.some(n => catNorm.includes(n))) return 'needs';
+  if (savings.some(s => catNorm.includes(s))) return 'savings';
 
   return 'wants';
 };
