@@ -7,9 +7,10 @@ import {
     Eye, EyeOff, RefreshCw, Key, Copy, Smartphone, Lock, Loader2,
     Users, BarChart3, Wallet, Database, ShieldOff, ShieldCheck,
     Wrench, UserPlus, AlertTriangle, Megaphone, Search, Bell,
-    LayoutDashboard, LogOut, ChevronRight, Download
+    LayoutDashboard, LogOut, ChevronRight, Download, CreditCard, TrendingUp, Zap
 } from 'lucide-react';
 import { generateId, generateLicenseKey, formatCurrency } from '../utils';
+import { motion, AnimatePresence } from 'framer-motion';
 
 type AdminTab = 'dashboard' | 'users' | 'push' | 'tools';
 
@@ -153,285 +154,328 @@ export const AdminPanel: React.FC = () => {
     );
 
     return (
-        <div className="flex flex-col md:flex-row min-h-screen bg-slate-50 dark:bg-slate-900 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
+        <div className="max-w-7xl mx-auto pb-20 flex flex-col md:flex-row gap-6 animate-fade-in">
             {/* Sidebar */}
-            <aside className="w-full md:w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 p-6 flex flex-col">
-                <div className="flex items-center gap-3 mb-10">
-                    <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
-                        <ShieldAlert size={20} />
+            <div className="w-full md:w-64 shrink-0">
+                <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl p-4 shadow-sm border border-slate-200/60 dark:border-slate-700/60 flex flex-col sticky top-4">
+                    <div className="flex items-center gap-3 mb-8 px-2">
+                        <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
+                            <ShieldAlert size={20} />
+                        </div>
+                        <div>
+                            <h1 className="font-bold text-slate-800 dark:text-white text-lg leading-tight uppercase tracking-tight">Admin</h1>
+                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Painel Pro</p>
+                        </div>
                     </div>
-                    <div>
-                        <h1 className="font-bold text-slate-800 dark:text-white text-lg leading-tight">ADMIN</h1>
-                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Painel</p>
-                    </div>
-                </div>
 
-                <nav className="space-y-2 flex-1">
-                    <button onClick={() => setActiveTab('dashboard')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'dashboard' ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}>
-                        <LayoutDashboard size={18} /> Dashboard
-                    </button>
-                    <button onClick={() => setActiveTab('users')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'users' ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}>
-                        <Users size={18} /> Usuários
-                    </button>
-                    <button onClick={() => setActiveTab('push')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'push' ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}>
-                        <Bell size={18} /> Central Push
-                    </button>
-                    <button onClick={() => setActiveTab('tools')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'tools' ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}>
-                        <Wrench size={18} /> Ferramentas
-                    </button>
-                </nav>
+                    <nav className="flex flex-col gap-1 overflow-x-auto custom-scrollbar md:overflow-visible">
+                        <button onClick={() => setActiveTab('dashboard')} className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all whitespace-nowrap min-w-max md:min-w-0 ${activeTab === 'dashboard' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-400 shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-slate-800 dark:hover:text-slate-300'}`}>
+                            <LayoutDashboard size={18} /> Dashboard
+                        </button>
+                        <button onClick={() => setActiveTab('users')} className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all whitespace-nowrap min-w-max md:min-w-0 ${activeTab === 'users' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-400 shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-slate-800 dark:hover:text-slate-300'}`}>
+                            <Users size={18} /> Usuários
+                        </button>
+                        <button onClick={() => setActiveTab('push')} className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all whitespace-nowrap min-w-max md:min-w-0 ${activeTab === 'push' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-400 shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-slate-800 dark:hover:text-slate-300'}`}>
+                            <Bell size={18} /> Central Push
+                        </button>
+                        <button onClick={() => setActiveTab('tools')} className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all whitespace-nowrap min-w-max md:min-w-0 ${activeTab === 'tools' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-400 shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-slate-800 dark:hover:text-slate-300'}`}>
+                            <Wrench size={18} /> Ferramentas
+                        </button>
+                    </nav>
 
-                <div className="pt-6 border-t border-slate-100 dark:border-slate-700">
-                    <div className="bg-slate-900 rounded-xl p-4 relative overflow-hidden group cursor-pointer hover:scale-105 transition-transform">
-                        <div className="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -mr-8 -mt-8 blur-xl"></div>
-                        <p className="text-slate-400 text-xs font-bold mb-1">Status do Sistema</p>
-                        <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                            <span className="text-white text-sm font-bold">Operacional</span>
+                    <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800/50">
+                        <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl p-4 relative overflow-hidden group border border-slate-700 shadow-md">
+                            <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full -mr-10 -mt-10 blur-xl"></div>
+                            <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-2">Status da Nave</p>
+                            <div className="flex items-center gap-3">
+                                <div className="relative flex h-3 w-3">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                                </div>
+                                <span className="text-white text-sm font-black tracking-wide">OPERACIONAL</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </aside>
+            </div>
 
             {/* Main Content */}
-            <main className="flex-1 p-6 md:p-10 overflow-y-auto">
-                <header className="flex justify-between items-center mb-8">
-                    <div>
-                        <h2 className="text-2xl md:text-3xl font-bold text-slate-800 dark:text-white mb-2">
+            <div className="flex-1 min-w-0">
+                <header className="flex justify-between items-center mb-8 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm p-4 rounded-2xl border border-slate-200/50 dark:border-slate-700/50">
+                    <div className="px-2">
+                        <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-1 tracking-tight">
                             {activeTab === 'dashboard' && 'Visão Geral'}
-                            {activeTab === 'users' && 'Gestão de Usuários'}
-                            {activeTab === 'push' && 'Disparo de Notificações'}
-                            {activeTab === 'tools' && 'Ferramentas de Suporte'}
+                            {activeTab === 'users' && 'Usuários'}
+                            {activeTab === 'push' && 'Disparo de Push'}
+                            {activeTab === 'tools' && 'Ferramentas'}
                         </h2>
-                        <p className="text-slate-500 dark:text-slate-400 text-sm">Bem-vindo ao painel de controle do Finance Pro 360.</p>
+                        <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-widest">Painel de Controle</p>
                     </div>
-                    <button onClick={fetchData} className="p-3 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition-colors">
-                        <RefreshCw size={20} className={`text-slate-600 dark:text-slate-300 ${loading ? 'animate-spin' : ''}`} />
+                    <button onClick={fetchData} className="p-3 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition-colors active:scale-95">
+                        <RefreshCw size={18} className={`text-slate-600 dark:text-slate-300 ${loading ? 'animate-spin' : ''}`} />
                     </button>
                 </header>
 
-                {/* Dashboard View */}
-                {activeTab === 'dashboard' && stats && (
-                    <div className="space-y-6 animate-fade-in-up">
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                            <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-                                <div className="flex justify-between items-start mb-4">
-                                    <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl text-blue-600">
-                                        <Users size={24} />
-                                    </div>
-                                    <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-1 rounded-full">+12%</span>
-                                </div>
-                                <h3 className="text-3xl font-bold text-slate-800 dark:text-white">{stats.totalUsers}</h3>
-                                <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mt-1">Usuários Totais</p>
-                            </div>
-
-                            <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-                                <div className="flex justify-between items-start mb-4">
-                                    <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-xl text-amber-600">
-                                        <Wallet size={24} />
-                                    </div>
-                                    <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-1 rounded-full">+5%</span>
-                                </div>
-                                <h3 className="text-3xl font-bold text-slate-800 dark:text-white">{stats.activeLicenses}</h3>
-                                <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mt-1">Assinantes Premium</p>
-                            </div>
-
-                            <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-                                <div className="flex justify-between items-start mb-4">
-                                    <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl text-emerald-600">
-                                        <DollarSignIcon size={24} />
-                                    </div>
-                                </div>
-                                <h3 className="text-2xl font-bold text-slate-800 dark:text-white">R$ {(stats.activeLicenses * 80).toLocaleString('pt-BR')}</h3>
-                                <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mt-1">Receita Estimada (Ano)</p>
-                            </div>
-                        </div>
-
-                        {/* Recent Activity Table (Mock) */}
-                        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
-                            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6">Atividade Recente</h3>
-                            <div className="space-y-4">
-                                {profiles
-                                    .slice() // Create a copy so we don't mutate state
-                                    .sort((a, b) => {
-                                        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-                                        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-                                        return dateB - dateA;
-                                    })
-                                    .slice(0, 5) // Last 5 users
-                                    .map(user => (
-                                        <div key={user.id} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-600">
-                                                    {user.name ? user.name.substring(0, 2).toUpperCase() : 'U'}
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm font-bold text-slate-800 dark:text-white">
-                                                        {user.name || 'Novo Usuário'}
-                                                    </p>
-                                                    <p className="text-xs text-slate-500">
-                                                        {user.createdAt
-                                                            ? new Date(user.createdAt).toLocaleDateString('pt-BR') + ' às ' + new Date(user.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-                                                            : 'Data desconhecida'}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <span
-                                                className="text-xs font-bold text-blue-600 cursor-pointer hover:underline"
-                                                onClick={() => {
-                                                    setSearchTerm(user.email || '');
-                                                    setActiveTab('users');
-                                                }}
-                                            >
-                                                Ver Detalhes
-                                            </span>
-                                        </div>
-                                    ))}
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Users View */}
-                {activeTab === 'users' && (
-                    <div className="space-y-6 animate-fade-in-up">
-                        <div className="flex gap-4 mb-4">
-                            <div className="flex-1 bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center gap-3">
-                                <Search className="text-slate-400" size={20} />
-                                <input
-                                    type="text"
-                                    placeholder="Buscar usuário..."
-                                    value={searchTerm}
-                                    onChange={e => setSearchTerm(e.target.value)}
-                                    className="bg-transparent outline-none text-sm w-full dark:text-white"
-                                />
-                            </div>
-                            <button
-                                onClick={handleExportLeads}
-                                className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold text-sm flex items-center gap-2 shadow-emerald-500/20 shadow-md transition-all active:scale-95 whitespace-nowrap"
-                            >
-                                <Download size={18} /> Exportar Leads (CSV)
-                            </button>
-                        </div>
-
-                        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
-                            <table className="w-full text-left">
-                                <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-100 dark:border-slate-700">
-                                    <tr>
-                                        <th className="p-4 text-xs font-bold text-slate-500 uppercase">Usuário</th>
-                                        <th className="p-4 text-xs font-bold text-slate-500 uppercase">Email</th>
-                                        <th className="p-4 text-xs font-bold text-slate-500 uppercase">Status</th>
-                                        <th className="p-4 text-xs font-bold text-slate-500 uppercase text-center">Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                    {filteredUsers.map(user => (
-                                        <tr key={user.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                                            <td className="p-4 font-bold text-slate-800 dark:text-white">{user.name || 'Sem Nome'}</td>
-                                            <td className="p-4 text-sm text-slate-500">{user.email}</td>
-                                            <td className="p-4">
-                                                <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${user.licenseStatus === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'
-                                                    }`}>
-                                                    {user.licenseStatus === 'active' ? 'PREMIUM' : 'GRÁTIS'}
-                                                </span>
-                                            </td>
-                                            <td className="p-4 text-center">
-                                                <button
-                                                    onClick={() => handleToggleLicense(user)}
-                                                    className="text-blue-600 hover:text-blue-800 font-bold text-xs"
-                                                >
-                                                    {user.licenseStatus === 'active' ? 'Remover Premium' : 'Dar Premium'}
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                )}
-
-                {/* Push Notification View */}
-                {activeTab === 'push' && (
-                    <div className="max-w-2xl mx-auto space-y-8 animate-fade-in-up">
-                        <div className="bg-white dark:bg-slate-800 p-8 rounded-xl shadow-md border border-slate-200 dark:border-slate-700">
-                            <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 mb-6 mx-auto">
-                                <Megaphone size={32} />
-                            </div>
-                            <h3 className="text-2xl font-bold text-center text-slate-800 dark:text-white mb-8">Disparar Notificação</h3>
-
+                <AnimatePresence mode="wait">
+                    <motion.div key={activeTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+                        {/* Dashboard View */}
+                        {activeTab === 'dashboard' && stats && (
                             <div className="space-y-6">
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Destinatário</label>
-                                    <select
-                                        value={pushTarget}
-                                        onChange={(e) => setPushTarget(e.target.value)}
-                                        className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-sm font-bold outline-none"
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 p-6 rounded-2xl shadow-lg border border-indigo-400 relative overflow-hidden group">
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl transition-transform group-hover:scale-110"></div>
+                                        <div className="flex justify-between items-start mb-4 relative z-10">
+                                            <div className="p-3 bg-white/20 rounded-xl text-white backdrop-blur-sm">
+                                                <Users size={24} />
+                                            </div>
+                                        </div>
+                                        <h3 className="text-4xl font-black text-white relative z-10">{stats.totalUsers}</h3>
+                                        <p className="text-indigo-100 text-xs font-bold uppercase tracking-widest mt-2 relative z-10">Usuários Ativos</p>
+                                    </div>
+
+                                    <div className="bg-gradient-to-br from-amber-400 to-amber-500 p-6 rounded-2xl shadow-lg border border-amber-300 relative overflow-hidden group">
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl transition-transform group-hover:scale-110"></div>
+                                        <div className="flex justify-between items-start mb-4 relative z-10">
+                                            <div className="p-3 bg-white/20 rounded-xl text-white backdrop-blur-sm">
+                                                <ShieldCheck size={24} />
+                                            </div>
+                                            <span className="bg-white/20 text-white text-[10px] font-bold px-2 py-1 rounded-full backdrop-blur-sm">PRO</span>
+                                        </div>
+                                        <h3 className="text-4xl font-black text-white relative z-10">{stats.activeLicenses}</h3>
+                                        <p className="text-amber-100 text-xs font-bold uppercase tracking-widest mt-2 relative z-10">Assinaturas</p>
+                                    </div>
+
+                                    <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 p-6 rounded-2xl shadow-lg border border-emerald-400 relative overflow-hidden group">
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl transition-transform group-hover:scale-110"></div>
+                                        <div className="flex justify-between items-start mb-4 relative z-10">
+                                            <div className="p-3 bg-white/20 rounded-xl text-white backdrop-blur-sm">
+                                                <TrendingUp size={24} />
+                                            </div>
+                                        </div>
+                                        <h3 className="text-3xl font-black text-white relative z-10">R$ {(stats.activeLicenses * 80).toLocaleString('pt-BR')}</h3>
+                                        <p className="text-emerald-100 text-xs font-bold uppercase tracking-widest mt-2 relative z-10">MRR Estimado</p>
+                                    </div>
+                                </div>
+
+                                {/* Recent Activity Table (Apple Settings Style List) */}
+                                <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 overflow-hidden shadow-sm">
+                                    <div className="p-4 bg-slate-50 dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
+                                        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Contas Criadas Recentemente</h4>
+                                    </div>
+                                    <div className="space-y-4">
+                                        {profiles
+                                            .slice() // Create a copy so we don't mutate state
+                                            .sort((a, b) => {
+                                                const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                                                const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                                                return dateB - dateA;
+                                            })
+                                            .slice(0, 5) // Last 5 users
+                                            .map(user => (
+                                                <div key={user.id} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-600">
+                                                            {user.name ? user.name.substring(0, 2).toUpperCase() : 'U'}
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-sm font-bold text-slate-800 dark:text-white">
+                                                                {user.name || 'Novo Usuário'}
+                                                            </p>
+                                                            <p className="text-xs text-slate-500">
+                                                                {user.createdAt
+                                                                    ? new Date(user.createdAt).toLocaleDateString('pt-BR') + ' às ' + new Date(user.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+                                                                    : 'Data desconhecida'}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <span
+                                                        className="text-xs font-bold text-blue-600 cursor-pointer hover:underline"
+                                                        onClick={() => {
+                                                            setSearchTerm(user.email || '');
+                                                            setActiveTab('users');
+                                                        }}
+                                                    >
+                                                        Ver Detalhes
+                                                    </span>
+                                                </div>
+                                            ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Users View */}
+                        {activeTab === 'users' && (
+                            <div className="space-y-6">
+                                <div className="flex flex-col sm:flex-row gap-4 mb-4">
+                                    <div className="flex-1 bg-white dark:bg-slate-800 p-3 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 flex items-center gap-3 shadow-sm focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all">
+                                        <Search className="text-slate-400" size={20} />
+                                        <input
+                                            type="text"
+                                            placeholder="Buscar usuário por nome ou email..."
+                                            value={searchTerm}
+                                            onChange={e => setSearchTerm(e.target.value)}
+                                            className="bg-transparent outline-none text-sm font-bold w-full text-slate-800 dark:text-white"
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={handleExportLeads}
+                                        className="bg-slate-800 dark:bg-slate-700 hover:bg-black text-white px-6 py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 shadow-sm transition-transform active:scale-95 whitespace-nowrap"
                                     >
-                                        <option value="all">📢 TODOS OS USUÁRIOS</option>
-                                        {profiles.map(p => (
-                                            <option key={p.id} value={p.id}>{p.name} ({p.email})</option>
-                                        ))}
-                                    </select>
+                                        <Download size={18} /> Exportar Leads
+                                    </button>
                                 </div>
 
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Título do Alerta</label>
-                                    <input
-                                        type="text"
-                                        value={pushTitle}
-                                        onChange={e => setPushTitle(e.target.value)}
-                                        placeholder="Ex: Fatura Vencendo!"
-                                        className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-sm outline-none font-bold"
-                                    />
+                                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 overflow-hidden">
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left">
+                                            <thead className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800">
+                                                <tr>
+                                                    <th className="p-4 text-[10px] font-black tracking-widest text-slate-500 uppercase">Usuário</th>
+                                                    <th className="p-4 text-[10px] font-black tracking-widest text-slate-500 uppercase">Email</th>
+                                                    <th className="p-4 text-[10px] font-black tracking-widest text-slate-500 uppercase text-center">Status</th>
+                                                    <th className="p-4 text-[10px] font-black tracking-widest text-slate-500 uppercase text-right">Ações</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                                {filteredUsers.map(user => (
+                                                    <tr key={user.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors group">
+                                                        <td className="p-4 font-bold text-slate-800 dark:text-white flex items-center gap-3">
+                                                            <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xs font-black">
+                                                                {user.name ? user.name.substring(0, 1).toUpperCase() : 'U'}
+                                                            </div>
+                                                            {user.name || 'Sem Nome'}
+                                                        </td>
+                                                        <td className="p-4 text-xs font-medium text-slate-500 dark:text-slate-400">{user.email}</td>
+                                                        <td className="p-4 text-center">
+                                                            <span className={`px-3 py-1 rounded-full text-[10px] font-black tracking-wider uppercase border shadow-sm ${user.licenseStatus === 'active' ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 border-amber-200 dark:border-amber-500/20' : 'bg-slate-50 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700'
+                                                                }`}>
+                                                                {user.licenseStatus === 'active' ? 'PRO' : 'FREE'}
+                                                            </span>
+                                                        </td>
+                                                        <td className="p-4 text-right">
+                                                            <button
+                                                                onClick={() => handleToggleLicense(user)}
+                                                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-transform active:scale-95 ${user.licenseStatus === 'active' ? 'text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10' : 'text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10'}`}
+                                                            >
+                                                                {user.licenseStatus === 'active' ? 'Revogar Pro' : 'Dar Premium'}
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Push Notification View */}
+                        {activeTab === 'push' && (
+                            <div className="max-w-2xl mx-auto space-y-8">
+                                <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60">
+                                    <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center mb-6 mx-auto shadow-inner">
+                                        <Megaphone size={32} />
+                                    </div>
+                                    <h3 className="text-2xl font-black text-center text-slate-800 dark:text-white mb-2 tracking-tight">Broadcast Push</h3>
+                                    <p className="text-center text-xs text-slate-500 mb-8 font-bold">Envie alertas em tempo real para os dispositivos</p>
+
+                                    <div className="space-y-6">
+                                        <div>
+                                            <label className="block text-[10px] font-black tracking-widest text-slate-500 uppercase mb-2 ml-1">Destinatário</label>
+                                            <select
+                                                value={pushTarget}
+                                                onChange={(e) => setPushTarget(e.target.value)}
+                                                className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl p-4 text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer"
+                                            >
+                                                <option value="all">📢 TODOS OS USUÁRIOS (Broadcast)</option>
+                                                {profiles.map(p => (
+                                                    <option key={p.id} value={p.id}>{p.name} ({p.email})</option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-[10px] font-black tracking-widest text-slate-500 uppercase mb-2 ml-1">Título do Alerta</label>
+                                            <input
+                                                type="text"
+                                                value={pushTitle}
+                                                onChange={e => setPushTitle(e.target.value)}
+                                                placeholder="Ex: Fatura Vencendo!"
+                                                className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl p-4 text-sm outline-none font-bold focus:ring-2 focus:ring-blue-500/20 transition-all"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-[10px] font-black tracking-widest text-slate-500 uppercase mb-2 ml-1">Mensagem (Corpo)</label>
+                                            <textarea
+                                                value={pushBody}
+                                                onChange={e => setPushBody(e.target.value)}
+                                                placeholder="Sua fatura do cartão vence amanhã..."
+                                                className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl p-4 text-sm outline-none resize-none h-32 font-bold focus:ring-2 focus:ring-blue-500/20 transition-all"
+                                            />
+                                        </div>
+
+                                        <button
+                                            onClick={handleSendPush}
+                                            disabled={pushSending}
+                                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-md shadow-blue-500/20 transition-all active:scale-95 flex items-center justify-center gap-2 mt-4"
+                                        >
+                                            {pushSending ? <Loader2 className="animate-spin" /> : <Send size={20} />}
+                                            {pushSending ? 'ENVIANDO...' : 'ENVIAR NOTIFICAÇÃO'}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Tools View */}
+                        {activeTab === 'tools' && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm flex flex-col">
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <div className="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-900/20 text-orange-500 flex items-center justify-center shadow-inner">
+                                            <UserPlus size={20} />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-sm font-black text-slate-800 dark:text-white">Reparar Perfil</h3>
+                                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">Criar usuário fantasma</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4 flex-1">
+                                        <input value={manualId} onChange={e => setManualId(e.target.value)} placeholder="UUID do Usuário (ID)" className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-sm font-bold outline-none focus:ring-2 focus:ring-orange-500/20" />
+                                        <input value={manualEmail} onChange={e => setManualEmail(e.target.value)} placeholder="Email Associado" className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-sm font-bold outline-none focus:ring-2 focus:ring-orange-500/20" />
+                                    </div>
+                                    <button onClick={handleCreateGhost} className="w-full bg-orange-500 text-white font-bold py-3 mt-4 rounded-xl hover:bg-orange-600 shadow-sm active:scale-95 transition-transform">INJETAR PERFIL</button>
                                 </div>
 
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Mensagem</label>
-                                    <textarea
-                                        value={pushBody}
-                                        onChange={e => setPushBody(e.target.value)}
-                                        placeholder="Sua fatura do cartão vence amanhã..."
-                                        className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-sm outline-none resize-none h-32"
-                                    />
+                                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm flex flex-col">
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-500 flex items-center justify-center shadow-inner">
+                                            <Key size={20} />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-sm font-black text-slate-800 dark:text-white">Gerador de Licença</h3>
+                                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">Criar chave offline premium</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4 flex-1">
+                                        <input value={genUserId} onChange={e => setGenUserId(e.target.value)} placeholder="UUID do Usuário (ID)" className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-sm font-bold outline-none focus:ring-2 focus:ring-emerald-500/20" />
+                                        {generatedKey && (
+                                            <div className="p-4 bg-slate-900 text-emerald-400 font-mono text-center text-sm rounded-xl border border-slate-800 select-all font-bold">
+                                                {generatedKey}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <button onClick={handleGenerateKey} className="w-full bg-slate-800 dark:bg-slate-700 text-white font-bold py-3 mt-4 rounded-xl hover:bg-black shadow-sm active:scale-95 transition-transform">GERAR HASH</button>
                                 </div>
-
-                                <button
-                                    onClick={handleSendPush}
-                                    disabled={pushSending}
-                                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow-md shadow-indigo-500/20 transition-all active:scale-95 flex items-center justify-center gap-2"
-                                >
-                                    {pushSending ? <Loader2 className="animate-spin" /> : <Send size={20} />}
-                                    ENVIAR NOTIFICAÇÃOAGORA
-                                </button>
                             </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Tools View */}
-                {activeTab === 'tools' && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in-up">
-                        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
-                            <h3 className="text-lg font-bold flex items-center gap-2 mb-4 text-slate-800 dark:text-white"><UserPlus size={20} className="text-orange-500" /> Reparar Usuário Fantasma</h3>
-                            <div className="space-y-4">
-                                <input value={manualId} onChange={e => setManualId(e.target.value)} placeholder="UUID do Usuário" className="w-full bg-slate-50 p-3 rounded-lg text-sm border border-slate-200" />
-                                <input value={manualEmail} onChange={e => setManualEmail(e.target.value)} placeholder="Email" className="w-full bg-slate-50 p-3 rounded-lg text-sm border border-slate-200" />
-                                <button onClick={handleCreateGhost} className="w-full bg-orange-500 text-white font-bold py-3 rounded-lg hover:bg-orange-600">Criar Perfil</button>
-                            </div>
-                        </div>
-
-                        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
-                            <h3 className="text-lg font-bold flex items-center gap-2 mb-4 text-slate-800 dark:text-white"><Key size={20} className="text-emerald-500" /> Gerar Chave Offline</h3>
-                            <div className="space-y-4">
-                                <input value={genUserId} onChange={e => setGenUserId(e.target.value)} placeholder="UUID do Usuário" className="w-full bg-slate-50 p-3 rounded-lg text-sm border border-slate-200" />
-                                {generatedKey && <div className="p-4 bg-emerald-50 text-emerald-700 font-mono text-center font-bold rounded-lg border border-emerald-200 select-all">{generatedKey}</div>}
-                                <button onClick={handleGenerateKey} className="w-full bg-emerald-500 text-white font-bold py-3 rounded-lg hover:bg-emerald-600">Gerar Chave</button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </main>
+                        )}
+                    </motion.div>
+                </AnimatePresence>
+            </div>
         </div>
     );
 };
