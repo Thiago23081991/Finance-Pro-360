@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { AppConfig, Investment, InvestmentType } from '../types';
-import { Lock, Crown, CheckCircle, TrendingUp, BarChart4, PieChart as PieChartIcon, Calculator, Landmark, ArrowRight, AlertTriangle, AlertCircle, Calendar, RefreshCw, Sparkles, BrainCircuit, Wallet, ArrowUpRight, PiggyBank, Info, ChevronRight, Plus, Trash2, X } from 'lucide-react';
+import { Lock, Crown, CheckCircle, TrendingUp, BarChart4, PieChart as PieChartIcon, Calculator, Landmark, ArrowRight, AlertTriangle, AlertCircle, Calendar, RefreshCw, Sparkles, BrainCircuit, Wallet, ArrowUpRight, PiggyBank, Info, ChevronRight, Plus, Trash2, X, Target, Zap, Coffee, Flame } from 'lucide-react';
 import { formatCurrency, generateId } from '../utils';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Cell, BarChart, Bar, Pie, PieChart, Legend } from 'recharts';
 import { DBService } from '../db';
@@ -12,7 +12,7 @@ interface InvestmentsProps {
     onNavigateToSettings: () => void;
 }
 
-type SubTab = 'portfolio' | 'suitability' | 'opportunities' | 'projection' | 'nubank';
+type SubTab = 'portfolio' | 'suitability' | 'opportunities' | 'projection' | 'nubank' | 'passiveIncome';
 type ProfileType = 'Conservador' | 'Moderado' | 'Arrojado' | null;
 
 interface Opportunity {
@@ -55,6 +55,10 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
     const [nuMonthly, setNuMonthly] = useState(200);
     const [nuMonths, setNuMonths] = useState(12);
     const [nuCDI, setNuCDI] = useState(10.75); // Benchmark CDI atual
+
+    // Passive Income States (Fogo Financeiro)
+    const [piGoal, setPiGoal] = useState<number>(5000); // R$ 5k a month
+    const [piRate, setPiRate] = useState<number>(0.8); // 0.8% a.m average yield
 
     const isPremium = config.licenseStatus === 'active';
     const currency = config.currency || 'BRL';
@@ -120,7 +124,11 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
             { name: 'Outros', value: myInvestments.filter(i => i.type === 'other').reduce((s, i) => s + (i.currentValue || i.amount), 0), color: '#64748b' },
         ].filter(i => i.value > 0);
 
-        return { totalInvested, totalCurrent, profit, profitPct, allocation };
+        // Estima dividendos mensais base: 0.8% sobre total investido menos cripto (simplificação)
+        const totalYielding = myInvestments.filter(i => i.type !== 'crypto').reduce((s, i) => s + (i.currentValue || i.amount), 0);
+        const estimatedDividends = totalYielding * (0.8 / 100);
+
+        return { totalInvested, totalCurrent, profit, profitPct, allocation, estimatedDividends };
     }, [myInvestments]);
 
     const generateDailyOpportunities = (forceRefresh = false) => {
@@ -290,53 +298,100 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
 
     return (
         <div className="space-y-6 animate-fade-in pb-20">
-            {/* Tabs */}
-            <div className="flex gap-6 border-b border-slate-200 dark:border-slate-700 overflow-x-auto custom-scrollbar">
-                {(['portfolio', 'opportunities', 'nubank', 'suitability', 'projection'] as SubTab[]).map(t => (
-                    <button key={t} onClick={() => setSubTab(t)} className={`pb-3 px-1 text-sm font-bold uppercase tracking-wider transition-colors relative whitespace-nowrap ${subTab === t ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 hover:text-slate-600'}`}>
-                        {t === 'portfolio' ? 'Minha Carteira' : t === 'opportunities' ? 'Oportunidades' : t === 'nubank' ? 'Simulador Nubank' : t === 'suitability' ? 'Suitability' : 'Projeção'}
-                        {subTab === t && <span className={`absolute bottom-0 left-0 w-full h-1 ${t === 'nubank' ? 'bg-[#820ad1]' : 'bg-blue-600'} rounded-t-full`}></span>}
+            {/* Premium segmented controls tabs */}
+            <div className="bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-1.5 rounded-2xl flex overflow-x-auto hide-scrollbar snap-x relative shadow-inner">
+                {(['portfolio', 'opportunities', 'passiveIncome', 'nubank', 'suitability', 'projection'] as SubTab[]).map(t => (
+                    <button
+                        key={t}
+                        onClick={() => setSubTab(t)}
+                        className={`
+                            relative flex-1 min-w-[140px] px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 snap-center
+                            ${subTab === t
+                                ? 'text-slate-800 dark:text-white shadow-sm'
+                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-800/50'}
+                        `}
+                    >
+                        {/* Indicador Ativo (Pílula branca/escura que fica por trás do texto) */}
+                        {subTab === t && (
+                            <div className="absolute inset-0 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200/50 dark:border-slate-700/50 -z-10 animate-fade-in" />
+                        )}
+
+                        <span className="flex items-center justify-center gap-2">
+                            {t === 'portfolio' ? <Wallet size={16} className={subTab === t ? 'text-blue-500' : ''} /> :
+                                t === 'opportunities' ? <Sparkles size={16} className={subTab === t ? 'text-blue-500' : ''} /> :
+                                    t === 'nubank' ? <PiggyBank size={16} className={subTab === t ? 'text-purple-500' : ''} /> :
+                                        t === 'suitability' ? <Target size={16} className={subTab === t ? 'text-blue-500' : ''} /> :
+                                            t === 'passiveIncome' ? <Coffee size={16} className={subTab === t ? 'text-amber-500' : ''} /> :
+                                                <Calculator size={16} className={subTab === t ? 'text-blue-500' : ''} />}
+
+                            {t === 'portfolio' ? 'Carteira' :
+                                t === 'opportunities' ? 'Oportunidades' :
+                                    t === 'nubank' ? 'Nubank' :
+                                        t === 'suitability' ? 'Suitability' :
+                                            t === 'passiveIncome' ? 'Renda Passiva' : 'Projeção'}
+                        </span>
                     </button>
                 ))}
             </div>
 
             {subTab === 'portfolio' && (
                 <div className="space-y-6 animate-fade-in">
-                    {/* Portfolio Summary */}
+                    {/* Portfolio Summary - Premium Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-between relative overflow-hidden">
-                            <div>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Patrimônio Bruto</p>
-                                <h3 className="text-2xl font-bold text-slate-800 dark:text-white mt-1">{formatCurrency(portfolioStats.totalCurrent, currency)}</h3>
-                            </div>
-                            <div className="mt-4 flex items-center gap-2">
-                                <span className={`px-2 py-1 rounded text-xs font-bold flex items-center gap-1 ${portfolioStats.profit >= 0 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 link text-rose-400'}`}>
-                                    <TrendingUp size={12} className={portfolioStats.profit < 0 ? 'rotate-180' : ''} />
-                                    {Math.abs(portfolioStats.profitPct).toFixed(2)}%
-                                </span>
-                                <span className="text-[10px] text-slate-400">Rentabilidade Total</span>
-                            </div>
-                            <div className="absolute top-0 right-0 p-4 opacity-10">
-                                <Landmark size={80} />
+                        {/* Card 1: Patrimônio Bruto (Glassmorphism + Gradiente) */}
+                        <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-900 dark:to-black p-6 rounded-2xl border border-slate-700 shadow-xl group">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/20 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none group-hover:bg-blue-500/30 transition-all"></div>
+
+                            <div className="relative z-10 h-full flex flex-col justify-between">
+                                <div>
+                                    <div className="flex justify-between items-start mb-2">
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5"><Wallet size={12} /> Patrimônio Bruto</p>
+                                    </div>
+                                    <h3 className="text-3xl font-black text-white tracking-tight">{formatCurrency(portfolioStats.totalCurrent, currency)}</h3>
+                                </div>
+
+                                <div className="mt-6 flex items-center gap-3">
+                                    <span className={`px-2.5 py-1 rounded-md text-xs font-bold flex items-center gap-1 shadow-inner backdrop-blur-md border ${portfolioStats.profit >= 0 ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border-rose-500/30'}`}>
+                                        <TrendingUp size={12} className={portfolioStats.profit < 0 ? 'rotate-180' : ''} />
+                                        {Math.abs(portfolioStats.profitPct).toFixed(2)}%
+                                    </span>
+                                    <span className="text-[10px] text-slate-400 font-medium tracking-wide">Rentabilidade da Carteira</span>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-between">
+                        {/* Card 2: Total Investido e Proventos Básicos */}
+                        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
                             <div>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Investido</p>
-                                <h3 className="text-2xl font-bold text-slate-700 dark:text-slate-200 mt-1">{formatCurrency(portfolioStats.totalInvested, currency)}</h3>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1.5"><PiggyBank size={12} className="text-blue-500" /> Total Desembolsado</p>
+                                <h3 className="text-2xl font-bold text-slate-700 dark:text-slate-200">{formatCurrency(portfolioStats.totalInvested, currency)}</h3>
+                                <div className="mt-2 text-xs font-medium text-slate-500">
+                                    Resultado Líquido: <span className={`font-bold ml-1 ${portfolioStats.profit >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>{portfolioStats.profit >= 0 ? '+' : ''}{formatCurrency(portfolioStats.profit, currency)}</span>
+                                </div>
                             </div>
-                            <div className="mt-2 text-xs text-slate-500">
-                                Lucro/Prejuízo: <span className={`font-bold ${portfolioStats.profit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>{formatCurrency(portfolioStats.profit, currency)}</span>
+
+                            <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700 flex justify-between items-end">
+                                <div>
+                                    <p className="text-[10px] uppercase font-bold text-slate-400 mb-0.5"><Zap size={10} className="inline text-amber-500 mb-0.5" /> Est. Dividendos / Mês</p>
+                                    <p className="font-mono text-sm font-bold text-amber-600 dark:text-amber-400">{formatCurrency(portfolioStats.estimatedDividends, currency)}</p>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="bg-blue-600 p-6 rounded-xl shadow-md shadow-blue-500/30 text-white flex flex-col justify-center items-center text-center cursor-pointer hover:bg-blue-700 transition-colors" onClick={() => setShowAddModal(true)}>
-                            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mb-2">
-                                <Plus size={24} />
+                        {/* Card 3: Call to Action Dinâmico */}
+                        <div
+                            onClick={() => setShowAddModal(true)}
+                            className="group bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-900/10 p-6 rounded-2xl border border-blue-200 dark:border-blue-800/50 shadow-sm flex flex-col justify-center items-center text-center cursor-pointer hover:shadow-md hover:border-blue-300 dark:hover:border-blue-700 transition-all overflow-hidden relative"
+                        >
+                            <div className="absolute inset-0 bg-blue-600 translate-y-[100%] group-hover:translate-y-0 transition-transform duration-300 ease-in-out z-0"></div>
+
+                            <div className="relative z-10 flex flex-col items-center">
+                                <div className="w-12 h-12 bg-blue-200 text-blue-600 dark:bg-blue-800 dark:text-blue-300 group-hover:bg-white/20 group-hover:text-white rounded-full flex items-center justify-center mb-3 shadow-inner transition-colors duration-300">
+                                    <Plus size={24} className="group-hover:rotate-90 transition-transform duration-500" />
+                                </div>
+                                <h3 className="font-bold text-blue-800 dark:text-blue-300 group-hover:text-white transition-colors duration-300">Gravar Aporte</h3>
+                                <p className="text-blue-600/70 dark:text-blue-400/70 text-xs font-medium group-hover:text-blue-100 transition-colors duration-300 mt-1">Registrar novo ativo</p>
                             </div>
-                            <h3 className="font-bold">Novo Investimento</h3>
-                            <p className="text-blue-100 text-xs">Adicionar ativo manualmente</p>
                         </div>
                     </div>
 
@@ -358,13 +413,30 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                                                 outerRadius={80}
                                                 paddingAngle={5}
                                                 dataKey="value"
+                                                stroke="none"
                                             >
                                                 {portfolioStats.allocation.map((entry, index) => (
                                                     <Cell key={`cell-${index}`} fill={entry.color} />
                                                 ))}
                                             </Pie>
-                                            <Tooltip formatter={(v: any) => formatCurrency(v, currency)} />
-                                            <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                                            <Tooltip
+                                                content={({ active, payload }) => {
+                                                    if (active && payload && payload.length) {
+                                                        const data = payload[0];
+                                                        return (
+                                                            <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-md border border-slate-200 dark:border-slate-700 p-3 rounded-xl shadow-xl flex items-center gap-3">
+                                                                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: data.payload.color }}></div>
+                                                                <div>
+                                                                    <p className="text-[10px] uppercase font-bold text-slate-500">{data.name}</p>
+                                                                    <p className="font-bold text-slate-800 dark:text-white">{formatCurrency(data.value as number, currency)}</p>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    }
+                                                    return null;
+                                                }}
+                                            />
+                                            <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }} />
                                         </PieChart>
                                     </ResponsiveContainer>
                                 ) : (
@@ -383,35 +455,55 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                             </h4>
                             <div className="overflow-y-auto max-h-[400px] custom-scrollbar pr-2">
                                 {myInvestments.length === 0 ? (
-                                    <div className="text-center py-10 border-2 border-dashed border-slate-100 dark:border-slate-700 rounded-xl">
-                                        <p className="text-slate-400 font-bold mb-2">Carteira Vazia</p>
-                                        <button onClick={() => setShowAddModal(true)} className="text-blue-600 hover:underline text-sm font-bold">Adicionar primeiro investimento</button>
+                                    <div className="p-10 text-center flex flex-col items-center justify-center relative overflow-hidden bg-slate-50/50 dark:bg-slate-900/20 rounded-xl border border-dashed border-slate-200 dark:border-slate-700 mt-2">
+                                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-blue-500/5 rounded-full blur-2xl pointer-events-none"></div>
+                                        <div className="w-20 h-20 mb-4 relative z-10 group cursor-pointer" onClick={() => setShowAddModal(true)}>
+                                            <div className="absolute inset-0 bg-blue-400/20 rounded-full blur-lg group-hover:bg-blue-400/40 transition-all duration-500"></div>
+                                            <div className="relative bg-white dark:bg-slate-800 border-[3px] border-blue-50 dark:border-blue-900 shadow-lg w-full h-full rounded-full flex items-center justify-center transform group-hover:scale-110 transition-transform duration-500">
+                                                <Wallet size={32} className="text-blue-500" />
+                                            </div>
+                                        </div>
+                                        <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-2 z-10 tracking-tight">Comece a Investir</h3>
+                                        <p className="text-slate-500 dark:text-slate-400 text-sm max-w-xs mx-auto mb-6 z-10 leading-relaxed">
+                                            Sua carteira está vazia. Registre seu primeiro aporte para iniciar sua jornada financeira inteligente.
+                                        </p>
+                                        <button
+                                            onClick={() => setShowAddModal(true)}
+                                            className="z-10 bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2 rounded-lg border border-transparent shadow-md hover:shadow-lg transition-all flex items-center gap-2"
+                                        >
+                                            <Plus size={16} /> Fazer Aporte
+                                        </button>
                                     </div>
                                 ) : (
                                     <div className="space-y-3">
                                         {myInvestments.map(item => (
-                                            <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-700 hover:border-blue-200 transition-all group">
-                                                <div className="flex items-center gap-4 mb-2 sm:mb-0">
-                                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-xs uppercase
-                                                        ${item.type === 'fixed' ? 'bg-blue-100 text-blue-600' :
-                                                            item.type === 'variable' ? 'bg-purple-100 text-purple-600' :
-                                                                item.type === 'fund' ? 'bg-emerald-100 text-emerald-600' :
-                                                                    item.type === 'crypto' ? 'bg-amber-100 text-amber-600' : 'bg-slate-200 text-slate-600'}`}>
+                                            <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200/60 dark:border-slate-700/60 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-md transition-all group overflow-hidden relative">
+                                                <div className="absolute left-0 top-0 bottom-0 w-1 bg-slate-200 dark:bg-slate-700 group-hover:bg-blue-500 transition-colors"></div>
+                                                <div className="flex items-center gap-4 mb-3 sm:mb-0 ml-2">
+                                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-black text-sm uppercase shadow-sm border
+                                                        ${item.type === 'fixed' ? 'bg-blue-50 text-blue-600 border-blue-100 dark:bg-blue-900/30 dark:border-blue-800/50' :
+                                                            item.type === 'variable' ? 'bg-purple-50 text-purple-600 border-purple-100 dark:bg-purple-900/30 dark:border-purple-800/50' :
+                                                                item.type === 'fund' ? 'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-900/30 dark:border-emerald-800/50' :
+                                                                    item.type === 'crypto' ? 'bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-900/30 dark:border-amber-800/50' : 'bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-800 dark:border-slate-700'}`}>
                                                         {item.type.substring(0, 3)}
                                                     </div>
                                                     <div>
-                                                        <h5 className="font-bold text-slate-800 dark:text-white">{item.name}</h5>
-                                                        <p className="text-xs text-slate-500 font-medium">{new Date(item.date).toLocaleDateString('pt-BR')}</p>
+                                                        <h5 className="font-bold text-slate-800 dark:text-white text-base leading-tight">{item.name}</h5>
+                                                        <p className="text-[11px] text-slate-400 font-medium flex items-center gap-1 mt-1">
+                                                            <Calendar size={10} /> {new Date(item.date).toLocaleDateString('pt-BR')}
+                                                        </p>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto">
-                                                    <div className="text-right">
-                                                        <p className="text-[10px] uppercase font-bold text-slate-400">Valor Atual</p>
-                                                        <p className="font-bold text-slate-700 dark:text-slate-200">{formatCurrency(item.currentValue || item.amount, currency)}</p>
+                                                <div className="flex items-center justify-between sm:justify-end gap-5 w-full sm:w-auto ml-2 sm:ml-0">
+                                                    <div className="flex flex-col items-start sm:items-end">
+                                                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Saldo Atual</span>
+                                                        <span className="font-mono text-lg font-black text-slate-700 dark:text-slate-200 tracking-tight">{formatCurrency(item.currentValue || item.amount, currency)}</span>
                                                     </div>
-                                                    <button onClick={() => handleDeleteInvestment(item.id)} className="text-slate-300 hover:text-rose-500 transition-colors p-2">
-                                                        <Trash2 size={16} />
-                                                    </button>
+                                                    <div className="border-l border-slate-100 dark:border-slate-700 pl-4">
+                                                        <button onClick={() => handleDeleteInvestment(item.id)} className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all p-0">
+                                                            <Trash2 size={14} />
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         ))}
@@ -465,6 +557,89 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                         <div className="p-4 bg-slate-50 dark:bg-slate-900 border-t border-slate-100 dark:border-slate-700 flex justify-end gap-2">
                             <button onClick={() => setShowAddModal(false)} className="px-4 py-2 text-slate-500 hover:text-slate-700 font-bold text-sm">Cancelar</button>
                             <button onClick={handleAddInvestment} className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-sm shadow-md">Salvar Investimento</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {subTab === 'passiveIncome' && (
+                <div className="space-y-6 animate-fade-in">
+                    <div className="bg-gradient-to-br from-amber-500 to-orange-600 p-8 rounded-2xl text-white shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center gap-8 group">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-20 -mt-20 group-hover:scale-110 transition-transform duration-1000"></div>
+                        <div className="relative z-10 w-24 h-24 bg-white/20 backdrop-blur-md border border-white/30 rounded-full flex flex-col items-center justify-center shrink-0 shadow-inner">
+                            <Flame size={40} className="text-amber-100 drop-shadow-md animate-pulse" />
+                        </div>
+                        <div className="relative z-10 flex-1 text-center md:text-left">
+                            <h2 className="text-3xl font-black mb-2 tracking-tight">Simulador F.I.R.E.</h2>
+                            <p className="text-amber-100 font-medium">Financial Independence, Retire Early - Descubra o patrimônio necessário para viver exclusivamente de renda passiva mensal.</p>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm space-y-6 h-fit">
+                            <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2"><Target size={18} className="text-amber-500" /> Seus Objetivos</h3>
+
+                            <div>
+                                <label className="text-[10px] font-bold uppercase text-slate-400">Renda Mensal Desejada</label>
+                                <div className="relative mt-1">
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">R$</span>
+                                    <input type="number" value={piGoal} onChange={e => setPiGoal(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pl-9 pr-4 font-bold text-sm outline-none focus:ring-2 focus:ring-amber-500/20 transition-all" />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="text-[10px] font-bold uppercase text-slate-400">Taxa de Rendimento Mensal (% a.m.)</label>
+                                <input type="number" step="0.1" value={piRate} onChange={e => setPiRate(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-4 font-bold text-sm outline-none mt-1 transition-all focus:ring-2 focus:ring-amber-500/20" />
+                            </div>
+                        </div>
+
+                        <div className="lg:col-span-2 bg-white dark:bg-slate-800 p-8 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm flex flex-col justify-center h-full relative overflow-hidden min-h-[300px]">
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl pointer-events-none"></div>
+
+                            {/* Calculation inline for reactivity */}
+                            {(() => {
+                                const requiredPatrimony = piRate > 0 ? piGoal / (piRate / 100) : 0;
+                                const currentYielding = portfolioStats.totalInvested; // Simples
+                                const progressRaw = requiredPatrimony > 0 ? (currentYielding / requiredPatrimony) * 100 : 0;
+                                const progress = Math.min(progressRaw, 100);
+
+                                return (
+                                    <div className="relative z-10 flex flex-col justify-center h-full">
+                                        <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 text-center">Patrimônio Mágico Necessário</h3>
+                                        <div className="text-4xl sm:text-5xl md:text-6xl font-black text-center text-slate-800 dark:text-white tracking-tighter my-6">
+                                            {formatCurrency(requiredPatrimony, currency)}
+                                        </div>
+
+                                        <div className="mt-8 space-y-5">
+                                            <div className="flex justify-between items-end">
+                                                <div>
+                                                    <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Status Atual</p>
+                                                    <p className="font-bold text-slate-700 dark:text-slate-200">{formatCurrency(currentYielding, currency)} acumulado</p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-2xl font-black text-amber-500">{progress.toFixed(2)}%</p>
+                                                </div>
+                                            </div>
+
+                                            <div className="w-full bg-slate-100 dark:bg-slate-900 h-5 rounded-full overflow-hidden border border-slate-200 dark:border-slate-800 shadow-inner p-0.5">
+                                                <div className="bg-gradient-to-r from-amber-400 to-orange-500 h-full rounded-full transition-all duration-1000 ease-out shadow-sm" style={{ width: `${Math.max(progress, 1)}%` }}></div>
+                                            </div>
+
+                                            <div className="flex justify-center pt-2">
+                                                {progress < 100 ? (
+                                                    <p className="text-xs font-medium text-slate-500 dark:text-slate-400 px-4 py-2 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-100 dark:border-slate-800">
+                                                        Faltam <span className="font-bold text-amber-600 dark:text-amber-400 mx-1">{formatCurrency(Math.max(requiredPatrimony - currentYielding, 0), currency)}</span> para sua liberdade.
+                                                    </p>
+                                                ) : (
+                                                    <p className="text-xs font-bold text-emerald-600 px-4 py-2 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg border border-emerald-200 dark:border-emerald-800/50 flex items-center gap-1">
+                                                        <CheckCircle size={14} /> Você atingiu a Independência Financeira!
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })()}
                         </div>
                     </div>
                 </div>
@@ -686,14 +861,18 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                                 <h4 className="text-lg font-bold text-slate-800 dark:text-white mb-1 group-hover:text-blue-600 transition-colors">{opt.title}</h4>
                                 <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">{opt.why}</p>
                                 <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-4">{opt.rate}</div>
-                                <div className="flex justify-between items-center pt-4 border-t border-slate-100 dark:border-slate-700">
+                                <div className="flex justify-between items-center pt-5 border-t border-slate-100 dark:border-slate-700">
                                     <div>
-                                        <p className="text-[9px] text-slate-400 uppercase font-bold">Mínimo</p>
-                                        <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{formatCurrency(opt.min, currency)}</p>
+                                        <p className="text-[9px] text-slate-400 uppercase font-bold mb-1">Aplicação Mínima</p>
+                                        <p className="text-sm font-black text-slate-700 dark:text-slate-300 tracking-tight">{formatCurrency(opt.min, currency)}</p>
                                     </div>
-                                    <div className="text-right">
-                                        <p className="text-[9px] text-slate-400 uppercase font-bold">Risco</p>
-                                        <span className={`text-[10px] font-bold ${opt.risk === 'Baixo' ? 'text-emerald-500' : opt.risk === 'Médio' ? 'text-amber-500' : 'text-rose-500'}`}>{opt.risk}</span>
+                                    <div className="text-right flex flex-col items-end">
+                                        <p className="text-[9px] text-slate-400 uppercase font-bold mb-1.5">Nível de Risco</p>
+                                        <div className="flex gap-1" title={opt.risk}>
+                                            <div className={`w-3 h-1.5 rounded-full ${opt.risk === 'Baixo' || opt.risk === 'Médio' || opt.risk === 'Alto' ? 'bg-emerald-500' : 'bg-slate-200 dark:bg-slate-700'}`}></div>
+                                            <div className={`w-3 h-1.5 rounded-full ${opt.risk === 'Médio' || opt.risk === 'Alto' ? 'bg-amber-500' : 'bg-slate-200 dark:bg-slate-700'}`}></div>
+                                            <div className={`w-3 h-1.5 rounded-full ${opt.risk === 'Alto' ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]' : 'bg-slate-200 dark:bg-slate-700'}`}></div>
+                                        </div>
                                     </div>
                                 </div>
                                 <button
@@ -766,7 +945,55 @@ export const Investments: React.FC<InvestmentsProps> = ({ config, onNavigateToSe
                                     <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-100 dark:border-emerald-800"><p className="text-[10px] font-bold text-emerald-500 uppercase">Juros</p><p className="text-sm font-bold text-emerald-600">{formatCurrency(projResult.totalInterest, currency)}</p></div>
                                     <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800 col-span-2 sm:col-span-1"><p className="text-[10px] font-bold text-blue-500 uppercase">Final</p><p className="text-lg font-bold text-blue-700 dark:text-blue-400">{formatCurrency(projResult.totalAmount, currency)}</p></div>
                                 </div>
-                                <div className="flex-1"><ResponsiveContainer width="100%" height="100%"><AreaChart data={projResult.data}><CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1} /><XAxis dataKey="name" tick={{ fontSize: 10 }} /><YAxis hide /><Tooltip formatter={(v: any) => formatCurrency(v, currency)} /><Area type="monotone" dataKey="Total" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.1} strokeWidth={3} /><Area type="monotone" dataKey="Investido" stroke="#94a3b8" fill="#94a3b8" fillOpacity={0.05} strokeWidth={2} /></AreaChart></ResponsiveContainer></div>
+                                <div className="flex-1">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <AreaChart data={projResult.data} margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
+                                            <defs>
+                                                <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4} />
+                                                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                                                </linearGradient>
+                                                <linearGradient id="colorInvestido" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.3} />
+                                                    <stop offset="95%" stopColor="#94a3b8" stopOpacity={0} />
+                                                </linearGradient>
+                                            </defs>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#cbd5e1" opacity={0.2} />
+                                            <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 600 }} axisLine={false} tickLine={false} dy={10} />
+                                            <YAxis hide />
+                                            <Tooltip
+                                                content={({ active, payload, label }) => {
+                                                    if (active && payload && payload.length) {
+                                                        return (
+                                                            <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700 p-4 rounded-2xl shadow-2xl">
+                                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3 pb-2 border-b border-slate-100 dark:border-slate-800">{label}</p>
+                                                                <div className="space-y-3">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <div className="w-1.5 h-6 rounded-full bg-blue-500"></div>
+                                                                        <div>
+                                                                            <p className="text-[9px] font-bold text-slate-400 uppercase">Patrimônio Final</p>
+                                                                            <p className="text-sm font-black text-slate-800 dark:text-white">{formatCurrency(payload[0].value as number, currency)}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-3">
+                                                                        <div className="w-1.5 h-6 rounded-full bg-slate-400"></div>
+                                                                        <div>
+                                                                            <p className="text-[9px] font-bold text-slate-400 uppercase">Total Desembolsado</p>
+                                                                            <p className="text-sm font-bold text-slate-600 dark:text-slate-300">{formatCurrency(payload[1].value as number, currency)}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    }
+                                                    return null;
+                                                }}
+                                            />
+                                            <Area type="monotone" dataKey="Total" stroke="#3b82f6" fill="url(#colorTotal)" strokeWidth={4} activeDot={{ r: 6, strokeWidth: 0, fill: '#3b82f6' }} />
+                                            <Area type="monotone" dataKey="Investido" stroke="#94a3b8" fill="url(#colorInvestido)" strokeWidth={2} activeDot={{ r: 4, strokeWidth: 0, fill: '#94a3b8' }} />
+                                        </AreaChart>
+                                    </ResponsiveContainer>
+                                </div>
                             </>
                         ) : (
                             <div className="h-full flex flex-col items-center justify-center text-slate-300"><TrendingUp size={48} className="opacity-20 mb-4" /><p className="font-bold">Aperte em Simular para ver a projeção</p></div>
