@@ -286,8 +286,8 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
         <BiometricGate requireBiometrics={!!config.requireBiometrics}>
             <div className={`flex justify-center min-h-[100dvh] font-sans overflow-hidden transition-colors duration-300 bg-slate-100 dark:bg-slate-900 ${config.theme === 'dark' ? 'dark' : ''}`}>
 
-                {/* ── DESKTOP LAYOUT (lg+): sidebar + content ── */}
-                <div className="hidden lg:flex w-full h-[100dvh] overflow-hidden">
+                {/* ── DESKTOP LAYOUT (md+): sidebar + content ── */}
+                <div className="hidden md:flex w-full h-[100dvh] overflow-hidden">
 
                     {/* Sidebar */}
                     <aside className="w-64 xl:w-72 bg-brand-blue text-white flex flex-col shrink-0 h-full shadow-2xl z-10">
@@ -358,7 +358,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                         </div>
 
                         {/* Desktop Content Area */}
-                        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 lg:p-8">
+                        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 md:p-8">
                             {contentLoading && <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm z-20"><Loader2 size={40} className="animate-spin text-brand-blue mb-3" /><p className="text-sm font-medium animate-pulse">Sincronizando...</p></div>}
                             <div className={`transition-opacity duration-300 ${contentLoading ? 'opacity-40' : 'opacity-100'}`}>
                                 <AnimatePresence mode="wait">
@@ -401,8 +401,8 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                     <InstallPrompt />
                 </div>
 
-                {/* ── MOBILE LAYOUT (< lg): original phone layout ── */}
-                <div className="lg:hidden w-full max-w-md bg-slate-50 dark:bg-slate-950 shadow-2xl relative flex flex-col h-[100dvh] overflow-hidden">
+                {/* ── MOBILE LAYOUT (< md): original phone layout ── */}
+                <div className="md:hidden w-full max-w-md bg-slate-50 dark:bg-slate-950 shadow-2xl relative flex flex-col h-[100dvh] overflow-hidden">
 
                     {/* Header Estilo Nubank adaptado com cores da marca */}
                     <header className={`bg-brand-blue text-white px-5 pt-8 pb-6 flex flex-col z-30 shadow-md ${activeTab !== 'controle' ? 'h-auto py-4' : ''}`}>
