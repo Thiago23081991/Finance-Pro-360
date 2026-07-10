@@ -19,7 +19,17 @@ interface SettingsProps {
 }
 
 export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, transactions }) => {
-    const [activeTab, setActiveTab] = useState<'profile' | 'plan' | 'appearance' | 'categories' | 'security' | 'support'>('profile');
+    const [activeTab, setActiveTab] = useState<'profile' | 'plan' | 'appearance' | 'categories' | 'security' | 'integrations' | 'support'>('profile');
+
+    // Telegram Integration State
+    const [tgLinked, setTgLinked] = useState(false);
+    const [tgUsername, setTgUsername] = useState<string | undefined>();
+    const [tgLinkedAt, setTgLinkedAt] = useState<string | undefined>();
+    const [tgCode, setTgCode] = useState<string | null>(null);
+    const [tgCodeLoading, setTgCodeLoading] = useState(false);
+    const [tgUnlinkLoading, setTgUnlinkLoading] = useState(false);
+    const [tgCodeCopied, setTgCodeCopied] = useState(false);
+    const [tgSecondsLeft, setTgSecondsLeft] = useState(0);
     const [newIncomeCat, setNewIncomeCat] = useState('');
     const [newExpenseCat, setNewExpenseCat] = useState('');
     const [newMethod, setNewMethod] = useState('');
@@ -53,6 +63,17 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
         setTempName(config.name || '');
         setDueDate(config.creditCardDueDate || 10);
     }, [config.userId, isLicensed, config.name, config.creditCardDueDate]);
+
+    // Carregar status do Telegram quando a aba Integrações for aberta
+    useEffect(() => {
+        if (activeTab === 'integrations' && config.userId) {
+            DBService.getTelegramLinkStatus(config.userId).then(status => {
+                setTgLinked(status.linked);
+                setTgUsername(status.username);
+                setTgLinkedAt(status.linkedAt);
+            }).catch(console.error);
+        }
+    }, [activeTab, config.userId]);
 
     useEffect(() => {
         if ('serviceWorker' in navigator && 'PushManager' in window) {
@@ -250,6 +271,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
         { id: 'appearance', label: 'Ajustes', icon: <Moon size={20} className={activeTab === 'appearance' ? 'text-purple-500' : 'text-slate-400'} /> },
         { id: 'categories', label: 'Listas', icon: <Tag size={20} className={activeTab === 'categories' ? 'text-emerald-500' : 'text-slate-400'} /> },
         { id: 'security', label: 'Segurança', icon: <Shield size={20} className={activeTab === 'security' ? 'text-rose-500' : 'text-slate-400'} /> },
+        { id: 'integrations', label: 'Integrações', icon: <Zap size={20} className={activeTab === 'integrations' ? 'text-sky-500' : 'text-slate-400'} /> },
         { id: 'support', label: 'Central de Ajuda', icon: <MessageCircle size={20} className={activeTab === 'support' ? 'text-indigo-500' : 'text-slate-400'} /> },
     ] as const;
 
@@ -551,6 +573,209 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                                         <button onClick={() => setShowPrivacyModal(true)} className="flex-1 flex items-center justify-center gap-2 bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 px-4 py-3 rounded-xl hover:bg-slate-100 transition-colors text-xs font-bold active:scale-95"><FileText size={16} />TERMOS DE PRIVACIDADE</button>
                                     </div>
                                 </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'integrations' && (
+                            <div className="p-4 space-y-4">
+
+                                {/* Header */}
+                                <div className="flex items-center gap-3 mb-2">
+                                    <div className="w-10 h-10 rounded-2xl bg-sky-100 dark:bg-sky-900/40 flex items-center justify-center">
+                                        <Zap size={20} className="text-sky-500" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-black text-slate-900 dark:text-white text-sm">Integrações</h3>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">Conecte apps externos ao Finance Pro 360</p>
+                                    </div>
+                                </div>
+
+                                {/* Telegram Card */}
+                                <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 overflow-hidden shadow-sm">
+
+                                    {/* Card Header */}
+                                    <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-[#229ED9]/10 flex items-center justify-center">
+                                            {/* Telegram SVG logo */}
+                                            <svg viewBox="0 0 24 24" className="w-6 h-6 fill-[#229ED9]">
+                                                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.941z"/>
+                                            </svg>
+                                        </div>
+                                        <div className="flex-1">
+                                            <h4 className="font-black text-sm text-slate-900 dark:text-white">Telegram Bot</h4>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400">Registre transações diretamente no Telegram</p>
+                                        </div>
+                                        {/* Status badge */}
+                                        <span className={`text-[10px] font-black px-2 py-1 rounded-full uppercase ${
+                                            tgLinked
+                                                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400'
+                                                : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400'
+                                        }`}>
+                                            {tgLinked ? '● Conectado' : '○ Desconectado'}
+                                        </span>
+                                    </div>
+
+                                    <div className="p-4 space-y-4">
+                                        {tgLinked ? (
+                                            /* ── ESTADO: CONECTADO ── */
+                                            <div className="space-y-3">
+                                                <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3 flex items-start gap-3">
+                                                    <CheckCircle size={18} className="text-emerald-500 shrink-0 mt-0.5" />
+                                                    <div>
+                                                        <p className="text-sm font-bold text-emerald-800 dark:text-emerald-300">
+                                                            Conectado{tgUsername ? ` como @${tgUsername}` : ''}
+                                                        </p>
+                                                        {tgLinkedAt && (
+                                                            <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5">
+                                                                Vinculado em {new Date(tgLinkedAt).toLocaleDateString('pt-BR')}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                <div className="bg-slate-50 dark:bg-slate-900 rounded-xl p-3">
+                                                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider">Como usar</p>
+                                                    <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-300">
+                                                        <p>💸 "gastei 45 no mercado" → Despesa salva</p>
+                                                        <p>💰 "recebi 3500 de salário" → Receita salva</p>
+                                                        <p>📊 /saldo → Ver saldo do mês</p>
+                                                        <p>🎯 /metas → Ver suas metas</p>
+                                                    </div>
+                                                </div>
+
+                                                <button
+                                                    id="telegram-unlink-btn"
+                                                    onClick={async () => {
+                                                        if (!config.userId) return;
+                                                        if (!confirm('Deseja desconectar o Telegram?')) return;
+                                                        setTgUnlinkLoading(true);
+                                                        try {
+                                                            await DBService.unlinkTelegram(config.userId);
+                                                            setTgLinked(false);
+                                                            setTgUsername(undefined);
+                                                            setTgCode(null);
+                                                        } catch (e: any) {
+                                                            alert('Erro ao desconectar: ' + e.message);
+                                                        } finally {
+                                                            setTgUnlinkLoading(false);
+                                                        }
+                                                    }}
+                                                    disabled={tgUnlinkLoading}
+                                                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 text-xs font-bold hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors active:scale-95 disabled:opacity-50"
+                                                >
+                                                    {tgUnlinkLoading ? <Loader2 size={14} className="animate-spin" /> : <X size={14} />}
+                                                    Desconectar Telegram
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            /* ── ESTADO: DESCONECTADO ── */
+                                            <div className="space-y-4">
+                                                {/* Steps */}
+                                                <div className="space-y-2">
+                                                    {[
+                                                        { step: '1', text: 'Clique em "Gerar Código" abaixo' },
+                                                        { step: '2', text: 'Abra o Telegram e busque @FinancePro360Bot' },
+                                                        { step: '3', text: 'Envie: /vincular SEU-CÓDIGO' },
+                                                        { step: '4', text: 'Pronto! Registre transações pelo Telegram' },
+                                                    ].map(({ step, text }) => (
+                                                        <div key={step} className="flex items-start gap-3">
+                                                            <span className="w-6 h-6 rounded-full bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400 text-xs font-black flex items-center justify-center shrink-0">{step}</span>
+                                                            <p className="text-xs text-slate-600 dark:text-slate-300 pt-1">{text}</p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+
+                                                {/* Code display */}
+                                                {tgCode && tgSecondsLeft > 0 && (
+                                                    <motion.div
+                                                        initial={{ opacity: 0, y: 8 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        className="bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800 rounded-2xl p-4 text-center"
+                                                    >
+                                                        <p className="text-[11px] font-bold text-sky-600 dark:text-sky-400 uppercase tracking-widest mb-2">Seu Código de Vínculo</p>
+                                                        <div className="flex items-center justify-center gap-3 mb-3">
+                                                            <span className="font-black text-3xl tracking-[0.2em] text-slate-900 dark:text-white">{tgCode}</span>
+                                                            <button
+                                                                id="telegram-copy-code-btn"
+                                                                onClick={() => {
+                                                                    navigator.clipboard.writeText(`/vincular ${tgCode}`);
+                                                                    setTgCodeCopied(true);
+                                                                    setTimeout(() => setTgCodeCopied(false), 2000);
+                                                                }}
+                                                                className="p-2 rounded-lg bg-sky-100 dark:bg-sky-900/50 text-sky-600 dark:text-sky-400 hover:bg-sky-200 transition-colors"
+                                                                title="Copiar comando"
+                                                            >
+                                                                {tgCodeCopied ? <CheckCircle size={16} /> : <Copy size={16} />}
+                                                            </button>
+                                                        </div>
+                                                        <div className="flex items-center justify-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                                                            <Timer size={12} />
+                                                            <span>Expira em <strong className={tgSecondsLeft < 60 ? 'text-rose-500' : 'text-slate-700 dark:text-slate-200'}>{Math.floor(tgSecondsLeft / 60)}:{String(tgSecondsLeft % 60).padStart(2, '0')}</strong></span>
+                                                        </div>
+                                                        <p className="text-[10px] text-slate-400 mt-2">Abra o Telegram e envie este código ao @FinancePro360Bot</p>
+                                                    </motion.div>
+                                                )}
+
+                                                {(!tgCode || tgSecondsLeft === 0) && (
+                                                    <button
+                                                        id="telegram-generate-code-btn"
+                                                        onClick={async () => {
+                                                            if (!config.userId) return;
+                                                            setTgCodeLoading(true);
+                                                            try {
+                                                                const code = await DBService.generateTelegramLinkCode(config.userId);
+                                                                setTgCode(code);
+                                                                setTgSecondsLeft(600); // 10 min
+                                                                // Countdown
+                                                                const interval = setInterval(() => {
+                                                                    setTgSecondsLeft(prev => {
+                                                                        if (prev <= 1) { clearInterval(interval); setTgCode(null); return 0; }
+                                                                        return prev - 1;
+                                                                    });
+                                                                }, 1000);
+                                                                // Poll for link
+                                                                const pollInterval = setInterval(async () => {
+                                                                    const status = await DBService.getTelegramLinkStatus(config.userId!);
+                                                                    if (status.linked) {
+                                                                        clearInterval(pollInterval);
+                                                                        setTgLinked(true);
+                                                                        setTgUsername(status.username);
+                                                                        setTgLinkedAt(status.linkedAt);
+                                                                        setTgCode(null);
+                                                                    }
+                                                                }, 3000);
+                                                                setTimeout(() => clearInterval(pollInterval), 620000);
+                                                            } catch (e: any) {
+                                                                alert('Erro ao gerar código: ' + e.message);
+                                                            } finally {
+                                                                setTgCodeLoading(false);
+                                                            }
+                                                        }}
+                                                        disabled={tgCodeLoading}
+                                                        className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-[#229ED9] hover:bg-[#1a8cbf] text-white text-sm font-black transition-colors active:scale-95 disabled:opacity-50 shadow-lg shadow-sky-500/20"
+                                                    >
+                                                        {tgCodeLoading
+                                                            ? <><Loader2 size={16} className="animate-spin" /> Gerando...</>
+                                                            : <><svg viewBox="0 0 24 24" className="w-4 h-4 fill-white"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.941z"/></svg> Conectar com Telegram</>
+                                                        }
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* More integrations coming soon */}
+                                <div className="bg-slate-100 dark:bg-slate-800/50 rounded-2xl p-4 flex items-center gap-3 opacity-60">
+                                    <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+                                        <Zap size={18} className="text-slate-400" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Mais integrações em breve</p>
+                                        <p className="text-xs text-slate-400">WhatsApp, Google Sheets, Open Finance...</p>
+                                    </div>
+                                </div>
+
                             </div>
                         )}
 

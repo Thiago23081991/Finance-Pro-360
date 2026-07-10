@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { Transaction, Goal, AppConfig, Investment, FilterState } from '../types';
+import { Transaction, Goal, AppConfig, Investment, FilterState, Tab } from '../types';
 import { formatCurrency, getBudgetCategoryType } from '../utils';
 import { MONTH_NAMES } from '../constants';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, Cell, LineChart, Line, Legend } from 'recharts';
-import { TrendingUp, TrendingDown, DollarSign, History, Utensils, Car, Home, HeartPulse, PartyPopper, GraduationCap, Banknote, ShoppingBag, Zap, CircleDollarSign, AlertTriangle, Lightbulb, Siren, Target, CheckCircle2, BarChart4, PieChart, LineChart as LineChartIcon, ArrowRightLeft, Lock, Landmark, FileText, Printer, Calculator, X } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, History, Utensils, Car, Home, HeartPulse, PartyPopper, GraduationCap, Banknote, ShoppingBag, Zap, CircleDollarSign, AlertTriangle, Lightbulb, Siren, Target, CheckCircle2, BarChart4, PieChart, LineChart as LineChartIcon, ArrowRightLeft, Lock, Landmark, FileText, Printer, Calculator, X, ChevronRight, CreditCard, Upload, Scale } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { DBService } from '../db';
 import { MonthlyReportModal } from './MonthlyReportModal';
@@ -20,6 +20,7 @@ interface DashboardProps {
     currency?: string;
     isPremium?: boolean;
     config?: AppConfig;
+    onNavigate?: (tab: Tab) => void;
 }
 
 const getCategoryIcon = (category: string) => {
@@ -39,7 +40,7 @@ const getCategoryIcon = (category: string) => {
 
 const CATEGORY_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#f43f5e'];
 
-export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filter, currency = 'BRL', isPremium = false, config }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filter, currency = 'BRL', isPremium = false, config, onNavigate }) => {
     const [selectedTrendCategory, setSelectedTrendCategory] = useState<string>('Alimentação');
 
     const filteredTransactions = useMemo<Transaction[]>(() => {
@@ -501,7 +502,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
 
     return (
         <motion.div
-            className="space-y-6 pb-20 md:pb-10"
+            className="space-y-0 md:space-y-2 pb-24 md:pb-10 font-outfit"
             variants={containerVariants}
             initial="hidden"
             animate="visible"
@@ -510,508 +511,95 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
             {/* Premium Banner (Show only for free users) */}
             {!isPremium && <PremiumBanner />}
 
-            {/* Action Bar / Header */}
-            <motion.div variants={itemVariants} className="flex justify-between items-center bg-gradient-to-r from-surfaceHighlight to-surface p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+            {/* Conta Block (Nubank Style) */}
+            <motion.div variants={itemVariants} className="bg-white dark:bg-[#1C1C1E] px-5 pt-6 pb-5 flex flex-col gap-4 rounded-[20px] shadow-sm border border-slate-100 dark:border-white/5 mx-4 mt-4">
+                <div className="flex justify-between items-center cursor-pointer">
+                    <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Conta</h3>
+                    <ChevronRight size={20} className="text-slate-400" />
+                </div>
                 <div>
-                    <h3 className="text-xl font-bold text-textMain flex items-center gap-2">
-                        Dashboard <span className="text-sm font-normal text-slate-500 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded-full">{MONTH_NAMES[filter.month]} {filter.year}</span>
-                    </h3>
-                </div>
-                <div className="flex gap-2">
-                    <button
-                        onClick={() => setShowProspectingModal(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-lg shadow-sm transition-all"
-                    >
-                        <Calculator size={16} />
-                        <span className="hidden sm:inline">Simular Gastos</span>
-                    </button>
-                    <button
-                        onClick={() => setShowReportModal(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-textMain font-bold text-sm rounded-lg border border-slate-200 dark:border-slate-600 shadow-sm transition-all"
-                    >
-                        <FileText size={16} className="text-blue-600" />
-                        <span className="hidden sm:inline">Relatório Mensal</span>
-                    </button>
-                </div>
-            </motion.div>
-
-            {/* KPI Cards & Highlights */}
-            <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-
-                {/* Coluna 1: KPIs Principais (Receita, Despesa, Saldo) */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-3 content-start">
-                    {/* Receita */}
-                    <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col gap-1">
-                        <div className="flex items-center gap-2 mb-2">
-                            <TrendingUp size={14} className="text-emerald-500" />
-                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Receitas</p>
-                        </div>
-                        <h3 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight leading-none">{formatCurrency(kpiData.income, currency)}</h3>
-                        <div className="flex items-center gap-1 mt-2">
-                            <span className={`text-[10px] font-bold ${momComparison.incomePct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                                {momComparison.incomePct >= 0 ? '+' : ''}{momComparison.incomePct.toFixed(1)}%
-                            </span>
-                            <span className="text-[10px] font-medium text-slate-400">vs. mês anterior</span>
-                        </div>
-                    </div>
-
-                    {/* Despesa */}
-                    <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col gap-1">
-                        <div className="flex items-center gap-2 mb-2">
-                            <TrendingDown size={14} className="text-rose-500" />
-                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Despesas</p>
-                        </div>
-                        <h3 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight leading-none">{formatCurrency(kpiData.expense, currency)}</h3>
-                        <div className="flex items-center gap-1 mt-2">
-                            <span className={`text-[10px] font-bold ${momComparison.expensePct <= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                                {momComparison.expensePct > 0 ? '+' : ''}{momComparison.expensePct.toFixed(1)}%
-                            </span>
-                            <span className="text-[10px] font-medium text-slate-400">vs. mês anterior</span>
-                        </div>
-                    </div>
-
-                    {/* Saldo */}
-                    <div className="bg-slate-950 dark:bg-black p-4 rounded-xl border border-slate-800 flex flex-col gap-1 shadow-sm">
-                        <div className="flex items-center gap-2 mb-2">
-                            <DollarSign size={14} className="text-slate-300" />
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Saldo Líquido</p>
-                        </div>
-                        <h3 className={`text-2xl font-bold tracking-tight leading-none ${kpiData.balance >= 0 ? 'text-white' : 'text-rose-400'}`}>
-                            {formatCurrency(kpiData.balance, currency)}
-                        </h3>
-                        <p className="text-[10px] font-semibold text-slate-500 mt-2">
-                            {kpiData.balance >= 0 ? '🟢 Positivo' : '🔴 Atenção'}
-                        </p>
-                    </div>
+                    <h2 className="text-[32px] font-bold text-slate-900 dark:text-white leading-none tracking-tight">{formatCurrency(kpiData.balance, currency)}</h2>
                 </div>
 
-                {/* Coluna 2: Destaques & Gamificação */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3 content-start">
-                    {/* Score de Saúde Financeira */}
-                    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 flex flex-col justify-between">
-                        <div className="flex justify-between items-start mb-2">
-                            <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Saúde Financeira</h4>
-                            <Target size={14} className="text-slate-400" />
-                        </div>
-                        <div className="flex items-end gap-1 mb-1">
-                            <span className="text-2xl font-bold text-slate-900 dark:text-white leading-none">{financialHealthScore}</span>
-                            <span className="text-[10px] font-bold text-slate-400 mb-0.5">/ 100</span>
-                        </div>
-                        <p className={`text-[10px] font-bold mt-1 ${financialHealthScore >= 80 ? 'text-emerald-500' : financialHealthScore >= 50 ? 'text-blue-500' : 'text-rose-500'}`}>
-                            {financialHealthScore >= 80 ? 'Excelente' : financialHealthScore >= 50 ? 'Estável' : 'Requer Atenção'}
-                        </p>
-                    </div>
-
-
-
-                    {/* Resumo de Investimentos (NOVO) */}
-                    {totalInvested > 0 && (
-                        <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
-                            <div className="flex justify-between items-start mb-2">
-                                <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Patrimônio</h4>
-                                <Landmark size={14} className="text-slate-400" />
+                {/* Quick Actions Carousel */}
+                <div className="flex gap-4 overflow-x-auto custom-scrollbar pb-3 pt-4 -mx-5 px-5 snap-x hide-scrollbar">
+                    {[
+                        { icon: <TrendingUp size={22} />, label: "Receitas", target: 'receitas' as Tab },
+                        { icon: <CreditCard size={22} />, label: "Despesas", target: 'despesas' as Tab },
+                        { icon: <BarChart4 size={22} />, label: "Investir", target: 'investimentos' as Tab },
+                        { icon: <Scale size={22} />, label: "Dívidas", target: 'dividas' as Tab },
+                        { icon: <PieChart size={22} />, label: "Orçamento", target: 'orcamento' as Tab }
+                    ].map((btn, i) => (
+                        <div key={i} onClick={() => onNavigate && onNavigate(btn.target)} className="flex flex-col items-center gap-2 min-w-[76px] snap-start cursor-pointer group">
+                            <div className="w-[72px] h-[72px] rounded-full bg-slate-100 dark:bg-[#2C2C2E] flex items-center justify-center text-slate-800 dark:text-slate-100 group-hover:bg-slate-200 dark:group-hover:bg-[#333336] transition-colors">
+                                {btn.icon}
                             </div>
-                            <div>
-                                <h3 className="text-2xl font-bold text-slate-900 dark:text-white leading-none">{formatCurrency(totalInvested, currency)}</h3>
-                                <p className="text-[10px] font-bold text-slate-400 mt-2">Investido</p>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Resumo de Renda Livre (Custos Fixos) */}
-                    <div className="bg-surface p-4 md:p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between">
-                        <div className="flex justify-between items-start mb-4">
-                            <div>
-                                <h4 className="text-xs font-bold text-textMuted uppercase tracking-widest">Comprometimento</h4>
-                                <p className="text-xs text-slate-400">Renda vs. Custos Fixos</p>
-                            </div>
-                            <div className="p-2 bg-amber-50 dark:bg-amber-900/20 rounded-lg text-amber-600 dark:text-amber-400">
-                                <Lock size={18} />
-                            </div>
-                        </div>
-
-                        <div className="space-y-3">
-                            <div>
-                                <div className="flex justify-between text-xs mb-1">
-                                    <span className="font-bold text-slate-700 dark:text-slate-300">Custo Fixo Total</span>
-                                    <span className="font-bold text-slate-700 dark:text-slate-300">{formatCurrency(fixedCostStats.totalFixed, currency)}</span>
-                                </div>
-                                <div className="w-full bg-slate-100 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
-                                    <div
-                                        className={`h-full rounded-full ${fixedCostStats.commitedPct > 50 ? 'bg-rose-500' : 'bg-amber-500'}`}
-                                        style={{ width: `${Math.min(fixedCostStats.commitedPct, 100)}%` }}
-                                    ></div>
-                                </div>
-                                <p className="text-[10px] text-slate-400 mt-1 text-right">{fixedCostStats.commitedPct.toFixed(0)}% da renda comprometida</p>
-                            </div>
-
-                            <div className="pt-3 border-t border-slate-100 dark:border-slate-700">
-                                <p className="text-[10px] font-bold text-slate-400 uppercase">Renda Livre Estimada</p>
-                                <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(fixedCostStats.freeIncome, currency)}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Coluna 3: Meta em Destaque e Atalhos */}
-                <div className="grid grid-cols-1 gap-3 content-start">
-                    {/* Meta Principal */}
-                    <div className="bg-surface p-4 md:p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 min-h-[160px] flex flex-col">
-                        <h4 className="text-xs font-bold text-textMuted uppercase tracking-widest mb-4 flex items-center gap-2">
-                            <Target size={14} /> Foco Principal
-                        </h4>
-
-                        {featuredGoal ? (
-                            <div className="flex-1 flex flex-col justify-center">
-                                <div className="flex justify-between items-end mb-2">
-                                    <span className="font-bold text-textMain truncate max-w-[150px]">{featuredGoal.name}</span>
-                                    <span className="text-xs font-bold text-blue-600 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded-full">
-                                        {Math.min(100, Math.round((featuredGoal.currentValue / featuredGoal.targetValue) * 100))}%
-                                    </span>
-                                </div>
-                                <div className="w-full bg-slate-100 dark:bg-slate-700 h-3 rounded-full overflow-hidden mb-2">
-                                    <div
-                                        className="h-full bg-blue-500 rounded-full transition-all duration-1000"
-                                        style={{ width: `${Math.min(100, (featuredGoal.currentValue / featuredGoal.targetValue) * 100)}%` }}
-                                    ></div>
-                                </div>
-                                <div className="flex justify-between text-[11px] text-textMuted">
-                                    <span>{formatCurrency(featuredGoal.currentValue, currency)}</span>
-                                    <span>{formatCurrency(featuredGoal.targetValue, currency)}</span>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="flex-1 flex flex-col items-center justify-center text-center py-4 border-2 border-dashed border-slate-100 dark:border-slate-700 rounded-lg">
-                                <p className="text-xs text-slate-400 mb-2">Nenhuma meta ativa</p>
-                                <span className="text-[10px] font-bold text-blue-500">Defina um objetivo!</span>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* 50/30/20 Rule Widget (Moved) */}
-                    <div className="bg-surface p-4 md:p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col gap-3">
-                        <div className="flex justify-between items-start">
-                            <div>
-                                <h4 className="text-xs font-bold text-textMuted uppercase tracking-widest">Regra 50/30/20</h4>
-                                <p className="text-xs text-slate-400">Distribuição Ideal</p>
-                            </div>
-                            <div className="p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-purple-600 dark:text-purple-400">
-                                <PieChart size={18} />
-                            </div>
-                        </div>
-
-                        {/* Needs */}
-                        <div
-                            className="space-y-1 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 p-1.5 -mx-1.5 rounded transition-colors group"
-                            onClick={() => setSelectedRuleCategory('needs')}
-                        >
-                            <div className="flex justify-between text-[10px] font-bold">
-                                <span className="text-slate-700 dark:text-slate-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Necessidades (50%)</span>
-                                <span className={`${rule503020Stats.needs.pct > 50 ? 'text-rose-500' : 'text-emerald-500'}`}>{rule503020Stats.needs.pct.toFixed(0)}%</span>
-                            </div>
-                            <div className="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
-                                <div className={`h-full rounded-full ${rule503020Stats.needs.pct > 50 ? 'bg-rose-500' : 'bg-blue-500'}`} style={{ width: `${Math.min(rule503020Stats.needs.pct, 100)}%` }}></div>
-                            </div>
-                            <p className="text-[9px] text-slate-400 text-right">{formatCurrency(rule503020Stats.needs.val, currency)}</p>
-                        </div>
-
-                        {/* Wants */}
-                        <div
-                            className="space-y-1 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 p-1.5 -mx-1.5 rounded transition-colors group"
-                            onClick={() => setSelectedRuleCategory('wants')}
-                        >
-                            <div className="flex justify-between text-[10px] font-bold">
-                                <span className="text-slate-700 dark:text-slate-300 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Desejos (30%)</span>
-                                <span className={`${rule503020Stats.wants.pct > 30 ? 'text-rose-500' : 'text-emerald-500'}`}>{rule503020Stats.wants.pct.toFixed(0)}%</span>
-                            </div>
-                            <div className="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
-                                <div className={`h-full rounded-full ${rule503020Stats.wants.pct > 30 ? 'bg-rose-500' : 'bg-purple-500'}`} style={{ width: `${Math.min(rule503020Stats.wants.pct, 100)}%` }}></div>
-                            </div>
-                            <p className="text-[9px] text-slate-400 text-right">{formatCurrency(rule503020Stats.wants.val, currency)}</p>
-                        </div>
-
-                        {/* Savings */}
-                        <div
-                            className="space-y-1 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 p-1.5 -mx-1.5 rounded transition-colors group"
-                            onClick={() => setSelectedRuleCategory('savings')}
-                        >
-                            <div className="flex justify-between text-[10px] font-bold">
-                                <span className="text-slate-700 dark:text-slate-300 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Objetivos (20%)</span>
-                                <span className={`${rule503020Stats.savings.pct < 20 ? 'text-amber-500' : 'text-emerald-500'}`}>{rule503020Stats.savings.pct.toFixed(0)}%</span>
-                            </div>
-                            <div className="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
-                                <div className={`h-full rounded-full ${rule503020Stats.savings.pct < 20 ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: `${Math.min(rule503020Stats.savings.pct, 100)}%` }}></div>
-                            </div>
-                            <p className="text-[9px] text-slate-400 text-right">{formatCurrency(rule503020Stats.savings.val, currency)}</p>
-                        </div>
-                    </div>
-                </div>
-            </motion.div>
-
-            {/* Alertas Inteligentes */}
-            {smartAlerts.length > 0 && (
-                <motion.div variants={itemVariants} className="bg-surface p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-                    <h3 className="text-sm font-bold text-textMain flex items-center gap-2 mb-4">
-                        <Lightbulb className="text-amber-500" size={18} /> Insights do seu Comportamento
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {smartAlerts.map((alert, i) => (
-                            <div key={i} className={`p-4 rounded-xl border flex gap-3 transition-colors ${alert.type === 'critical' ? 'bg-rose-50 dark:bg-rose-900/10 border-rose-100 dark:border-rose-900/20' : 'bg-amber-50 dark:bg-amber-900/10 border-amber-100 dark:border-amber-900/20'
-                                }`}>
-                                <div className={`p-2 rounded-lg shrink-0 h-fit ${alert.type === 'critical' ? 'text-rose-600 bg-rose-100 dark:bg-rose-900/40' : 'text-amber-600 bg-amber-100 dark:bg-amber-900/40'}`}>
-                                    {alert.type === 'critical' ? <Siren size={18} /> : <AlertTriangle size={18} />}
-                                </div>
-                                <div>
-                                    <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 leading-tight">{alert.message}</h4>
-                                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">{alert.detail}</p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </motion.div>
-            )}
-
-            {/* Evolução e Histórico */}
-            <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-                <div className="lg:col-span-2 bg-surface p-4 md:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-                    <h4 className="text-sm font-bold text-textMain mb-6 flex items-center gap-2">
-                        <TrendingUp size={16} className="text-blue-500" /> Fluxo de Caixa Diário ({MONTH_NAMES[filter.month]})
-                    </h4>
-                    <div className="h-64">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={timelineData}>
-                                <defs>
-                                    <linearGradient id="colorInc" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.2} />
-                                        <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                                    </linearGradient>
-                                    <linearGradient id="colorExp" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.2} />
-                                        <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#94a3b8" strokeOpacity={0.1} />
-                                <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                                <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                                <Tooltip contentStyle={{ backgroundColor: 'var(--tooltip-bg)', border: 'none', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                                <Area type="monotone" dataKey="Receita" stroke="#10b981" fillOpacity={1} fill="url(#colorInc)" strokeWidth={3} />
-                                <Area type="monotone" dataKey="Despesa" stroke="#f43f5e" fillOpacity={1} fill="url(#colorExp)" strokeWidth={3} />
-                            </AreaChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
-
-                <div className="bg-surface p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col">
-                    <h4 className="text-sm font-bold text-textMain mb-6 flex items-center gap-2">
-                        <History size={16} className="text-slate-400" /> Atividades Recentes
-                    </h4>
-                    <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3">
-                        {recentTransactions.map(t => (
-                            <div key={t.id} className="flex justify-between items-center p-3 rounded-lg bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-700/50">
-                                <div className="flex items-center gap-3 overflow-hidden">
-                                    <div className={`p-2 rounded-lg ${t.type === 'income' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'} dark:bg-opacity-20 shrink-0`}>
-                                        {getCategoryIcon(t.category)}
-                                    </div>
-                                    <div className="overflow-hidden">
-                                        <p className="text-xs font-bold text-textMain truncate">{t.description || t.category}</p>
-                                        <p className="text-[10px] text-textMuted uppercase font-medium">{t.category}</p>
-                                    </div>
-                                </div>
-                                <span className={`text-xs font-bold shrink-0 ml-2 ${t.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                    {formatCurrency(t.amount, currency)}
-                                </span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </motion.div>
-
-            {/* Tendências Longo Prazo */}
-            <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-                <div className="bg-surface p-4 md:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-                    <h4 className="text-sm font-bold text-textMain mb-6 flex items-center gap-2">
-                        <LineChartIcon size={18} className="text-indigo-500" /> Tendência de Fluxo Mensal (12 Meses)
-                    </h4>
-                    <div className="h-64">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={monthlyTrendData}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#94a3b8" strokeOpacity={0.1} />
-                                <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                                <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                                <Tooltip contentStyle={{ backgroundColor: 'var(--tooltip-bg)', border: 'none', borderRadius: '12px' }} formatter={(v: number) => formatCurrency(v, currency)} />
-                                <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 'bold' }} />
-                                <Line type="monotone" dataKey="Receitas" stroke="#10b981" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-                                <Line type="monotone" dataKey="Despesas" stroke="#f43f5e" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-                            </LineChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
-
-                <div className="bg-surface p-4 md:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
-                        <h4 className="text-sm font-bold text-textMain flex items-center gap-2">
-                            <ArrowRightLeft size={18} className="text-blue-500" /> Tendência por Categoria
-                        </h4>
-                        <select
-                            value={selectedTrendCategory}
-                            onChange={(e) => setSelectedTrendCategory(e.target.value)}
-                            className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-[10px] font-bold uppercase py-1 px-2 rounded-lg outline-none focus:ring-1 focus:ring-blue-500"
-                        >
-                            {availableCategories.map(c => <option key={c} value={c}>{c}</option>)}
-                        </select>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                        <div className="sm:col-span-3 h-52">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart data={categoryTrendData.chartData}>
-                                    <defs>
-                                        <linearGradient id="colorCatTrend" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.15} />
-                                            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                                        </linearGradient>
-                                    </defs>
-                                    <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                                    <YAxis hide />
-                                    <Tooltip contentStyle={{ backgroundColor: 'var(--tooltip-bg)', border: 'none', borderRadius: '8px' }} formatter={(v: number) => formatCurrency(v, currency)} />
-                                    <Area type="monotone" dataKey="valor" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorCatTrend)" />
-                                </AreaChart>
-                            </ResponsiveContainer>
-                        </div>
-                        <div className="flex flex-col justify-center items-center sm:items-start p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-700">
-                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Média Mensal</p>
-                            <p className="text-lg font-bold text-textMain leading-tight">{formatCurrency(categoryTrendData.average, currency)}</p>
-                        </div>
-                    </div>
-                </div>
-            </motion.div>
-
-            {/* Projeção Futura */}
-            <div className="bg-surface p-4 md:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 animate-fade-in">
-                <h4 className="text-sm font-bold text-textMain mb-6 flex items-center gap-2">
-                    <Target size={18} className="text-purple-500" /> Projeção de Saldo (Próximos 6 Meses)
-                </h4>
-                <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={projectionData}>
-                            <defs>
-                                <linearGradient id="colorSaldo" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.2} />
-                                    <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
-                                </linearGradient>
-                            </defs>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#94a3b8" strokeOpacity={0.1} />
-                            <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                            <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                            <Tooltip contentStyle={{ backgroundColor: 'var(--tooltip-bg)', border: 'none', borderRadius: '12px' }} formatter={(v: number) => formatCurrency(v, currency)} />
-                            <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 'bold' }} />
-                            <Area type="monotone" dataKey="saldo" name="Saldo Projetado" stroke="#8b5cf6" strokeWidth={3} fillOpacity={1} fill="url(#colorSaldo)" />
-                        </AreaChart>
-                    </ResponsiveContainer>
-                </div>
-                <div className="mt-4 flex gap-4 overflow-x-auto pb-2 custom-scrollbar">
-                    {projectionData.map((d, i) => (
-                        <div key={i} className="min-w-[140px] p-3 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 flex flex-col gap-2">
-                            <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-1 mb-1">
-                                <span className="text-[10px] uppercase font-bold text-slate-400">{d.name}</span>
-                                <span className={`text-[10px] font-bold ${d.saldo >= 0 ? 'text-blue-600' : 'text-rose-600'}`}>{formatCurrency(d.saldo, currency)}</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <span className="text-[9px] text-slate-400">Entr.</span>
-                                <span className="text-[10px] font-bold text-emerald-600">{formatCurrency(d.receita, currency)}</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <span className="text-[9px] text-slate-400">Saída</span>
-                                <span className="text-[10px] font-bold text-rose-500">{formatCurrency(d.despesa, currency)}</span>
-                            </div>
+                            <span className="text-[13px] font-medium text-slate-700 dark:text-slate-300">{btn.label}</span>
                         </div>
                     ))}
                 </div>
-            </div>
+            </motion.div>
 
-            {/* Rule Detail Modal */}
-            {
-                selectedRuleCategory && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setSelectedRuleCategory(null)}>
-                        <div className="bg-surface w-full max-w-md rounded-xl shadow-md overflow-hidden border border-slate-200 dark:border-slate-700 flex flex-col max-h-[80vh]" onClick={e => e.stopPropagation()}>
-                            <div className={`p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center ${selectedRuleCategory === 'needs' ? 'bg-blue-50 dark:bg-blue-900/20' :
-                                selectedRuleCategory === 'wants' ? 'bg-purple-50 dark:bg-purple-900/20' :
-                                    'bg-emerald-50 dark:bg-emerald-900/20'
-                                }`}>
-                                <h3 className="font-bold text-textMain flex items-center gap-2">
-                                    {selectedRuleCategory === 'needs' && <Home size={18} className="text-blue-600" />}
-                                    {selectedRuleCategory === 'wants' && <PartyPopper size={18} className="text-purple-600" />}
-                                    {selectedRuleCategory === 'savings' && <TrendingUp size={18} className="text-emerald-600" />}
+            {/* Planejamento / Metas Block */}
+            <motion.div variants={itemVariants} className="bg-white dark:bg-[#1C1C1E] px-5 py-6 flex flex-col gap-4 rounded-[20px] shadow-sm border border-slate-100 dark:border-white/5 mx-4 mt-4">
+                <div className="flex justify-between items-center cursor-pointer">
+                    <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Planejamento</h3>
+                    <ChevronRight size={20} className="text-slate-400" />
+                </div>
 
-                                    {selectedRuleCategory === 'needs' ? 'Necessidades (Detalhes)' :
-                                        selectedRuleCategory === 'wants' ? 'Desejos (Detalhes)' :
-                                            'Objetivos e Investimentos'}
-                                </h3>
-                                <button onClick={() => setSelectedRuleCategory(null)} className="p-1 rounded hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
-                                    <X size={20} className="text-slate-500" />
-                                </button>
-                            </div>
-
-                            <div className="flex-1 overflow-y-auto custom-scrollbar p-0">
-                                {(() => {
-                                    // Filter Logic similar to rule503020Stats
-                                    let items: Transaction[] = [];
-
-                                    if (selectedRuleCategory === 'savings') {
-                                        // Logic for Savings: Expenses categorized as 'investments' or similar bucket
-                                        items = filteredTransactions.filter(t => t.type === 'expense' && getBudgetCategoryType(t.category, t.description) === 'savings');
-                                    } else {
-                                        items = filteredTransactions.filter(t => t.type === 'expense' && getBudgetCategoryType(t.category, t.description) === selectedRuleCategory);
-                                    }
-
-                                    items.sort((a, b) => b.amount - a.amount);
-
-                                    if (items.length === 0) {
-                                        return (
-                                            <div className="p-8 text-center text-slate-400">
-                                                <p className="text-sm">Nenhum lançamento encontrado nesta categoria.</p>
-                                            </div>
-                                        );
-                                    }
-
-                                    return (
-                                        <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                                            {items.map(t => (
-                                                <div key={t.id} className="p-3 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className={`p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500`}>
-                                                            {getCategoryIcon(t.category)}
-                                                        </div>
-                                                        <div>
-                                                            <p className="text-sm font-bold text-textMain">{t.description || t.category}</p>
-                                                            <p className="text-[10px] text-slate-400">{new Date(t.date).toLocaleDateString()}</p>
-                                                        </div>
-                                                    </div>
-                                                    <span className="font-mono font-bold text-textMain">
-                                                        {formatCurrency(t.amount, currency)}
-                                                    </span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    );
-                                })()}
-                            </div>
-
-                            <div className="p-4 bg-slate-50 dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 text-center">
-                                <p className="text-xs text-slate-400">
-                                    Total: <strong className="text-textMain">
-                                        {formatCurrency(
-                                            filteredTransactions
-                                                .filter(t => t.type === 'expense' && getBudgetCategoryType(t.category, t.description) === selectedRuleCategory)
-                                                .reduce((sum, t) => sum + t.amount, 0)
-                                            , currency)}
-                                    </strong>
-                                </p>
-                            </div>
+                {featuredGoal ? (
+                    <div className="flex flex-col gap-3 mt-1">
+                        <div className="flex justify-between items-end">
+                            <span className="font-semibold text-[15px] text-slate-800 dark:text-slate-200">{featuredGoal.name}</span>
+                            <span className="text-[14px] font-bold text-brand-blue dark:text-brand-gold">
+                                {formatCurrency(featuredGoal.targetValue - featuredGoal.currentValue, currency)} <span className="text-slate-500 font-normal">restantes</span>
+                            </span>
+                        </div>
+                        <div className="w-full bg-slate-100 dark:bg-slate-800 h-3 rounded-full overflow-hidden my-1">
+                            <div
+                                className="h-full bg-brand-blue dark:bg-brand-gold rounded-full"
+                                style={{ width: `${Math.min(100, (featuredGoal.currentValue / featuredGoal.targetValue) * 100)}%` }}
+                            ></div>
                         </div>
                     </div>
-                )
-            }
+                ) : (
+                    <p className="text-[15px] text-slate-500 font-medium">Você não tem metas ativas no momento.</p>
+                )}
+            </motion.div>
+
+            {/* Histórico / Atividades Recentes */}
+            <motion.div variants={itemVariants} className="bg-white dark:bg-[#1C1C1E] flex flex-col pt-6 rounded-[20px] shadow-sm border border-slate-100 dark:border-white/5 mx-4 mt-4 mb-32 overflow-hidden">
+                <div className="flex justify-between items-center cursor-pointer mb-2 px-5">
+                    <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Histórico</h3>
+                    <ChevronRight size={20} className="text-slate-400" />
+                </div>
+
+                <div className="flex flex-col gap-0">
+                    {recentTransactions.length > 0 ? recentTransactions.map((t, idx) => (
+                        <div key={t.id} className={`flex justify-between items-center p-5 ${idx !== recentTransactions.length - 1 ? 'border-b border-slate-100 dark:border-white/5' : ''} hover:bg-slate-50 dark:hover:bg-[#2C2C2E] cursor-pointer transition-colors`}>
+                            <div className="flex items-center gap-4 overflow-hidden">
+                                <div className="w-[46px] h-[46px] rounded-full bg-slate-100 dark:bg-[#2C2C2E] text-slate-600 dark:text-slate-300 flex justify-center items-center shrink-0">
+                                    {getCategoryIcon(t.category)}
+                                </div>
+                                <div className="overflow-hidden">
+                                    <p className="text-[15px] font-semibold text-slate-800 dark:text-slate-200 truncate">{t.description || t.category}</p>
+                                    <p className="text-[13px] text-slate-500 font-medium">
+                                        {new Date(t.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).replace('.', '')}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex flex-col items-end">
+                                <span className={`text-[15px] font-bold ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-800 dark:text-slate-300'}`}>
+                                    {t.type === 'expense' ? '-' : ''}{formatCurrency(t.amount, currency).replace('R$', '').trim()}
+                                </span>
+                            </div>
+                        </div>
+                    )) : (
+                        <p className="text-[15px] text-slate-500 font-medium px-5 py-5 pb-8">Nenhuma movimentação para este mês.</p>
+                    )}
+                </div>
+            </motion.div>
+
 
             {/* Modals */}
             <MonthlyReportModal

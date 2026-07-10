@@ -888,4 +888,53 @@ export class DBService {
       totalRecurring: totalRecurring.toFixed(2)
     };
   }
+
+  // ─── TELEGRAM INTEGRATION ─────────────────────────────────────────────
+
+  /** Gera um código único de 6 chars para vincular a conta do Telegram */
+  static async generateTelegramLinkCode(userId: string): Promise<string> {
+    // Gerar código alfanumérico legível: FP-XXXXXX
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // sem 0/O/1/I para evitar confusão
+    let code = 'FP-';
+    for (let i = 0; i < 6; i++) {
+      code += chars[Math.floor(Math.random() * chars.length)];
+    }
+
+    // Invalidar códigos antigos do mesmo usuário antes de criar novo
+    await supabase
+      .from('telegram_link_codes')
+      .update({ used: true })
+      .eq('user_id', userId)
+      .eq('used', false);
+
+    // Inserir novo código (expira em 10 minutos)
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+    const { error } = await supabase
+      .from('telegram_link_codes')
+      .insert({ code, user_id: userId, expires_at: expiresAt, used: false });
+
+    if (error) throw new Error(error.message);
+    return code;
+  }
+
+  /** Verifica se o usuário tem uma conta do Telegram vinculada */
+  static async getTelegramLinkStatus(userId: string): Promise<{ linked: boolean; username?: string; linkedAt?: string }> {
+    const { data } = await supabase
+      .from('telegram_links')
+      .select('telegram_username, linked_at')
+      .eq('user_id', userId)
+      .single();
+
+    if (!data) return { linked: false };
+    return { linked: true, username: data.telegram_username, linkedAt: data.linked_at };
+  }
+
+  /** Remove o vínculo Telegram do usuário */
+  static async unlinkTelegram(userId: string): Promise<void> {
+    const { error } = await supabase
+      .from('telegram_links')
+      .delete()
+      .eq('user_id', userId);
+    if (error) throw new Error(error.message);
+  }
 }
