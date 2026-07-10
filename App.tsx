@@ -284,10 +284,125 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
 
     return (
         <BiometricGate requireBiometrics={!!config.requireBiometrics}>
-            <div className={`flex justify-center min-h-[100dvh] font-sans overflow-hidden transition-colors duration-300 bg-slate-100 ${config.theme === 'dark' ? 'dark' : ''}`}>
+            <div className={`flex justify-center min-h-[100dvh] font-sans overflow-hidden transition-colors duration-300 bg-slate-100 dark:bg-slate-900 ${config.theme === 'dark' ? 'dark' : ''}`}>
 
-                {/* Main Super App Container - Mobile Sized on Desktop */}
-                <div className="w-full max-w-md bg-slate-50 dark:bg-slate-950 shadow-2xl relative flex flex-col h-[100dvh] overflow-hidden">
+                {/* ── DESKTOP LAYOUT (lg+): sidebar + content ── */}
+                <div className="hidden lg:flex w-full h-[100dvh] overflow-hidden">
+
+                    {/* Sidebar */}
+                    <aside className="w-64 xl:w-72 bg-brand-blue text-white flex flex-col shrink-0 h-full shadow-2xl z-10">
+                        {/* Sidebar Header */}
+                        <div className="px-6 pt-8 pb-6 border-b border-white/10">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-11 h-11 rounded-full bg-white/15 flex items-center justify-center text-lg font-black shadow-inner">
+                                    {(displayName || 'U').substring(0, 1).toUpperCase()}
+                                </div>
+                                <div className="min-w-0">
+                                    <p className="font-black text-sm truncate">{displayName}</p>
+                                    <p className="text-white/60 text-xs truncate">{userEmail}</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button onClick={() => setHideBalance(!hideBalance)} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors" title="Ocultar saldo">
+                                    {hideBalance ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
+                                <button onClick={() => setShowTutorial(true)} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors" title="Tutorial">
+                                    <HelpCircle size={18} />
+                                </button>
+                                <SmartAlertsHub transactions={transactions} goals={goals} debts={debts} config={config} onNavigate={handleTabChange} />
+                                <button onClick={() => setShowInbox(true)} className="p-1.5 relative hover:bg-white/10 rounded-lg transition-colors" title="Mensagens">
+                                    <Mail size={18} />
+                                    {unreadMessages > 0 && <span className="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full"></span>}
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Sidebar Nav */}
+                        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+                            {(['controle', 'receitas', 'despesas', 'dividas', 'metas', 'orcamento', 'investimentos', 'cursos', 'config', ...(isAdmin ? ['admin'] : [])] as Tab[]).map(t => (
+                                <button
+                                    key={t}
+                                    onClick={() => handleTabChange(t)}
+                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${
+                                        activeTab === t
+                                            ? 'bg-white text-brand-blue shadow-md'
+                                            : 'text-white/70 hover:bg-white/10 hover:text-white'
+                                    }`}
+                                >
+                                    {TAB_METADATA[t]?.icon}
+                                    {TAB_METADATA[t]?.label}
+                                </button>
+                            ))}
+                        </nav>
+
+                        {/* Sidebar Footer */}
+                        <div className="p-4 border-t border-white/10">
+                            <button onClick={onLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:bg-white/10 hover:text-white text-sm font-bold transition-all">
+                                <LogOut size={18} />
+                                Sair
+                            </button>
+                        </div>
+                    </aside>
+
+                    {/* Desktop Main Content */}
+                    <main className="flex-1 flex flex-col h-full overflow-hidden bg-slate-100 dark:bg-slate-900">
+                        {/* Desktop Top Bar */}
+                        <div className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-8 py-4 flex items-center justify-between shrink-0 shadow-sm">
+                            <div>
+                                <h1 className="text-xl font-black text-slate-900 dark:text-white">{TAB_METADATA[activeTab]?.pageTitle || 'Painel de Controle'}</h1>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Finance Pro 360</p>
+                            </div>
+                            {(activeTab === 'controle' || activeTab === 'receitas' || activeTab === 'despesas') && (
+                                <FilterBar filter={filter} setFilter={setFilter} activeTab={activeTab} config={config} />
+                            )}
+                        </div>
+
+                        {/* Desktop Content Area */}
+                        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 lg:p-8">
+                            {contentLoading && <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm z-20"><Loader2 size={40} className="animate-spin text-brand-blue mb-3" /><p className="text-sm font-medium animate-pulse">Sincronizando...</p></div>}
+                            <div className={`transition-opacity duration-300 ${contentLoading ? 'opacity-40' : 'opacity-100'}`}>
+                                <AnimatePresence mode="wait">
+                                    {activeTab === 'controle' && (<MotionWrapper key="controle-d"><Dashboard transactions={transactions} goals={goals} filter={filter} currency={config.currency} isPremium={config.licenseStatus === 'active'} config={config} onNavigate={handleTabChange} /></MotionWrapper>)}
+                                    {activeTab === 'receitas' && (<MotionWrapper key="receitas-d"><SheetView type="income" transactions={transactions} categories={config.incomeCategories || DEFAULT_CONFIG.incomeCategories} paymentMethods={config.paymentMethods} onAdd={addTransaction} onAddBatch={addTransactions} onUpdate={updateTransaction} onDelete={deleteTransaction} currency={config.currency} /></MotionWrapper>)}
+                                    {activeTab === 'despesas' && (
+                                        <MotionWrapper key="despesas-d">
+                                            <div className="flex flex-col gap-4">
+                                                <div className="flex justify-center">
+                                                    <div className="bg-slate-200 dark:bg-slate-800 p-1 rounded-lg flex items-center border border-slate-200 dark:border-slate-700">
+                                                        <button onClick={() => setExpenseSubTab('general')} className={`flex items-center gap-2 px-4 py-1.5 text-xs font-bold rounded-md transition-all ${expenseSubTab === 'general' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-800 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>Lista Geral</button>
+                                                        <button onClick={() => setExpenseSubTab('cards')} className={`flex items-center gap-2 px-4 py-1.5 text-xs font-bold rounded-md transition-all ${expenseSubTab === 'cards' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-800 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>Controle de Cartão e Crédito</button>
+                                                    </div>
+                                                </div>
+                                                {expenseSubTab === 'general' ? (<MotionWrapper key="expense-general-d"><SheetView type="expense" transactions={transactions} categories={config.expenseCategories || DEFAULT_CONFIG.expenseCategories} paymentMethods={config.paymentMethods} onAdd={addTransaction} onAddBatch={addTransactions} onUpdate={updateTransaction} onDelete={deleteTransaction} currency={config.currency} /></MotionWrapper>) : (<MotionWrapper key="expense-cards-d"><CreditCardControl transactions={transactions} onDelete={deleteTransaction} onAdd={addTransaction} onAddBatch={addTransactions} currency={config.currency} config={config} onUpdateConfig={updateConfig} /></MotionWrapper>)}
+                                            </div>
+                                        </MotionWrapper>
+                                    )}
+                                    {activeTab === 'orcamento' && (<MotionWrapper key="orcamento-d"><Budget transactions={transactions} config={config} filter={filter} /></MotionWrapper>)}
+                                    {activeTab === 'dividas' && (<MotionWrapper key="dividas-d"><Debts config={config} debts={debts} onAddDebt={addDebt} onDeleteDebt={deleteDebt} onNavigateToSettings={() => handleTabChange('config')} /></MotionWrapper>)}
+                                    {activeTab === 'metas' && (<MotionWrapper key="metas-d"><GoalsSheet goals={goals} onAdd={addGoal} onDelete={deleteGoal} onUpdate={updateGoalValue} currency={config.currency} /></MotionWrapper>)}
+                                    {activeTab === 'investimentos' && (<MotionWrapper key="investimentos-d"><Investments config={config} onNavigateToSettings={() => handleTabChange('config')} /></MotionWrapper>)}
+                                    {activeTab === 'cursos' && (<MotionWrapper key="cursos-d"><Courses config={config} userEmail={userEmail} onNavigateToSettings={() => handleTabChange('config')} /></MotionWrapper>)}
+                                    {activeTab === 'config' && (<MotionWrapper key="config-d"><Settings config={config} onUpdateConfig={updateConfig} transactions={transactions} /></MotionWrapper>)}
+                                    {activeTab === 'admin' && isAdmin && (<MotionWrapper key="admin-d"><AdminPanel /></MotionWrapper>)}
+                                </AnimatePresence>
+                            </div>
+                        </div>
+                    </main>
+
+                    {/* Desktop modals & overlays */}
+                    {toastMessage && <Toast message={toastMessage} onClose={() => setToastMessage(null)} actionLabel={toastAction?.label} onAction={toastAction?.fn} />}
+                    {showTutorial && <Tutorial onComplete={handleTutorialComplete} onStepChange={handleTutorialStepChange} />}
+                    {showTrialModal && <TrialModal daysRemaining={daysRemaining} onClose={() => setShowTrialModal(false)} />}
+                    <Inbox userId={user} isOpen={showInbox} onClose={() => setShowInbox(false)} onUpdateUnread={checkUnreadMessages} />
+                    <CalculatorModal isOpen={showCalculatorModal} onClose={() => setShowCalculatorModal(false)} />
+                    {showRecurringExpenses && <RecurringExpenses config={config} onClose={() => setShowRecurringExpenses(false)} />}
+                    {showImportModal && (<StatementImportModal isOpen={showImportModal} onClose={() => setShowImportModal(false)} onImport={handleBatchImport} config={config} />)}
+                    <AIAdvisor userId={user} transactions={transactions} goals={goals} />
+                    <InstallPrompt />
+                </div>
+
+                {/* ── MOBILE LAYOUT (< lg): original phone layout ── */}
+                <div className="lg:hidden w-full max-w-md bg-slate-50 dark:bg-slate-950 shadow-2xl relative flex flex-col h-[100dvh] overflow-hidden">
 
                     {/* Header Estilo Nubank adaptado com cores da marca */}
                     <header className={`bg-brand-blue text-white px-5 pt-8 pb-6 flex flex-col z-30 shadow-md ${activeTab !== 'controle' ? 'h-auto py-4' : ''}`}>
@@ -454,7 +569,8 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                     {/* AI Advisor Chat (Global) */}
                     <AIAdvisor userId={user} transactions={transactions} goals={goals} />
 
-                </div>
+                </div>{/* end mobile layout */}
+
             </div>
         </BiometricGate>
     );
