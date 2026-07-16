@@ -57,7 +57,8 @@ Regras:
 2. Tipo:
    - 'income' se recebendo dinheiro (ganhei, recebi, salário, venda, pix recebido, entrada)
    - 'expense' se gastando (gastei, comprei, paguei, saiu, débito, conta)
-   - 'goal' se criando uma meta (ex: "criar meta", "nova meta para X de Y reais")
+   - 'goal' se criando uma nova meta (ex: "criar meta", "nova meta para X de Y reais")
+   - 'update_goal' se adicionando/guardando dinheiro em uma meta JÁ EXISTENTE (ex: "guardei X na meta Y", "adicionei X na meta Y"). Use a descrição para o nome da meta.
 3. Categoria — escolha EXATAMENTE uma:
    - Despesa: Alimentação, Transporte, Moradia, Saúde, Lazer, Educação, Investimentos, Outros
    - Receita: Salários, Vendas Diversas, Aluguel de Carro, Aluguel de Apartamento, Aluguel de Casa, Dividendos, Rendimentos, Aposentadoria, Outros
@@ -69,7 +70,7 @@ Retorne APENAS JSON válido (sem markdown):
 {
   "amount": number,
   "description": string,
-  "type": "income" | "expense" | "goal",
+  "type": "income" | "expense" | "goal" | "update_goal",
   "category": string,
   "date": string,
   "bank_name": string | null
@@ -514,12 +515,38 @@ Use \`/ajuda\` para ver todos os comandos.`);
         return new Response("OK");
       }
 
-      await sendMessage(chatId, `🎯 *Nova Meta Cadastrada!*
-      
-📌 *${data.description}*
-🎯 Alvo: ${formatBRL(data.amount)}
+      await sendMessage(chatId, `🎯 *Nova Meta Cadastrada!*\n\n📌 *${data.description}*\n🎯 Alvo: ${formatBRL(data.amount)}\n\n_Acompanhe seu progresso pelo Finance Pro 360_ ✅`);
+      return new Response("OK");
+    }
 
-_Acompanhe seu progresso pelo Finance Pro 360_ ✅`);
+    if (data.type === 'update_goal') {
+      // Procurar meta existente do usuário
+      const { data: existingGoals, error: searchErr } = await supabase
+        .from('goals')
+        .select('*')
+        .eq('user_id', fp360UserId)
+        .ilike('name', `%${data.description}%`)
+        .limit(1);
+
+      if (searchErr || !existingGoals || existingGoals.length === 0) {
+        await sendMessage(chatId, `❌ Não encontrei nenhuma meta com o nome parecido com "*${data.description}*".\n\nVerifique o nome da sua meta no app e tente novamente.`);
+        return new Response("OK");
+      }
+
+      const goal = existingGoals[0];
+      const newTotal = Number(goal.current_value) + Number(data.amount);
+
+      const { error: updateErr } = await supabase
+        .from('goals')
+        .update({ current_value: newTotal })
+        .eq('id', goal.id);
+
+      if (updateErr) {
+        await sendMessage(chatId, "❌ Erro ao atualizar o valor da meta. Tente novamente.");
+        return new Response("OK");
+      }
+
+      await sendMessage(chatId, `📈 *Meta Atualizada!*\n\nVocê guardou mais ${formatBRL(data.amount)} na meta *${goal.name}*.\n\nProgresso atual: ${formatBRL(newTotal)} de ${formatBRL(goal.target_value)} ✅`);
       return new Response("OK");
     }
 
