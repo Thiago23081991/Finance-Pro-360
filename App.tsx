@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Transaction, Goal, AppConfig, FilterState, Tab, Debt, BankAccount } from './types';
 import { DEFAULT_CONFIG, MONTH_NAMES } from './constants';
 import { Dashboard } from './components/Dashboard';
+import { OutlookDashboard } from './components/OutlookDashboard';
 import { SheetView } from './components/SheetView';
 import { CreditCardControl } from './components/CreditCardControl';
 import { GoalsSheet } from './components/GoalsSheet';
@@ -325,27 +326,27 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                 <div className="hidden md:flex w-full h-[100dvh] overflow-hidden">
 
                     {/* Sidebar */}
-                    <aside className="w-64 xl:w-72 bg-brand-blue text-white flex flex-col shrink-0 h-full shadow-2xl z-10">
+                    <aside className="w-56 xl:w-64 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 flex flex-col shrink-0 h-full border-r border-slate-200 dark:border-slate-800 z-10 transition-colors">
                         {/* Sidebar Header */}
-                        <div className="px-6 pt-8 pb-6 border-b border-white/10">
+                        <div className="px-5 pt-8 pb-6 border-b border-slate-200 dark:border-slate-800">
                             <div className="flex items-center gap-3 mb-4">
-                                <div className="w-11 h-11 rounded-full bg-white/15 flex items-center justify-center text-lg font-black shadow-inner">
+                                <div className="w-10 h-10 rounded-full bg-brand-blue/10 dark:bg-brand-blue/20 text-brand-blue flex items-center justify-center text-lg font-black shadow-inner">
                                     {(displayName || 'U').substring(0, 1).toUpperCase()}
                                 </div>
                                 <div className="min-w-0">
                                     <p className="font-black text-sm truncate">{displayName}</p>
-                                    <p className="text-white/60 text-xs truncate">{userEmail}</p>
+                                    <p className="text-slate-500 dark:text-slate-400 text-xs truncate">{userEmail}</p>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <button onClick={() => setHideBalance(!hideBalance)} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors" title="Ocultar saldo">
+                            <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                                <button onClick={() => setHideBalance(!hideBalance)} className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg transition-colors" title="Ocultar saldo">
                                     {hideBalance ? <EyeOff size={18} /> : <Eye size={18} />}
                                 </button>
-                                <button onClick={() => setShowTutorial(true)} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors" title="Tutorial">
+                                <button onClick={() => setShowTutorial(true)} className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg transition-colors" title="Tutorial">
                                     <HelpCircle size={18} />
                                 </button>
                                 <SmartAlertsHub transactions={transactions} goals={goals} debts={debts} config={config} onNavigate={handleTabChange} />
-                                <button onClick={() => setShowInbox(true)} className="p-1.5 relative hover:bg-white/10 rounded-lg transition-colors" title="Mensagens">
+                                <button onClick={() => setShowInbox(true)} className="p-1.5 relative hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg transition-colors" title="Mensagens">
                                     <Mail size={18} />
                                     {unreadMessages > 0 && <span className="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full"></span>}
                                 </button>
@@ -353,26 +354,28 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                         </div>
 
                         {/* Sidebar Nav */}
-                        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+                        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1 custom-scrollbar">
                             {(['controle', 'receitas', 'despesas', 'dividas', 'metas', 'orcamento', 'investimentos', 'cursos', 'config', ...(isAdmin ? ['admin'] : [])] as Tab[]).map(t => (
                                 <button
                                     key={t}
                                     onClick={() => handleTabChange(t)}
-                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${
+                                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all ${
                                         activeTab === t
-                                            ? 'bg-white text-brand-blue shadow-md'
-                                            : 'text-white/70 hover:bg-white/10 hover:text-white'
+                                            ? 'bg-brand-blue/10 dark:bg-brand-blue/20 text-brand-blue'
+                                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200'
                                     }`}
                                 >
-                                    {TAB_METADATA[t]?.icon}
+                                    <span className={activeTab === t ? 'text-brand-blue' : 'text-slate-400 dark:text-slate-500'}>
+                                        {TAB_METADATA[t]?.icon}
+                                    </span>
                                     {TAB_METADATA[t]?.label}
                                 </button>
                             ))}
                         </nav>
 
                         {/* Sidebar Footer */}
-                        <div className="p-4 border-t border-white/10">
-                            <button onClick={onLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:bg-white/10 hover:text-white text-sm font-bold transition-all">
+                        <div className="p-4 border-t border-slate-200 dark:border-slate-800">
+                            <button onClick={onLogout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200 text-sm font-semibold transition-all">
                                 <LogOut size={18} />
                                 Sair
                             </button>
@@ -397,7 +400,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                             {contentLoading && <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm z-20"><Loader2 size={40} className="animate-spin text-brand-blue mb-3" /><p className="text-sm font-medium animate-pulse">Sincronizando...</p></div>}
                             <div className={`transition-opacity duration-300 ${contentLoading ? 'opacity-40' : 'opacity-100'}`}>
                                 <AnimatePresence mode="wait">
-                                    {activeTab === 'controle' && (<MotionWrapper key="controle-d"><Dashboard transactions={transactions} goals={goals} filter={filter} currency={config.currency} isPremium={config.licenseStatus === 'active'} config={config} onNavigate={handleTabChange} bankAccounts={bankAccounts} /></MotionWrapper>)}
+                                    {activeTab === 'controle' && (<MotionWrapper key="controle-d"><OutlookDashboard transactions={transactions} goals={goals} filter={filter} currency={config.currency} isPremium={config.licenseStatus === 'active'} config={config} onNavigate={handleTabChange} bankAccounts={bankAccounts} /></MotionWrapper>)}
                                     {activeTab === 'receitas' && (<MotionWrapper key="receitas-d"><SheetView type="income" transactions={transactions} categories={config.incomeCategories || DEFAULT_CONFIG.incomeCategories} paymentMethods={config.paymentMethods} onAdd={addTransaction} onAddBatch={addTransactions} onUpdate={updateTransaction} onDelete={deleteTransaction} currency={config.currency} /></MotionWrapper>)}
                                     {activeTab === 'despesas' && (
                                         <MotionWrapper key="despesas-d">
