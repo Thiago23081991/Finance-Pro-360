@@ -176,49 +176,26 @@ export const Presell: React.FC = () => {
                         </p>
                     </div>
 
-                    <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center max-w-4xl mx-auto">
+                    <div className="flex justify-center max-w-4xl mx-auto">
 
-                        {/* ANCHOR OPTION (Less Value) */}
-                        <div className="order-2 md:order-1 bg-white p-8 rounded-xl border border-slate-200 opacity-80 hover:opacity-100 transition-opacity flex flex-col items-center text-center">
-                            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Acesso Semestral</h3>
-
-                            <div className="mb-6">
-                                <span className="text-3xl font-bold text-slate-900">R$ 47,90</span>
-                                <p className="text-xs text-slate-400 mt-1">Acesso por 6 meses</p>
-                            </div>
-
-                            <ul className="space-y-3 mb-8 w-full">
-                                <li className="flex items-center gap-2 text-sm text-slate-600 w-full justify-center"><Check size={14} className="text-emerald-500" /> Dashboard Básico</li>
-                                <li className="flex items-center gap-2 text-sm text-slate-600 w-full justify-center"><Check size={14} className="text-emerald-500" /> Controle de Gastos</li>
-                            </ul>
-
-                            <a href="https://pay.kiwify.com.br/4A8FZ7I" className="w-full py-3 rounded-xl bg-slate-100 text-slate-600 font-bold hover:bg-slate-200 transition-colors text-sm">
-                                Escolher Semestral
-                            </a>
-                        </div>
-
-                        {/* HERO OPTION (Best Value) */}
-                        <div className="order-1 md:order-2 bg-slate-900 p-1 rounded-[32px] relative shadow-md shadow-blue-900/30 transform scale-105 md:scale-110 z-10">
+                        {/* SINGLE PLAN */}
+                        <div className="bg-slate-900 p-1 rounded-[32px] relative shadow-md shadow-blue-900/30 w-full max-w-md">
                             <div className="absolute -top-5 left-0 right-0 mx-auto w-fit bg-gradient-to-r from-brand-gold to-yellow-400 text-brand-blue font-bold px-4 py-1.5 rounded-full shadow-md text-xs uppercase tracking-wide flex items-center gap-2">
                                 <Star size={12} className="fill-brand-blue" />
-                                Escolha da Maioria
+                                Plano Único — Acesso Completo
                             </div>
 
                             <div className="bg-gradient-to-b from-slate-900 to-slate-800 p-8 rounded-[28px] h-full flex flex-col relative overflow-hidden text-center">
 
-                                <h3 className="text-brand-gold font-bold uppercase tracking-widest text-sm mb-2">Acesso Anual Premium</h3>
-                                <p className="text-slate-400 text-xs mb-6">O melhor custo-benefício do mercado</p>
+                                <h3 className="text-brand-gold font-bold uppercase tracking-widest text-sm mb-2">Acesso Premium</h3>
+                                <p className="text-slate-400 text-xs mb-6">Tudo incluso, sem surpresas</p>
 
                                 <div className="mb-8 relative">
-                                    <div className="flex items-center justify-center gap-2">
-                                        <span className="text-xs text-slate-400 line-through">R$ 197,00</span>
-                                        <span className="bg-emerald-500/20 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded">-60% OFF</span>
-                                    </div>
                                     <div className="flex items-baseline justify-center gap-1 mt-1">
-                                        <span className="text-lg text-slate-300 font-medium">12x de</span>
-                                        <span className="text-5xl md:text-6xl font-bold text-white tracking-tighter">R$ 6,60</span>
+                                        <span className="text-lg text-slate-300 font-medium">R$</span>
+                                        <span className="text-5xl md:text-6xl font-bold text-white tracking-tighter">19,90</span>
+                                        <span className="text-lg text-slate-400 font-medium">/mês</span>
                                     </div>
-                                    <p className="text-slate-400 text-xs font-medium mt-2">ou R$ 80,00 à vista</p>
                                 </div>
 
                                 <div className="space-y-4 mb-8 text-left bg-white/5 p-6 rounded-xl border border-white/10">

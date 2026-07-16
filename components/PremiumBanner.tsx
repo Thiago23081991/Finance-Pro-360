@@ -40,47 +40,28 @@ export const PremiumBanner: React.FC = () => {
                     </p>
                 </div>
 
-                {/* Pricing Cards Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 w-full max-w-4xl">
+                {/* Pricing Card - Single Plan */}
+                <div className="flex justify-center w-full max-w-md mx-auto">
 
-                    {/* Semiannual Plan */}
-                    <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-5 border border-slate-700 hover:border-slate-600 transition-all flex flex-col items-center relative group">
-                        <h3 className="text-lg font-bold text-slate-200 mb-1">{PLANS_CONFIG.semiannual.name}</h3>
-                        <div className="text-3xl font-bold text-white mb-1">
-                            {Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(PLANS_CONFIG.semiannual.value)}
-                        </div>
-                        <p className="text-xs text-slate-400 mb-4 font-medium uppercase tracking-wide">6 Meses de acesso</p>
-
-                        <a
-                            href={PLANS_CONFIG.semiannual.checkoutUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-full py-3 rounded-lg bg-slate-700 hover:bg-slate-600 text-white font-bold transition-colors flex items-center justify-center gap-2 group-hover:bg-slate-600"
-                        >
-                            <span>Assinar Semestral</span>
-                            <ArrowRight size={16} className="text-slate-400 group-hover:text-white transition-colors" />
-                        </a>
-                    </div>
-
-                    {/* Annual Plan (Featured) */}
-                    <div className="bg-gradient-to-b from-brand-blue/30 to-slate-900/80 backdrop-blur-sm rounded-xl p-5 border-2 border-brand-gold/50 relative flex flex-col items-center overflow-hidden transform md:-translate-y-2 shadow-xl shadow-brand-gold/10">
+                    {/* Single Plan */}
+                    <div className="w-full bg-gradient-to-b from-brand-blue/30 to-slate-900/80 backdrop-blur-sm rounded-xl p-5 border-2 border-brand-gold/50 flex flex-col items-center overflow-hidden shadow-xl shadow-brand-gold/10 relative">
                         <div className="absolute top-0 inset-x-0 h-1 bg-brand-gold"></div>
-                        <div className="absolute top-3 right-3 text-brand-gold animate-pulse"><Star size={16} fill="currentColor" /></div>
 
                         <h3 className="text-lg font-bold text-white mb-1 flex items-center gap-2">
-                            {PLANS_CONFIG.annual.name} <span className="text-[10px] bg-brand-gold text-brand-blue px-2 py-0.5 rounded-full font-bold">MELHOR ESCOLHA</span>
+                            Plano Único <span className="text-[10px] bg-brand-gold text-brand-blue px-2 py-0.5 rounded-full font-bold">ACESSO COMPLETO</span>
                         </h3>
 
                         {/* Pricing Display */}
                         <div className="flex flex-col items-center mb-1">
                             <span className="text-xs text-brand-gold font-bold uppercase tracking-wider mb-1">Apenas</span>
                             <div className="text-4xl font-bold text-white flex items-baseline gap-1">
-                                {Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(PLANS_CONFIG.annual.value)}
+                                <span className="text-lg font-medium">R$</span>
+                                19,90
+                                <span className="text-sm font-normal text-slate-400">/mês</span>
                             </div>
-                            <span className="text-[10px] text-slate-400 mt-1">/ano</span>
                         </div>
 
-                        <p className="text-xs text-slate-300 mb-4 font-medium uppercase tracking-wide">1 Ano de acesso completo</p>
+                        <p className="text-xs text-slate-300 mb-4 font-medium uppercase tracking-wide">Tudo incluso, sem surpresas</p>
 
                         <a
                             href={PLANS_CONFIG.annual.checkoutUrl}
@@ -89,7 +70,7 @@ export const PremiumBanner: React.FC = () => {
                             className="w-full py-3 rounded-lg bg-gradient-to-r from-brand-gold to-yellow-500 hover:from-yellow-400 hover:to-brand-gold text-brand-blue font-bold transition-all shadow-md flex items-center justify-center gap-2 transform hover:scale-[1.02]"
                         >
                             <Sparkles size={18} />
-                            <span>QUERO 1 ANO DE ACESSO</span>
+                            <span>QUERO MEU ACESSO</span>
                         </a>
                     </div>
 

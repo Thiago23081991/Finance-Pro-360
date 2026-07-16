@@ -70,12 +70,12 @@ serve(async (req) => {
         `;
 
         // 1. Try Primary Model (Standard Flash)
-        let response = await tryGenerate('gemini-1.5-flash', fullPrompt, image);
+        let response = await tryGenerate('gemini-flash-latest', fullPrompt, image);
 
         // 2. Fallback to Pro Latest if 404 or 429
         if (!response.ok && (response.status === 404 || response.status === 429)) {
             console.log(`Primary failed (${response.status}), trying Gemini Pro Latest...`);
-            response = await tryGenerate('gemini-1.5-pro', fullPrompt, image);
+            response = await tryGenerate('gemini-pro-latest', fullPrompt, image);
         }
 
         // 3. If still failing, list models for debugging

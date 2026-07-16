@@ -72,7 +72,7 @@ serve(async (req) => {
 
         // 3. Processar mensagem com Gemini
         const userId = userProfile.id;
-        const model = "gemini-1.5-flash";
+        const model = "gemini-flash-latest";
 
         const prompt = `
       You are a financial assistant for a Brazilian user.

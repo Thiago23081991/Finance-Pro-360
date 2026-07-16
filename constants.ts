@@ -6,18 +6,18 @@ export const APP_DOMAIN = "financepro360.com.br";
 // CONFIGURAÇÃO DE PLANOS FINANCE PRO 360
 export const PLANS_CONFIG = {
   semiannual: {
-    name: "Plano Semestral",
-    value: 47.90,
-    checkoutUrl: "https://pay.kiwify.com.br/4A8FZ7I",
-    features: ["Acesso Completo ao Sistema", "Inteligência Artificial Ilimitada", "Gestão de Metas e Dívidas", "Cursos Finance Academy", "Renovação a cada 6 meses"],
-    period: "semestral"
+    name: "Plano Mensal",
+    value: 19.90,
+    checkoutUrl: "https://pay.kiwify.com.br/PZzs9Up",
+    features: ["Acesso Completo ao Sistema", "Inteligência Artificial Ilimitada", "Gestão de Metas e Dívidas", "Cursos Finance Academy", "Suporte Prioritário"],
+    period: "mensal"
   },
   annual: {
-    name: "Plano Anual",
-    value: 80.00,
+    name: "Plano Mensal",
+    value: 19.90,
     checkoutUrl: "https://pay.kiwify.com.br/PZzs9Up",
-    features: ["Todos os benefícios do Semestral", "Economia Garantida", "Acesso por 12 meses", "Renovação Anual", "Prioridade no Suporte"],
-    period: "anual"
+    features: ["Acesso Completo ao Sistema", "Inteligência Artificial Ilimitada", "Gestão de Metas e Dívidas", "Cursos Finance Academy", "Suporte Prioritário"],
+    period: "mensal"
   }
 };
 
