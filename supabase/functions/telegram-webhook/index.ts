@@ -268,6 +268,21 @@ Para vincular:
     return new Response("OK");
   }
 
+  // ── Verificar Assinatura Ativa ──────────────────────
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("license_status")
+    .eq("id", fp360UserId)
+    .single();
+
+  if (profile?.license_status !== 'active') {
+    await sendMessage(chatId, `⚠️ *Acesso Bloqueado*
+    
+Sua assinatura do Finance Pro 360 encontra-se inativa ou pendente. 
+Para continuar usando o bot do Telegram e todas as funções premium, renove sua assinatura no aplicativo.`);
+    return new Response("OK");
+  }
+
   // ── /testar (DEBUG GEMINI) ──────────────────────────
   if (text === "/testar") {
     try {
