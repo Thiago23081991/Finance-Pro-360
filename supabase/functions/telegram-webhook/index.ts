@@ -57,6 +57,7 @@ Regras:
 2. Tipo:
    - 'income' se recebendo dinheiro (ganhei, recebi, salário, venda, pix recebido, entrada)
    - 'expense' se gastando (gastei, comprei, paguei, saiu, débito, conta)
+   - 'goal' se criando uma meta (ex: "criar meta", "nova meta para X de Y reais")
 3. Categoria — escolha EXATAMENTE uma:
    - Despesa: Alimentação, Transporte, Moradia, Saúde, Lazer, Educação, Investimentos, Outros
    - Receita: Salários, Vendas Diversas, Aluguel de Carro, Aluguel de Apartamento, Aluguel de Casa, Dividendos, Rendimentos, Aposentadoria, Outros
@@ -68,7 +69,7 @@ Retorne APENAS JSON válido (sem markdown):
 {
   "amount": number,
   "description": string,
-  "type": "income" | "expense",
+  "type": "income" | "expense" | "goal",
   "category": string,
   "date": string,
   "bank_name": string | null
@@ -495,6 +496,30 @@ Tente algo como:
 • Ou grave um áudio!
 
 Use \`/ajuda\` para ver todos os comandos.`);
+      return new Response("OK");
+    }
+
+    if (data.type === 'goal') {
+      const { error: insertError } = await supabase.from('goals').insert({
+        user_id: fp360UserId,
+        name: data.description,
+        target_value: data.amount,
+        current_value: 0,
+        status: 'Em andamento'
+      });
+
+      if (insertError) {
+        console.error("Goal insert error:", insertError);
+        await sendMessage(chatId, "❌ Erro ao salvar a meta. Tente novamente.");
+        return new Response("OK");
+      }
+
+      await sendMessage(chatId, `🎯 *Nova Meta Cadastrada!*
+      
+📌 *${data.description}*
+🎯 Alvo: ${formatBRL(data.amount)}
+
+_Acompanhe seu progresso pelo Finance Pro 360_ ✅`);
       return new Response("OK");
     }
 
