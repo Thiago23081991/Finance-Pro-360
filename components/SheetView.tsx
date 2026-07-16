@@ -54,9 +54,9 @@ export const SheetView: React.FC<SheetViewProps> = ({
         const lastDay = new Date(year, now.getMonth() + 1, 0).getDate();
 
         return {
-            todayStr: `${year} -${month} -${day} `,
-            firstDayOfMonth: `${year} -${month}-01`,
-            lastDayOfMonth: `${year} -${month} -${lastDay} `
+            todayStr: `${year}-${month}-${day}`,
+            firstDayOfMonth: `${year}-${month}-01`,
+            lastDayOfMonth: `${year}-${month}-${lastDay}`
         };
     }, []);
 
