@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Transaction, Goal, AppConfig, FilterState, Tab, Debt } from './types';
+import { Transaction, Goal, AppConfig, FilterState, Tab, Debt, BankAccount } from './types';
 import { DEFAULT_CONFIG, MONTH_NAMES } from './constants';
 import { Dashboard } from './components/Dashboard';
 import { SheetView } from './components/SheetView';
@@ -69,6 +69,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [goals, setGoals] = useState<Goal[]>([]);
     const [debts, setDebts] = useState<Debt[]>([]);
+    const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
     const [config, setConfig] = useState<AppConfig>(DEFAULT_CONFIG);
     const [toastMessage, setToastMessage] = useState<string | null>(null);
     const [toastAction, setToastAction] = useState<{ label: string, fn: () => void } | undefined>(undefined);
@@ -80,6 +81,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
 
     // Trial State
     const [isTrialExpired, setIsTrialExpired] = useState(false);
+    const [isSubscriptionExpired, setIsSubscriptionExpired] = useState(false);
     const [showTrialModal, setShowTrialModal] = useState(false);
     const [showImportModal, setShowImportModal] = useState(false);
     const [daysRemaining, setDaysRemaining] = useState(0);
@@ -114,9 +116,10 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                     cfg.name = initialName;
                 }
 
-                const [txs, gls] = await Promise.all([
+                const [txs, gls, bankAccs] = await Promise.all([
                     DBService.getTransactions(user),
-                    DBService.getGoals(user)
+                    DBService.getGoals(user),
+                    DBService.getBankAccounts(user)
                 ]);
 
                 if (isUserAdmin) {
@@ -126,23 +129,35 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
 
                 setTransactions(txs);
                 setGoals(gls);
+                setBankAccounts(bankAccs);
                 setConfig({ ...DEFAULT_CONFIG, ...cfg, userId: user });
 
                 checkUnreadMessages();
 
-                // Trial Logic Implementation
-                if (cfg.licenseStatus !== 'active') {
+                // Lógica de Licença e Trial
+                if (cfg.licenseStatus === 'active') {
+                    // Verificar se a assinatura mensal expirou
+                    if (cfg.subscriptionExpiresAt) {
+                        const expiresAt = new Date(cfg.subscriptionExpiresAt);
+                        if (expiresAt < new Date()) {
+                            // Assinatura vencida — bloquear
+                            setIsTrialExpired(true);
+                            setIsSubscriptionExpired(true);
+                        }
+                        // Se não venceu, acesso liberado
+                    }
+                    // Se não tem subscriptionExpiresAt (admin liberou manualmente) — acesso vitalício
+                } else {
+                    // Sem licença ativa — verificar trial de 3 dias
                     const createdAt = cfg.createdAt ? new Date(cfg.createdAt) : new Date();
                     const now = new Date();
                     const diffTime = Math.abs(now.getTime() - createdAt.getTime());
                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                    // Note: diffDays=1 means first day. 
 
                     if (diffDays > 3) {
                         setIsTrialExpired(true);
                     } else {
-                        setDaysRemaining(4 - diffDays); // If day 1, 3 days remaining.
-                        // Only show modal once per session
+                        setDaysRemaining(4 - diffDays);
                         const hasSeenModal = sessionStorage.getItem('fp360_seen_trial_modal');
                         if (!hasSeenModal) {
                             setTimeout(() => setShowTrialModal(true), 1500);
@@ -194,7 +209,10 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
             else if (tab === 'metas') dataPromises.push(DBService.getGoals(user).then(setGoals));
             else if (tab === 'orcamento') { /* Data loaded inside component */ }
             else if (tab === 'dividas') dataPromises.push(DBService.getDebts(user).then(setDebts));
-            else if (tab === 'config') dataPromises.push(DBService.getConfig(user).then((cfg) => setConfig({ ...DEFAULT_CONFIG, ...cfg, userId: user })));
+            else if (tab === 'config') dataPromises.push(
+                DBService.getConfig(user).then((cfg) => setConfig({ ...DEFAULT_CONFIG, ...cfg, userId: user })),
+                DBService.getBankAccounts(user).then(setBankAccounts)
+            );
             await Promise.all(dataPromises);
             if (tab === 'metas') {
                 const newConfig = { ...config, lastSeenGoals: new Date().toISOString() };
@@ -269,6 +287,23 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
     const updateConfig = async (newConfig: AppConfig) => { const configWithUser = { ...newConfig, userId: user }; await DBService.saveConfig(configWithUser); setConfig(configWithUser); };
     const handleTutorialComplete = async () => { setShowTutorial(false); const newConfig = { ...config, hasSeenTutorial: true }; setConfig(newConfig); await updateConfig(newConfig); };
 
+    const addBankAccount = async (account: BankAccount) => {
+        const accountWithUser = { ...account, userId: user };
+        await DBService.saveBankAccount(accountWithUser);
+        setBankAccounts(prev => {
+            const idx = prev.findIndex(a => a.id === account.id);
+            if (idx >= 0) { const updated = [...prev]; updated[idx] = accountWithUser; return updated; }
+            return [...prev, accountWithUser];
+        });
+        // Recompute balances after save
+        DBService.getBankAccounts(user).then(setBankAccounts);
+    };
+
+    const deleteBankAccount = async (id: string) => {
+        await DBService.deleteBankAccount(id);
+        setBankAccounts(prev => prev.filter(a => a.id !== id));
+    };
+
     const handleTutorialStepChange = (tab: Tab) => {
         setActiveTab(tab);
     };
@@ -279,7 +314,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
     if (loading) return <div className="h-screen w-full flex items-center justify-center bg-[#f3f4f6] dark:bg-slate-950 transition-colors"><Loader2 className="animate-spin text-brand-blue" size={48} /></div>;
 
     if (isTrialExpired) {
-        return <SubscriptionWall userId={user} userEmail={userEmail} />;
+        return <SubscriptionWall userId={user} userEmail={userEmail} isExpired={isSubscriptionExpired} />;
     }
 
     return (
@@ -362,7 +397,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                             {contentLoading && <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm z-20"><Loader2 size={40} className="animate-spin text-brand-blue mb-3" /><p className="text-sm font-medium animate-pulse">Sincronizando...</p></div>}
                             <div className={`transition-opacity duration-300 ${contentLoading ? 'opacity-40' : 'opacity-100'}`}>
                                 <AnimatePresence mode="wait">
-                                    {activeTab === 'controle' && (<MotionWrapper key="controle-d"><Dashboard transactions={transactions} goals={goals} filter={filter} currency={config.currency} isPremium={config.licenseStatus === 'active'} config={config} onNavigate={handleTabChange} /></MotionWrapper>)}
+                                    {activeTab === 'controle' && (<MotionWrapper key="controle-d"><Dashboard transactions={transactions} goals={goals} filter={filter} currency={config.currency} isPremium={config.licenseStatus === 'active'} config={config} onNavigate={handleTabChange} bankAccounts={bankAccounts} /></MotionWrapper>)}
                                     {activeTab === 'receitas' && (<MotionWrapper key="receitas-d"><SheetView type="income" transactions={transactions} categories={config.incomeCategories || DEFAULT_CONFIG.incomeCategories} paymentMethods={config.paymentMethods} onAdd={addTransaction} onAddBatch={addTransactions} onUpdate={updateTransaction} onDelete={deleteTransaction} currency={config.currency} /></MotionWrapper>)}
                                     {activeTab === 'despesas' && (
                                         <MotionWrapper key="despesas-d">
@@ -382,7 +417,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                                     {activeTab === 'metas' && (<MotionWrapper key="metas-d"><GoalsSheet goals={goals} onAdd={addGoal} onDelete={deleteGoal} onUpdate={updateGoalValue} currency={config.currency} /></MotionWrapper>)}
                                     {activeTab === 'investimentos' && (<MotionWrapper key="investimentos-d"><Investments config={config} onNavigateToSettings={() => handleTabChange('config')} /></MotionWrapper>)}
                                     {activeTab === 'cursos' && (<MotionWrapper key="cursos-d"><Courses config={config} userEmail={userEmail} onNavigateToSettings={() => handleTabChange('config')} /></MotionWrapper>)}
-                                    {activeTab === 'config' && (<MotionWrapper key="config-d"><Settings config={config} onUpdateConfig={updateConfig} transactions={transactions} /></MotionWrapper>)}
+                                    {activeTab === 'config' && (<MotionWrapper key="config-d"><Settings config={config} onUpdateConfig={updateConfig} transactions={transactions} bankAccounts={bankAccounts} onAddBankAccount={addBankAccount} onDeleteBankAccount={deleteBankAccount} /></MotionWrapper>)}
                                     {activeTab === 'admin' && isAdmin && (<MotionWrapper key="admin-d"><AdminPanel /></MotionWrapper>)}
                                 </AnimatePresence>
                             </div>
@@ -449,7 +484,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                             <AnimatePresence mode="wait">
                                 {activeTab === 'controle' && (
                                     <MotionWrapper key="controle">
-                                        <Dashboard transactions={transactions} goals={goals} filter={filter} currency={config.currency} isPremium={config.licenseStatus === 'active'} config={config} onNavigate={handleTabChange} />
+                                        <Dashboard transactions={transactions} goals={goals} filter={filter} currency={config.currency} isPremium={config.licenseStatus === 'active'} config={config} onNavigate={handleTabChange} bankAccounts={bankAccounts} />
                                     </MotionWrapper>
                                 )}
                                 {activeTab === 'receitas' && (
@@ -523,7 +558,7 @@ const FinanceApp: React.FC<FinanceAppProps> = ({ user, onLogout }) => {
                                 )}
                                 {activeTab === 'config' && (
                                     <MotionWrapper key="config">
-                                        <Settings config={config} onUpdateConfig={updateConfig} transactions={transactions} />
+                                        <Settings config={config} onUpdateConfig={updateConfig} transactions={transactions} bankAccounts={bankAccounts} onAddBankAccount={addBankAccount} onDeleteBankAccount={deleteBankAccount} />
                                     </MotionWrapper>
                                 )}
                                 {activeTab === 'admin' && isAdmin && (

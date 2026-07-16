@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { AppConfig, Transaction, PurchaseRequest } from '../types';
-import { Trash2, Plus, FileSpreadsheet, Download, Bell, CreditCard, CheckCircle, Upload, Shield, Key, Lock, Moon, Sun, AlertTriangle, FileText, ArrowRight, DollarSign, Rocket, Star, ExternalLink, TableProperties, Info, Copy, Smartphone, Timer, QrCode, Loader2, Target, Scale, User, Edit2, Save, MessageCircle, Zap, Tag, Wallet, Calendar, TrendingUp, X } from 'lucide-react';
+import { AppConfig, Transaction, PurchaseRequest, BankAccount } from '../types';
+import { Trash2, Plus, FileSpreadsheet, Download, Bell, CreditCard, CheckCircle, Upload, Shield, Key, Lock, Moon, Sun, AlertTriangle, FileText, ArrowRight, DollarSign, Rocket, Star, ExternalLink, TableProperties, Info, Copy, Smartphone, Timer, QrCode, Loader2, Target, Scale, User, Edit2, Save, MessageCircle, Zap, Tag, Wallet, Calendar, TrendingUp, X, Landmark } from 'lucide-react';
 import { exportToCSV, validateLicenseKey, generateId } from '../utils';
 import { DBService } from '../db';
 import { Capacitor } from '@capacitor/core';
@@ -16,10 +16,13 @@ interface SettingsProps {
     config: AppConfig;
     onUpdateConfig: (c: AppConfig) => void;
     transactions: Transaction[];
+    bankAccounts?: BankAccount[];
+    onAddBankAccount?: (account: BankAccount) => Promise<void>;
+    onDeleteBankAccount?: (id: string) => Promise<void>;
 }
 
-export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, transactions }) => {
-    const [activeTab, setActiveTab] = useState<'profile' | 'plan' | 'appearance' | 'categories' | 'security' | 'integrations' | 'support'>('profile');
+export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, transactions, bankAccounts = [], onAddBankAccount, onDeleteBankAccount }) => {
+    const [activeTab, setActiveTab] = useState<'profile' | 'plan' | 'appearance' | 'categories' | 'security' | 'integrations' | 'support' | 'contas'>('profile');
 
     // Telegram Integration State
     const [tgLinked, setTgLinked] = useState(false);
@@ -55,6 +58,18 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
     const [showSheetGuide, setShowSheetGuide] = useState(false);
 
     const isLicensed = config.licenseStatus === 'active' || config.licenseKey;
+
+    // Bank Account State
+    const [newBankName, setNewBankName] = useState('');
+    const [newBankBalance, setNewBankBalance] = useState('');
+    const [newBankColor, setNewBankColor] = useState('#6366f1');
+    const [bankLoading, setBankLoading] = useState(false);
+
+    const BANK_COLORS = [
+        '#6366f1', '#8b5cf6', '#ec4899', '#ef4444',
+        '#f97316', '#eab308', '#22c55e', '#14b8a6',
+        '#06b6d4', '#3b82f6', '#64748b', '#1e293b'
+    ];
 
     useEffect(() => {
         if (config.userId && !isLicensed) {
@@ -267,6 +282,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
 
     const menuItems = [
         { id: 'profile', label: 'Meu Perfil', icon: <User size={20} className={activeTab === 'profile' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400'} /> },
+        { id: 'contas', label: 'Contas', icon: <Landmark size={20} className={activeTab === 'contas' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'} /> },
         { id: 'plan', label: 'Assinatura', icon: <Star size={20} className={activeTab === 'plan' ? 'text-brand-gold' : 'text-slate-400'} /> },
         { id: 'appearance', label: 'Ajustes', icon: <Moon size={20} className={activeTab === 'appearance' ? 'text-purple-500' : 'text-slate-400'} /> },
         { id: 'categories', label: 'Listas', icon: <Tag size={20} className={activeTab === 'categories' ? 'text-emerald-500' : 'text-slate-400'} /> },
@@ -296,6 +312,190 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
             <div className="flex-1 min-w-0">
                 <AnimatePresence mode="wait">
                     <motion.div key={activeTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} className="space-y-6">
+
+                        {/* ── ABA CONTAS BANCÁRIAS ───────────────────────────────── */}
+                        {activeTab === 'contas' && (
+                            <div className="space-y-6">
+                                {/* Header */}
+                                <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-6 text-white shadow-xl">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                                            <Landmark size={20} />
+                                        </div>
+                                        <div>
+                                            <h2 className="text-xl font-black">Contas Bancárias</h2>
+                                            <p className="text-emerald-100 text-sm">Gerencie seus bancos e saldos</p>
+                                        </div>
+                                    </div>
+                                    <div className="mt-4 bg-white/10 rounded-xl p-3 flex justify-between items-center">
+                                        <span className="text-sm font-medium text-emerald-100">Total em contas</span>
+                                        <span className="text-lg font-black">
+                                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
+                                                bankAccounts.reduce((s, a) => s + (a.currentBalance ?? a.initialBalance), 0)
+                                            )}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Formulário Nova Conta */}
+                                <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 overflow-hidden shadow-sm">
+                                    <div className="p-4 bg-slate-50 dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
+                                        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Adicionar Nova Conta</h4>
+                                    </div>
+                                    <div className="p-5 space-y-4">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">Nome do Banco *</label>
+                                                <input
+                                                    id="bank-name-input"
+                                                    type="text"
+                                                    value={newBankName}
+                                                    onChange={e => setNewBankName(e.target.value)}
+                                                    placeholder="Ex: Nubank, Itaú, Caixa..."
+                                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">Saldo Inicial (R$)</label>
+                                                <input
+                                                    id="bank-balance-input"
+                                                    type="number"
+                                                    value={newBankBalance}
+                                                    onChange={e => setNewBankBalance(e.target.value)}
+                                                    placeholder="0,00"
+                                                    step="0.01"
+                                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Seletor de Cor */}
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-500 mb-2 uppercase">Cor da Conta</label>
+                                            <div className="flex gap-2 flex-wrap">
+                                                {BANK_COLORS.map(color => (
+                                                    <button
+                                                        key={color}
+                                                        id={`bank-color-${color.replace('#', '')}`}
+                                                        onClick={() => setNewBankColor(color)}
+                                                        className="w-8 h-8 rounded-full transition-all hover:scale-110"
+                                                        style={{
+                                                            backgroundColor: color,
+                                                            boxShadow: newBankColor === color ? `0 0 0 2px white, 0 0 0 4px ${color}` : 'none'
+                                                        }}
+                                                        title={color}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <button
+                                            id="add-bank-account-btn"
+                                            onClick={async () => {
+                                                if (!newBankName.trim()) { alert('Informe o nome da conta.'); return; }
+                                                if (!onAddBankAccount) return;
+                                                setBankLoading(true);
+                                                try {
+                                                    await onAddBankAccount({
+                                                        id: generateId(),
+                                                        userId: config.userId || '',
+                                                        name: newBankName.trim(),
+                                                        initialBalance: parseFloat(newBankBalance || '0') || 0,
+                                                        color: newBankColor,
+                                                        icon: 'bank',
+                                                    });
+                                                    setNewBankName('');
+                                                    setNewBankBalance('');
+                                                    setNewBankColor('#6366f1');
+                                                } finally {
+                                                    setBankLoading(false);
+                                                }
+                                            }}
+                                            disabled={!newBankName.trim() || bankLoading}
+                                            className="w-full flex items-center justify-center gap-2 py-3 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-md shadow-emerald-500/20 transition-all active:scale-95"
+                                        >
+                                            {bankLoading ? <Loader2 size={18} className="animate-spin" /> : <Plus size={18} />}
+                                            {bankLoading ? 'Salvando...' : 'Adicionar Conta'}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Lista de Contas Cadastradas */}
+                                <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 overflow-hidden shadow-sm">
+                                    <div className="p-4 bg-slate-50 dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                                        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Contas Cadastradas</h4>
+                                        <span className="text-xs font-bold text-slate-400 bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded-full">{bankAccounts.length}</span>
+                                    </div>
+
+                                    {bankAccounts.length === 0 ? (
+                                        <div className="p-8 flex flex-col items-center gap-3 text-center">
+                                            <div className="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-2xl flex items-center justify-center">
+                                                <Landmark size={28} className="text-slate-400" />
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-slate-600 dark:text-slate-300">Nenhuma conta cadastrada</p>
+                                                <p className="text-sm text-slate-400 mt-1">Adicione suas contas bancárias acima para acompanhar os saldos no painel.</p>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="divide-y divide-slate-100 dark:divide-slate-700">
+                                            {bankAccounts.map(account => {
+                                                const bal = account.currentBalance ?? account.initialBalance;
+                                                const isNeg = bal < 0;
+                                                return (
+                                                    <div key={account.id} className="p-4 flex items-center gap-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                                                        <div
+                                                            className="w-11 h-11 rounded-xl flex items-center justify-center text-white text-lg font-black shadow-sm shrink-0"
+                                                            style={{ backgroundColor: account.color }}
+                                                        >
+                                                            {account.name.substring(0, 1).toUpperCase()}
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="font-bold text-slate-800 dark:text-slate-100 truncate">{account.name}</p>
+                                                            <div className="flex items-center gap-3 mt-0.5">
+                                                                <span className="text-xs text-slate-400">Inicial: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(account.initialBalance)}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="text-right shrink-0">
+                                                            <p className={`font-black text-base ${isNeg ? 'text-rose-500' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                                                                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(bal)}
+                                                            </p>
+                                                            <p className="text-[11px] text-slate-400 font-medium">Saldo atual</p>
+                                                        </div>
+                                                        <button
+                                                            id={`delete-bank-${account.id}`}
+                                                            onClick={async () => {
+                                                                if (window.confirm(`Excluir a conta "${account.name}"? As transações vinculadas não serão apagadas.`)) {
+                                                                    if (onDeleteBankAccount) await onDeleteBankAccount(account.id);
+                                                                }
+                                                            }}
+                                                            className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors shrink-0"
+                                                            title="Excluir conta"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Dica de uso com Telegram */}
+                                <div className="bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800 rounded-2xl p-4 flex gap-3">
+                                    <div className="w-8 h-8 bg-sky-100 dark:bg-sky-900/40 rounded-lg flex items-center justify-center shrink-0">
+                                        <Zap size={16} className="text-sky-500" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-bold text-sky-800 dark:text-sky-300">Dica: Use com o Telegram!</p>
+                                        <p className="text-xs text-sky-600 dark:text-sky-400 mt-0.5">
+                                            Após cadastrar suas contas, você pode dizer ao bot: <span className="font-mono bg-sky-100 dark:bg-sky-900/40 px-1 rounded">"gastei 80 de almoço no Nubank"</span> e a transação será vinculada automaticamente.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         {activeTab === 'profile' && (
                             <div className="space-y-6">
                                 {/* Premium Card Holográfico */}
@@ -370,42 +570,29 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                                             </div>
                                             {!isLicensed ? (
                                                 <div className="space-y-6">
-                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                        <button onClick={() => setSelectedPlan('semiannual')} className={`relative p-5 rounded-xl border-2 text-left transition-all ${selectedPlan === 'semiannual' ? 'border-brand-gold bg-white/5 ring-4 ring-brand-gold/10' : 'border-slate-700 bg-black/20 hover:border-slate-500'}`}>
-                                                            {selectedPlan === 'semiannual' && <CheckCircle className="absolute top-4 right-4 text-brand-gold" size={20} />}
-                                                            <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Semestral</p>
-                                                            <h4 className="text-white font-bold text-lg">PLANO SEMESTRAL</h4>
-                                                            <div className="mt-2 text-2xl font-bold text-white">R$ {PLANS_CONFIG.semiannual.value.toFixed(2).replace('.', ',')}<span className="text-xs font-normal text-slate-400 ml-1">/6 MESES</span></div>
-                                                            <ul className="mt-4 space-y-2">
-                                                                {PLANS_CONFIG.semiannual.features.slice(0, 3).map((f, i) => (
-                                                                    <li key={i} className="text-[11px] text-slate-400 flex items-center gap-2"><CheckCircle size={12} className="text-emerald-500" /> {f}</li>
-                                                                ))}
-                                                            </ul>
-                                                        </button>
-                                                        <button onClick={() => setSelectedPlan('annual')} className={`relative p-5 rounded-xl border-2 text-left transition-all ${selectedPlan === 'annual' ? 'border-brand-gold bg-white/5 ring-4 ring-brand-gold/10' : 'border-slate-700 bg-black/20 hover:border-slate-500'}`}>
-                                                            {selectedPlan === 'annual' && <CheckCircle className="absolute top-4 right-4 text-brand-gold" size={20} />}
-                                                            <div className="absolute -top-3 left-4 bg-brand-gold text-brand-blue text-[9px] font-bold px-2 py-0.5 rounded-full">MELHOR VALOR</div>
-                                                            <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Anual</p>
-                                                            <h4 className="text-white font-bold text-lg">PLANO ANUAL</h4>
-                                                            <div className="mt-2 text-2xl font-bold text-white">R$ {PLANS_CONFIG.annual.value.toFixed(2).replace('.', ',')}<span className="text-xs font-normal text-slate-400 ml-1">/ANO</span></div>
-                                                            <ul className="mt-4 space-y-2">
-                                                                {PLANS_CONFIG.annual.features.slice(1, 4).map((f, i) => (
-                                                                    <li key={i} className="text-[11px] text-slate-400 flex items-center gap-2"><Zap size={12} className="text-brand-gold fill-current" /> {f}</li>
-                                                                ))}
-                                                            </ul>
-                                                        </button>
+                                                    {/* Single Plan Card */}
+                                                    <div className="relative p-5 rounded-xl border-2 border-brand-gold bg-white/5 text-left">
+                                                        <CheckCircle className="absolute top-4 right-4 text-brand-gold" size={20} />
+                                                        <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Plano Único</p>
+                                                        <h4 className="text-white font-bold text-lg">ACESSO COMPLETO</h4>
+                                                        <div className="mt-2 text-2xl font-bold text-white">R$ 19,90<span className="text-xs font-normal text-slate-400 ml-1">/MÊS</span></div>
+                                                        <ul className="mt-4 space-y-2">
+                                                            {PLANS_CONFIG.annual.features.map((f, i) => (
+                                                                <li key={i} className="text-[11px] text-slate-400 flex items-center gap-2"><CheckCircle size={12} className="text-emerald-500" /> {f}</li>
+                                                            ))}
+                                                        </ul>
                                                     </div>
                                                     <div className="bg-black/30 p-6 rounded-xl border border-white/5 space-y-4">
                                                         <div className="flex flex-col md:flex-row gap-8 items-center">
                                                             <div className="flex-1 space-y-4 text-center md:text-left">
                                                                 <div>
-                                                                    <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Plano Selecionado: {PLANS_CONFIG[selectedPlan].name}</p>
-                                                                    <h4 className="text-white font-bold text-lg">Total a pagar: R$ {PLANS_CONFIG[selectedPlan].value.toFixed(2)}</h4>
-                                                                    <p className="text-xs text-slate-400 mt-2">Assinatura com renovação automática. Cancele a qualquer momento.<br />Pagamento seguro via <strong>Kiwify</strong>. Liberação imediata.</p>
+                                                                    <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Plano Mensal — Acesso Completo</p>
+                                                                    <h4 className="text-white font-bold text-lg">Total a pagar: R$ 19,90/mês</h4>
+                                                                    <p className="text-xs text-slate-400 mt-2">Assinatura mensal. Cancele a qualquer momento.<br />Pagamento seguro via <strong>Kiwify</strong>. Liberação imediata.</p>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <button onClick={() => { const link = PLANS_CONFIG[selectedPlan].checkoutUrl; const finalLink = `${link}?email=${encodeURIComponent(config.userId + '@user.app')}&custom_id=${config.userId}`; window.open(finalLink, '_blank'); }} className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold py-4 rounded-xl shadow-md transition-all transform hover:scale-[1.02] flex items-center justify-center gap-3">
+                                                        <button onClick={() => { const link = PLANS_CONFIG.annual.checkoutUrl; const finalLink = `${link}?email=${encodeURIComponent(config.userId + '@user.app')}&custom_id=${config.userId}`; window.open(finalLink, '_blank'); }} className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold py-4 rounded-xl shadow-md transition-all transform hover:scale-[1.02] flex items-center justify-center gap-3">
                                                             <CreditCard size={24} /> ASSINAR AGORA E DESBLOQUEAR
                                                         </button>
                                                         <div className="flex items-center justify-center gap-2 text-[10px] text-slate-500"><Lock size={12} /> Assinatura Segura e Flexível</div>
@@ -416,8 +603,26 @@ export const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, tran
                                                     <div className="w-20 h-20 bg-brand-gold rounded-full flex items-center justify-center mx-auto mb-6 shadow-md animate-pulse">
                                                         <Star size={40} className="text-brand-blue fill-current" />
                                                     </div>
-                                                    <h3 className="text-3xl font-bold text-white mb-2">EXPERIÊNCIA COMPLETA!</h3>
-                                                    <p className="text-slate-400 max-w-md mx-auto text-sm">Você já possui uma licença ativa. Aproveite todos os recursos do Finance Pro 360.</p>
+                                                    <h3 className="text-3xl font-bold text-white mb-2">ASSINATURA ATIVA! ✅</h3>
+                                                    <p className="text-slate-400 max-w-md mx-auto text-sm mb-4">Aproveite todos os recursos do Finance Pro 360.</p>
+                                                    {config.subscriptionExpiresAt && (
+                                                        <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl px-6 py-3 inline-block mb-4">
+                                                            <p className="text-emerald-400 text-xs font-bold uppercase tracking-widest">Próxima renovação</p>
+                                                            <p className="text-white font-bold text-lg">
+                                                                {new Date(config.subscriptionExpiresAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                    <div className="mt-2">
+                                                        <a
+                                                            href="https://app.kiwify.com.br"
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="text-xs text-slate-500 hover:text-slate-300 underline transition-colors"
+                                                        >
+                                                            Gerenciar assinatura na Kiwify
+                                                        </a>
+                                                    </div>
                                                 </div>
                                             )}
                                         </div>

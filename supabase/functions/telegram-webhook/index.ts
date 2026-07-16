@@ -5,19 +5,18 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-// ─── ENV ───────────────────────────────────────────────
-const BOT_TOKEN    = Deno.env.get("TELEGRAM_BOT_TOKEN") || "";
-const GEMINI_KEY   = Deno.env.get("GEMINI_API_KEY")     || "";
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")       || "";
-const SERVICE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+// ─── ENV (Lidos dinamicamente) ───────────────────────
+const getBotToken = () => Deno.env.get("TELEGRAM_BOT_TOKEN") || "";
+const getGeminiKey = () => Deno.env.get("GEMINI_API_KEY") || "";
+const getSupabaseUrl = () => Deno.env.get("SUPABASE_URL") || "";
+const getServiceKey = () => Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 
-const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
-
-const TELEGRAM_API = `https://api.telegram.org/bot${BOT_TOKEN}`;
-const GEMINI_API   = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+// Supabase client dinâmico
+const getSupabase = () => createClient(getSupabaseUrl(), getServiceKey());
 
 // ─── TELEGRAM HELPERS ──────────────────────────────────
 async function sendMessage(chatId: number, text: string, parseMode = "Markdown") {
+  const TELEGRAM_API = `https://api.telegram.org/bot${getBotToken()}`;
   await fetch(`${TELEGRAM_API}/sendMessage`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -25,14 +24,33 @@ async function sendMessage(chatId: number, text: string, parseMode = "Markdown")
   });
 }
 
+async function getTelegramFile(fileId: string): Promise<string | null> {
+  const TELEGRAM_API = `https://api.telegram.org/bot${getBotToken()}`;
+  const res = await fetch(`${TELEGRAM_API}/getFile?file_id=${fileId}`);
+  const json = await res.json();
+  if (!json.ok) return null;
+  
+  const fileRes = await fetch(`https://api.telegram.org/file/bot${getBotToken()}/${json.result.file_path}`);
+  const buffer = await fileRes.arrayBuffer();
+  
+  // Converter Uint8Array para Base64 usando chunks para não estourar a pilha
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
 // ─── GEMINI PARSE ─────────────────────────────────────
-async function parseTransactionWithAI(message: string): Promise<any> {
+async function parseTransactionWithAI(message: string, voiceBase64?: string): Promise<any> {
   const today = new Date().toISOString().split("T")[0];
 
   const prompt = `Você é um assistente financeiro para usuário brasileiro.
 Data de hoje: ${today}
 
-Tarefa: Extraia os dados da transação da mensagem: "${message}"
+Tarefa: Extraia os dados da transação a partir do áudio e/ou mensagem fornecida.
+${message ? `Mensagem extra: "${message}"` : ""}
 
 Regras:
 1. Moeda: 'real', 'reais', 'R$' → BRL. Se não informado, assuma BRL.
@@ -44,6 +62,7 @@ Regras:
    - Receita: Salários, Vendas Diversas, Aluguel de Carro, Aluguel de Apartamento, Aluguel de Casa, Dividendos, Rendimentos, Aposentadoria, Outros
 4. Descrição: título curto e claro (máx 40 chars)
 5. Data: YYYY-MM-DD. Use hoje (${today}) se não mencionado.
+6. Banco: se o usuário mencionar um banco (ex: "no Nubank", "pelo Itaú", "na Caixa"), extraia o nome. Caso contrário, use null.
 
 Retorne APENAS JSON válido (sem markdown):
 {
@@ -51,22 +70,56 @@ Retorne APENAS JSON válido (sem markdown):
   "description": string,
   "type": "income" | "expense",
   "category": string,
-  "date": string
+  "date": string,
+  "bank_name": string | null
 }
 Se não for uma transação (saudação, pergunta, etc.), retorne: {"error": "not_transaction"}`;
 
-  const res = await fetch(`${GEMINI_API}?key=${GEMINI_KEY}`, {
+  const parts: any[] = [{ text: prompt }];
+  if (voiceBase64) {
+    parts.push({
+      inlineData: {
+        mimeType: "audio/ogg",
+        data: voiceBase64
+      }
+    });
+  }
+
+  let GEMINI_API = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent";
+  let res = await fetch(`${GEMINI_API}?key=${getGeminiKey()}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
+      contents: [{ parts }],
       generationConfig: { responseMimeType: "application/json", temperature: 0.1 },
     }),
   });
 
+  // Fallback
+  if (res.status === 404) {
+    GEMINI_API = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-latest:generateContent";
+    res = await fetch(`${GEMINI_API}?key=${getGeminiKey()}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts }],
+        generationConfig: { temperature: 0.1 }, 
+      }),
+    });
+  }
+
   const json = await res.json();
-  const text = json?.candidates?.[0]?.content?.parts?.[0]?.text || '{"error":"ai_failed"}';
-  return JSON.parse(text.trim());
+  if (!res.ok || !json?.candidates) {
+    return { error: "ai_failed", details: JSON.stringify(json) };
+  }
+  
+  let text = json.candidates[0].content.parts[0].text;
+  text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    return { error: "parse_error", details: text };
+  }
 }
 
 // ─── FORMATTERS ────────────────────────────────────────
@@ -87,18 +140,19 @@ serve(async (req) => {
     return new Response("Bad Request", { status: 400 });
   }
 
-  // Suporte a mensagens normais e edições
   const message = update.message || update.edited_message;
-  if (!message?.text) {
-    return new Response("No text", { status: 200 });
-  }
+  if (!message) return new Response("OK", { status: 200 });
 
   const chatId   = message.chat.id as number;
-  const userId   = message.from?.id;
   const username = message.from?.username || message.from?.first_name || "Usuário";
-  const text     = message.text.trim();
+  const text     = (message.text || message.caption || "").trim();
+  const voiceId  = message.voice?.file_id;
 
-  console.log(`[TG] ${username} (${chatId}): ${text}`);
+  if (!text && !voiceId) {
+    return new Response("OK", { status: 200 });
+  }
+
+  console.log(`[TG] ${username} (${chatId}): ${text || "(voice message)"}`);
 
   // ── /start ──────────────────────────────────────────
   if (text === "/start" || text.startsWith("/start ")) {
@@ -125,6 +179,7 @@ Depois disso, basta me enviar suas transações em linguagem natural! 💬`);
       return new Response("OK");
     }
 
+    const supabase = getSupabase();
     // Buscar código na tabela
     const { data: linkCode, error: codeError } = await supabase
       .from("telegram_link_codes")
@@ -186,6 +241,7 @@ Outros comandos:
   }
 
   // ── Verificar se usuário está vinculado ─────────────
+  const supabase = getSupabase();
   const { data: link, error: linkFetchError } = await supabase
     .from("telegram_links")
     .select("user_id")
@@ -209,6 +265,25 @@ Para vincular:
   if (text === "/desvincular") {
     await supabase.from("telegram_links").delete().eq("telegram_chat_id", chatId);
     await sendMessage(chatId, "🔓 Conta desvinculada com sucesso.\n\nVocê pode vincular novamente a qualquer momento pelo app.");
+    return new Response("OK");
+  }
+
+  // ── /testar (DEBUG GEMINI) ──────────────────────────
+  if (text === "/testar") {
+    try {
+      const listResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${getGeminiKey()}`);
+      const listData = await listResp.json();
+      
+      if (!listResp.ok) {
+         await sendMessage(chatId, `Erro ListModels: ${JSON.stringify(listData)}`);
+         return new Response("OK");
+      }
+      
+      const models = (listData.models || []).map((m: any) => m.name.replace('models/', '')).join(', ');
+      await sendMessage(chatId, `Modelos disponíveis na sua chave: \n\n${models || "NENHUM MODELO ENCONTRADO!"}`);
+    } catch (e: any) {
+      await sendMessage(chatId, `Erro no fetch: ${e.message}`);
+    }
     return new Response("OK");
   }
 
@@ -309,57 +384,133 @@ _Acesse o app para ver análises detalhadas._`);
     return new Response("OK");
   }
 
+  // ── /bancos ─────────────────────────────────────────
+  if (text === '/bancos') {
+    const { data: bankRows } = await supabase
+      .from('bank_accounts')
+      .select('id, name, initial_balance, color')
+      .eq('user_id', fp360UserId)
+      .order('created_at', { ascending: true });
+
+    if (!bankRows || bankRows.length === 0) {
+      await sendMessage(chatId, `🏦 Você não tem contas bancárias cadastradas ainda.\n\nAcesse *Finance Pro 360 → Configurações → Contas* para adicionar seus bancos.`);
+      return new Response('OK');
+    }
+
+    // Buscar transações vinculadas para calcular saldo
+    const { data: txRows } = await supabase
+      .from('transactions')
+      .select('bank_account_id, amount, type')
+      .eq('user_id', fp360UserId)
+      .not('bank_account_id', 'is', null);
+
+    const txList = txRows || [];
+
+    const lines = bankRows.map((acc: any) => {
+      const linked = txList.filter((t: any) => t.bank_account_id === acc.id);
+      const delta = linked.reduce((s: number, t: any) => s + (t.type === 'income' ? Number(t.amount) : -Number(t.amount)), 0);
+      const balance = Number(acc.initial_balance) + delta;
+      const emoji = balance >= 0 ? '🟢' : '🔴';
+      return `${emoji} *${acc.name}*: ${formatBRL(balance)}`;
+    }).join('\n');
+
+    const total = bankRows.reduce((s: number, acc: any) => {
+      const linked = txList.filter((t: any) => t.bank_account_id === acc.id);
+      const delta = linked.reduce((d: number, t: any) => d + (t.type === 'income' ? Number(t.amount) : -Number(t.amount)), 0);
+      return s + Number(acc.initial_balance) + delta;
+    }, 0);
+
+    await sendMessage(chatId, `🏦 *Suas Contas Bancárias*\n\n${lines}\n\n💰 *Total consolidado:* ${formatBRL(total)}`);
+    return new Response('OK');
+  }
+
   // ── /ajuda ──────────────────────────────────────────
-  if (text === "/ajuda" || text === "/help") {
+  if (text === '/ajuda' || text === '/help') {
     await sendMessage(chatId, `🤖 *Finance Pro 360 Bot — Comandos*
 
 *Transações (linguagem natural):*
 "gastei 45 no mercado"
 "recebi 3500 de salário"
-"paguei 150 de conta de luz"
-"almocei fora, 32 reais"
+"paguei 150 de conta de luz no Nubank"
+"almocei fora, 32 reais pelo Itaú"
 
 *Comandos:*
 \`/saldo\` — Saldo do mês atual
+\`/bancos\` — Saldos de cada conta bancária
 \`/metas\` — Suas metas em andamento
 \`/resumo\` — Resumo financeiro completo
 \`/desvincular\` — Remover conexão com o app
 \`/ajuda\` — Esta mensagem`);
-    return new Response("OK");
+    return new Response('OK');
   }
 
-  // ── Processar transação (texto livre) ────────────────
+  // ── Processar transação (texto livre ou áudio) ───────
   try {
-    // Indicar digitando...
+    const TELEGRAM_API = `https://api.telegram.org/bot${getBotToken()}`;
+    // Indicar digitando ou gravando áudio...
     await fetch(`${TELEGRAM_API}/sendChatAction`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: chatId, action: "typing" }),
+      body: JSON.stringify({ chat_id: chatId, action: voiceId ? "record_voice" : "typing" }),
     });
 
-    const data = await parseTransactionWithAI(text);
+    let voiceBase64;
+    if (voiceId) {
+      voiceBase64 = await getTelegramFile(voiceId);
+      if (!voiceBase64) {
+        await sendMessage(chatId, "❌ Erro ao baixar o áudio do Telegram.");
+        return new Response("OK");
+      }
+    }
+
+    const data = await parseTransactionWithAI(text, voiceBase64);
 
     if (data.error) {
+      if (data.details) {
+        await sendMessage(chatId, `❌ Erro técnico no Gemini:\n\n\`${data.details}\``);
+        return new Response("OK");
+      }
+      
       await sendMessage(chatId, `🤔 Não entendi isso como uma transação.
-
+      
 Tente algo como:
 • "gastei 45 no mercado"
 • "recebi 3500 de salário"
 • "paguei 89 de internet"
+• Ou grave um áudio!
 
-Ou use \`/ajuda\` para ver todos os comandos.`);
+Use \`/ajuda\` para ver todos os comandos.`);
       return new Response("OK");
     }
 
     // Salvar transação
-    const { error: insertError } = await supabase.from("transactions").insert({
-      user_id:        fp360UserId,
-      amount:         data.amount,
-      description:    data.description,
+    // Resolver banco se Gemini extraiu um bank_name
+    let bankAccountId: string | null = null;
+    if (data.bank_name) {
+      const { data: bankRow } = await supabase
+        .from('bank_accounts')
+        .select('id, name')
+        .eq('user_id', fp360UserId)
+        .ilike('name', `%${data.bank_name}%`)
+        .limit(1)
+        .maybeSingle();
+      if (bankRow) {
+        bankAccountId = bankRow.id;
+      } else {
+        // Banco mencionado mas não cadastrado — avisa o usuário mas salva mesmo assim
+        await sendMessage(chatId, `⚠️ Conta \'${data.bank_name}\' não encontrada.\nA transação será salva sem vínculo a um banco.\n\nCadastre suas contas em *Configurações → Contas*.`);
+      }
+    }
+
+    const { error: insertError } = await supabase.from('transactions').insert({
+      user_id:          fp360UserId,
+      amount:           data.amount,
+      description:      data.description,
       type:           data.type,
       category:       data.category,
       date:           data.date,
       payment_method: "Telegram",
+      bank_account_id:  bankAccountId,
     });
 
     if (insertError) {
@@ -370,13 +521,14 @@ Ou use \`/ajuda\` para ver todos os comandos.`);
 
     const emoji = data.type === "expense" ? "💸" : "💰";
     const typeLabel = data.type === "expense" ? "Despesa" : "Receita";
+    const bankLine = bankAccountId && data.bank_name ? `\n🏦 ${data.bank_name}` : '';
 
     await sendMessage(chatId, `${emoji} *${typeLabel} registrada!*
 
 📌 *${data.description}*
 💵 ${formatBRL(data.amount)}
 🏷️ ${data.category}
-📅 ${new Date(data.date + "T12:00:00").toLocaleDateString("pt-BR")}
+📅 ${new Date(data.date + "T12:00:00").toLocaleDateString("pt-BR")}${bankLine}
 
 _Já aparece no Finance Pro 360_ ✅`);
 

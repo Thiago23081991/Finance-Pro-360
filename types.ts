@@ -23,9 +23,22 @@ export interface Transaction {
   description: string;
   paymentMethod?: string; // Only for expenses
   cardId?: string; // Optional link to specific credit card
+  bankAccountId?: string; // Optional link to a bank account
   type: TransactionType;
   isRecurring?: boolean; // If true, this transaction is a template for future months
   recurrenceDay?: number; // Day of month to repeat (1-31)
+}
+
+export interface BankAccount {
+  id: string;
+  userId: string;
+  name: string;         // ex: "Nubank", "Itaú Corrente"
+  initialBalance: number;
+  color: string;        // Hex color for visual display
+  icon: string;        // Icon identifier: 'bank' | 'wallet' | 'piggy' | 'dollar'
+  createdAt?: string;
+  // Computed (not stored in DB) — filled by getBankAccounts:
+  currentBalance?: number;
 }
 
 // ... (Goal, Debt, BudgetLimit interfaces remain unchanged)
@@ -60,10 +73,11 @@ export interface AppConfig {
   userId?: string;
   name?: string; // Nome do usuário para exibição
   // Subscription Fields
-  planType?: 'basic' | 'semiannual' | 'annual';
+  planType?: 'basic' | 'semiannual' | 'annual' | 'monthly';
   subscriptionStatus?: 'active' | 'inactive' | 'canceled' | 'past_due';
   nextBillingDate?: string; // ISO Date for next payment
-  planCycle?: 'semiannual' | 'annual';
+  planCycle?: 'semiannual' | 'annual' | 'monthly';
+  subscriptionExpiresAt?: string; // ISO Date — assinatura expira nesta data (mensal)
   theme?: 'light' | 'dark'; // New Theme Field
   currency?: 'BRL' | 'USD' | 'EUR' | 'GBP' | 'JPY'; // Currency Field
   categories: string[]; // Deprecated, kept for backward compat
@@ -151,6 +165,7 @@ export interface BackupData {
   purchase_requests?: PurchaseRequest[];
   messages?: AdminMessage[];
   support_tickets?: SupportTicket[];
+  bank_accounts?: BankAccount[];
 }
 
 export interface SystemStats {

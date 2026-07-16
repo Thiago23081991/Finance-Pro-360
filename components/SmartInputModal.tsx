@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, X, Check, ArrowRight, Loader2, AlertCircle, Mic, Camera as CameraIcon } from 'lucide-react';
+import { Sparkles, X, Check, ArrowRight, Loader2, AlertCircle, Mic, Camera as CameraIcon, Landmark } from 'lucide-react';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { GeminiService } from '../services/GeminiService';
-import { Transaction } from '../types';
+import { Transaction, BankAccount } from '../types';
 
 interface SmartInputModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSave: (transaction: Partial<Transaction>) => void;
     categories: string[];
+    bankAccounts?: BankAccount[];
 }
 
-export const SmartInputModal: React.FC<SmartInputModalProps> = ({ isOpen, onClose, onSave, categories }) => {
+export const SmartInputModal: React.FC<SmartInputModalProps> = ({ isOpen, onClose, onSave, categories, bankAccounts = [] }) => {
     const [inputText, setInputText] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
     const [isListening, setIsListening] = useState(false);
@@ -220,6 +221,23 @@ export const SmartInputModal: React.FC<SmartInputModalProps> = ({ isOpen, onClos
                                                     {categories.map(c => <option key={c} value={c}>{c}</option>)}
                                                 </select>
                                             </div>
+                                            {bankAccounts.length > 0 && (
+                                                <div className="col-span-2">
+                                                    <label className="text-xs font-bold text-slate-500 uppercase flex items-center gap-1">
+                                                        <Landmark size={12} /> Conta Bancária (opcional)
+                                                    </label>
+                                                    <select
+                                                        value={parsedData.bankAccountId || ''}
+                                                        onChange={e => setParsedData({ ...parsedData, bankAccountId: e.target.value || undefined })}
+                                                        className="w-full p-2 bg-white dark:bg-slate-800 border rounded"
+                                                    >
+                                                        <option value="">Nenhuma conta específica</option>
+                                                        {bankAccounts.map(acc => (
+                                                            <option key={acc.id} value={acc.id}>{acc.name}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 

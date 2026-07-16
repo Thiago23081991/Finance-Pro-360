@@ -1,5 +1,5 @@
 
-import { Transaction, Goal, Debt, BudgetLimit, AppConfig, UserAccount, PurchaseRequest, AdminMessage, SystemStats, UserProfile, Investment, SupportTicket, TicketMessage } from "./types";
+import { Transaction, Goal, Debt, BudgetLimit, AppConfig, UserAccount, PurchaseRequest, AdminMessage, SystemStats, UserProfile, Investment, SupportTicket, TicketMessage, BankAccount } from "./types";
 import { DEFAULT_CONFIG } from "./constants";
 import { supabase } from "./supabaseClient";
 import { generateId, validateLicenseKey } from "./utils";
@@ -112,6 +112,7 @@ export class DBService {
       category: t.category,
       description: t.description,
       paymentMethod: t.payment_method,
+      bankAccountId: t.bank_account_id || undefined,
       type: t.type,
       isRecurring: t.is_recurring,
       recurrenceDay: t.recurrence_day
@@ -130,6 +131,7 @@ export class DBService {
       category: t.category,
       description: t.description,
       payment_method: t.paymentMethod,
+      bank_account_id: t.bankAccountId || null,
       type: t.type,
       is_recurring: t.isRecurring,
       recurrence_day: t.recurrenceDay
@@ -153,6 +155,7 @@ export class DBService {
       category: t.category,
       description: t.description,
       payment_method: t.paymentMethod,
+      bank_account_id: t.bankAccountId || null,
       type: t.type,
       is_recurring: t.isRecurring,
       recurrence_day: t.recurrenceDay
@@ -411,6 +414,7 @@ export class DBService {
       licenseKey: data.license_key || localConfig.licenseKey,
       licenseStatus: data.license_status || localConfig.licenseStatus,
       planType: data.plan_type || localConfig.planType || 'basic',
+      subscriptionExpiresAt: data.subscription_expires_at || localConfig.subscriptionExpiresAt,
       // Added createdAt to support lazy initialization check in App.tsx
       createdAt: data.created_at
     };
@@ -437,7 +441,8 @@ export class DBService {
       has_seen_tutorial: config.hasSeenTutorial,
       license_key: config.licenseKey,
       license_status: config.licenseStatus,
-      plan_type: config.planType
+      plan_type: config.planType,
+      subscription_expires_at: config.subscriptionExpiresAt ?? null
     };
 
     // Try a broad update first
@@ -936,5 +941,92 @@ export class DBService {
       .delete()
       .eq('user_id', userId);
     if (error) throw new Error(error.message);
+  }
+
+  // --- BANK ACCOUNTS OPERATIONS ---
+
+  /**
+   * Busca todas as contas bancárias do usuário com saldo calculado.
+   * currentBalance = initialBalance + soma de receitas vinculadas - soma de despesas vinculadas.
+   */
+  static async getBankAccounts(userId: string): Promise<BankAccount[]> {
+    const { data, error } = await supabase
+      .from('bank_accounts')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      // Fallback local
+      const localData = localStorage.getItem(`fp360_bank_accounts_${userId}`);
+      if (localData) return JSON.parse(localData);
+      return [];
+    }
+
+    const accounts: BankAccount[] = data.map((a: any) => ({
+      id: a.id,
+      userId: a.user_id,
+      name: a.name,
+      initialBalance: parseFloat(a.initial_balance),
+      color: a.color,
+      icon: a.icon,
+      createdAt: a.created_at,
+    }));
+
+    // Calcular saldo atual para cada conta com base nas transações vinculadas
+    const { data: txData } = await supabase
+      .from('transactions')
+      .select('bank_account_id, amount, type')
+      .eq('user_id', userId)
+      .not('bank_account_id', 'is', null);
+
+    const txList = txData || [];
+
+    return accounts.map(account => {
+      const linked = txList.filter((t: any) => t.bank_account_id === account.id);
+      const delta = linked.reduce((sum: number, t: any) => {
+        return sum + (t.type === 'income' ? parseFloat(t.amount) : -parseFloat(t.amount));
+      }, 0);
+      return { ...account, currentBalance: account.initialBalance + delta };
+    });
+  }
+
+  /** Cria ou atualiza uma conta bancária */
+  static async saveBankAccount(account: BankAccount): Promise<void> {
+    const user = await this.getCurrentUser();
+    if (!user) throw new Error('Usuário não autenticado');
+
+    const payload = {
+      id: account.id,
+      user_id: user.id,
+      name: account.name,
+      initial_balance: account.initialBalance,
+      color: account.color,
+      icon: account.icon,
+    };
+
+    const { error } = await supabase.from('bank_accounts').upsert(payload);
+
+    if (error) {
+      // Fallback local
+      const current = await this.getBankAccounts(user.id);
+      const idx = current.findIndex(a => a.id === account.id);
+      if (idx >= 0) current[idx] = account;
+      else current.push(account);
+      localStorage.setItem(`fp360_bank_accounts_${user.id}`, JSON.stringify(current));
+    }
+  }
+
+  /** Remove uma conta bancária (transações são desvinculadas via ON DELETE SET NULL) */
+  static async deleteBankAccount(id: string): Promise<void> {
+    const { error } = await supabase.from('bank_accounts').delete().eq('id', id);
+    if (error) {
+      const user = await this.getCurrentUser();
+      if (user) {
+        const current = await this.getBankAccounts(user.id);
+        const filtered = current.filter(a => a.id !== id);
+        localStorage.setItem(`fp360_bank_accounts_${user.id}`, JSON.stringify(filtered));
+      }
+    }
   }
 }

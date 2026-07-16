@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Transaction, Goal, AppConfig, Investment, FilterState, Tab } from '../types';
+import { Transaction, Goal, AppConfig, Investment, FilterState, Tab, BankAccount } from '../types';
 import { formatCurrency, getBudgetCategoryType } from '../utils';
 import { MONTH_NAMES } from '../constants';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, Cell, LineChart, Line, Legend } from 'recharts';
@@ -21,6 +21,7 @@ interface DashboardProps {
     isPremium?: boolean;
     config?: AppConfig;
     onNavigate?: (tab: Tab) => void;
+    bankAccounts?: BankAccount[];
 }
 
 const getCategoryIcon = (category: string) => {
@@ -40,7 +41,7 @@ const getCategoryIcon = (category: string) => {
 
 const CATEGORY_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#f43f5e'];
 
-export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filter, currency = 'BRL', isPremium = false, config, onNavigate }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filter, currency = 'BRL', isPremium = false, config, onNavigate, bankAccounts = [] }) => {
     const [selectedTrendCategory, setSelectedTrendCategory] = useState<string>('Alimentação');
 
     const filteredTransactions = useMemo<Transaction[]>(() => {
@@ -539,6 +540,79 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, goals, filte
                     ))}
                 </div>
             </motion.div>
+
+            {/* ── Minhas Contas Block ────────────────────────────────────── */}
+            {bankAccounts.length > 0 && (
+                <motion.div variants={itemVariants} className="bg-white dark:bg-[#1C1C1E] px-5 py-5 flex flex-col gap-4 rounded-[20px] shadow-sm border border-slate-100 dark:border-white/5 mx-4 mt-4">
+                    <div className="flex justify-between items-center">
+                        <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Minhas Contas</h3>
+                        <button
+                            onClick={() => onNavigate && onNavigate('config')}
+                            className="text-xs font-bold text-brand-blue dark:text-brand-gold hover:underline transition-colors"
+                        >
+                            Gerenciar
+                        </button>
+                    </div>
+
+                    {/* Cards de contas em scroll horizontal */}
+                    <div className="flex gap-3 overflow-x-auto -mx-5 px-5 pb-2 snap-x hide-scrollbar">
+                        {bankAccounts.map((account) => {
+                            const bal = account.currentBalance ?? account.initialBalance;
+                            const isNeg = bal < 0;
+                            return (
+                                <div
+                                    key={account.id}
+                                    className="flex-shrink-0 snap-start rounded-2xl p-4 min-w-[160px] flex flex-col gap-2 shadow-sm"
+                                    style={{ background: `${account.color}18`, border: `1.5px solid ${account.color}40` }}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <div
+                                            className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-black shadow"
+                                            style={{ backgroundColor: account.color }}
+                                        >
+                                            {account.name.substring(0, 1).toUpperCase()}
+                                        </div>
+                                        <span className="text-[13px] font-bold text-slate-700 dark:text-slate-200 truncate max-w-[100px]">{account.name}</span>
+                                    </div>
+                                    <div>
+                                        <p className="text-[11px] text-slate-400 font-medium">Saldo atual</p>
+                                        <p className={`text-[18px] font-black leading-tight ${isNeg ? 'text-rose-500' : 'text-slate-900 dark:text-white'}`}>
+                                            {formatCurrency(bal, currency)}
+                                        </p>
+                                    </div>
+                                    {/* Mini barra de progresso do saldo inicial */}
+                                    {account.initialBalance > 0 && (
+                                        <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                            <div
+                                                className="h-full rounded-full transition-all"
+                                                style={{
+                                                    width: `${Math.min(100, Math.max(0, (bal / account.initialBalance) * 100))}%`,
+                                                    backgroundColor: account.color
+                                                }}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {/* Total consolidado */}
+                    <div className="flex justify-between items-center border-t border-slate-100 dark:border-white/5 pt-3">
+                        <span className="text-[13px] text-slate-500 font-medium">Total em contas</span>
+                        <span className={`text-[16px] font-black ${
+                            bankAccounts.reduce((s, a) => s + (a.currentBalance ?? a.initialBalance), 0) >= 0
+                                ? 'text-emerald-600 dark:text-emerald-400'
+                                : 'text-rose-500'
+                        }`}>
+                            {formatCurrency(
+                                bankAccounts.reduce((s, a) => s + (a.currentBalance ?? a.initialBalance), 0),
+                                currency
+                            )}
+                        </span>
+                    </div>
+                </motion.div>
+            )}
 
             {/* Planejamento / Metas Block */}
             <motion.div variants={itemVariants} className="bg-white dark:bg-[#1C1C1E] px-5 py-6 flex flex-col gap-4 rounded-[20px] shadow-sm border border-slate-100 dark:border-white/5 mx-4 mt-4">
